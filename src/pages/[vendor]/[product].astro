@@ -97,7 +97,7 @@ const canonicalUrl = new URL(canonicalPath, Astro.url.origin).toString();
 
 <Layout 
   title={`${product.name} — ${vendor.name}`} 
-  description={product.description || `جزئیات محصول ${product.name} در منوی دیجیتال ${vendor.name}`}
+  description={product.description || `جزئیات محصول ${product.name} در کاتالوگ دیجیتال ${vendor.name}`}
   ogImage={product.image}
   canonicalUrl={canonicalUrl}
 >
@@ -105,7 +105,7 @@ const canonicalUrl = new URL(canonicalPath, Astro.url.origin).toString();
     <div class="product-content-card">
       
       <!-- Minimalist Back Navigation Button (Floating top corner) -->
-      <a href={`/${vendor.slug}`} class="back-nav-btn" aria-label="بازگشت به منوی اصلی">
+      <a href={`/${vendor.slug}`} class="back-nav-btn" aria-label="بازگشت به کاتالوگ اصلی">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="back-arrow-svg">
           <!-- RTL Go Back Arrow (Points Right) -->
           <line x1="5" y1="12" x2="19" y2="12" />

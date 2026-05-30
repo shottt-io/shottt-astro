@@ -7,14 +7,14 @@ import { vendors as vendorsTable } from '../db/schema';
 const vendors = await db.select().from(vendorsTable);
 ---
 
-<Layout title="پلتفرم منوهای دیجیتال مدرن" description="کاتالوگ دیجیتال و منوهای مدرن مجموعه‌های برتر با طراحی ساده و زیبا">
+<Layout title="پلتفرم کاتالوگ‌های دیجیتال مدرن" description="کاتالوگ دیجیتال مدرن مجموعه‌های برتر با طراحی ساده و زیبا">
   <main class="landing-main">
     <header class="landing-header">
       <div class="landing-logo-container">
         <img src="/logo.png" alt="shottt" class="landing-logo-img" />
       </div>
       <h1 class="landing-title">دایرکتوری مجموعه‌ها</h1>
-      <p class="landing-subtitle">نمایشگاه کاتالوگ‌ها و منوهای دیجیتال مجموعه‌های برتر</p>
+      <p class="landing-subtitle">نمایشگاه کاتالوگ‌های دیجیتال مجموعه‌های برتر</p>
     </header>
 
     <div class="vendors-directory">
@@ -30,7 +30,7 @@ const vendors = await db.select().from(vendorsTable);
               <h2 class="vendor-name">{vendor.name}</h2>
               <p class="vendor-slogan">{vendor.slogan}</p>
               <div class="enter-btn">
-                <span>ورود به منو</span>
+                <span>مشاهده کاتالوگ</span>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="arrow-icon">
                   <line x1="19" y1="12" x2="5" y2="12" />
                   <polyline points="12 19 5 12 12 5" />

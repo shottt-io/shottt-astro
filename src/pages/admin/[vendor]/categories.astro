@@ -43,13 +43,13 @@ const dbCategories = await db
       </svg>
     </div>
     <div class="onboarding-text-box">
-      <span class="onboarding-title">راهنمای سازماندهی منو</span>
-      <p class="onboarding-desc">دسته‌بندی‌ها (مانند نوشیدنی‌های گرم، کیک‌ها یا غذاهای اصلی) پایه اصلی دسترسی مشتری به محصولات شما هستند. با مرتب‌سازی دسته‌ها، ترتیب نمایش آن‌ها در نسخه عمومی منو را تغییر دهید. دسته‌های جذاب‌تر را بالاتر قرار دهید تا فروش آن‌ها افزایش یابد.</p>
+      <span class="onboarding-title">راهنمای سازماندهی کاتالوگ</span>
+      <p class="onboarding-desc">دسته‌بندی‌ها (مانند پوشاک، آثار هنری، آرایشی یا محصولات دیجیتال) پایه اصلی دسترسی مشتری به محصولات شما هستند. با مرتب‌سازی دسته‌ها، ترتیب نمایش آن‌ها در نسخه عمومی کاتالوگ را تغییر دهید. دسته‌های جذاب‌تر را بالاتر قرار دهید تا فروش آن‌ها افزایش یابد.</p>
     </div>
   </div>
 
   <div class="admin-page-actions">
-    <h1 class="page-title-bold">دسته‌بندی‌های منو</h1>
+    <h1 class="page-title-bold">دسته‌بندی‌های کاتالوگ</h1>
     
     <button class="btn btn-primary" id="btn-add-category">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 0.875rem; height: 0.875rem;">
@@ -79,7 +79,7 @@ const dbCategories = await db
                 type="button" 
                 class={`cat-status-pill ${(!category.status || category.status === 'available') ? 'active' : ''}`} 
                 data-status="available" 
-                title="موجود در منو"
+                title="موجود در کاتالوگ"
               >
                 موجود
               </button>

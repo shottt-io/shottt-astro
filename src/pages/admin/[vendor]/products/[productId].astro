@@ -74,7 +74,7 @@ const product = productList[0];
     </div>
     <div class="onboarding-text-box">
       <span class="onboarding-title">راهنمای به‌روزرسانی اطلاعات</span>
-      <p class="onboarding-desc">شما در حال ویرایش محصول «{product.name}» هستید. اطلاعات اصلاح‌شده به صورت فوری در منوی دیجیتال مشتریان اعمال می‌گردد. در صورت تمایل می‌توانید محصول را با برداشتن مقادیر تخفیف ویژه به قیمت قبلی بازگردانید.</p>
+      <p class="onboarding-desc">شما در حال ویرایش محصول «{product.name}» هستید. اطلاعات اصلاح‌شده به صورت فوری در کاتالوگ دیجیتال مشتریان اعمال می‌گردد. در صورت تمایل می‌توانید محصول را با برداشتن مقادیر تخفیف ویژه به قیمت قبلی بازگردانید.</p>
     </div>
   </div>
 
@@ -116,9 +116,9 @@ const product = productList[0];
             </button>
           </div>
           <p class="status-explanation" id="status-explanation">
-            {(!product.status || product.status === 'available') && 'توضیح: محصول در منو نمایش داده شده و قیمت آن فعال است.'}
-            {(product.status === 'unavailable') && 'توضیح: محصول در منو نمایش داده می‌شود اما برچسب «ناموجود» خواهد خورد.'}
-            {(product.status === 'inactive') && 'توضیح: محصول به طور کامل از منوی سمت مشتری مخفی می‌شود.'}
+            {(!product.status || product.status === 'available') && 'توضیح: محصول در کاتالوگ نمایش داده شده و قیمت آن فعال است.'}
+            {(product.status === 'unavailable') && 'توضیح: محصول در کاتالوگ نمایش داده می‌شود اما برچسب «ناموجود» خواهد خورد.'}
+            {(product.status === 'inactive') && 'توضیح: محصول به طور کامل از کاتالوگ سمت مشتری مخفی می‌شود.'}
           </p>
         </div>
       </div>
@@ -169,7 +169,7 @@ const product = productList[0];
             </div>
 
             <p style="font-size: 0.6875rem; color: #737373; line-height: 1.5; margin: 0; text-align: right; direction: rtl;">
-              توضیح: به دلیل استفاده از حالت پینترستی در نمایش منو، محدودیتی در نسبت ابعاد تصویر ندارید؛ اتفاقاً برای این نوع چیدمان، بهتر است عکس‌ها عمودی باشند تا زیباتر نمایش داده شوند. می‌توانید هر یک از نسبت‌های بالا یا کادر آزاد را برای محصول خود تنظیم کنید.
+              توضیح: به دلیل استفاده از حالت پینترستی در نمایش کاتالوگ، محدودیتی در نسبت ابعاد تصویر ندارید؛ اتفاقاً برای این نوع چیدمان، بهتر است عکس‌ها عمودی باشند تا زیباتر نمایش داده شوند. می‌توانید هر یک از نسبت‌های بالا یا کادر آزاد را برای محصول خود تنظیم کنید.
             </p>
           </div>
           <div class="modal-footer">
@@ -218,7 +218,7 @@ const product = productList[0];
             name="discountText" 
             class="form-input" 
             value={product.discount ? product.discount.discountText : ''} 
-            placeholder="مثال: آفر ویژه، پیشنهاد باریستا" 
+            placeholder="مثال: آفر ویژه، پیشنهاد ویژه" 
           />
         </div>
       </div>
@@ -233,7 +233,7 @@ const product = productList[0];
       <div id="sections-section-wrapper" style={`display: ${product.sections && product.sections.length > 0 ? 'block' : 'none'}; border: 1px solid #e5e5e5; border-radius: 1rem; padding: 1.25rem; background: #ffffff; text-align: right; margin-bottom: 0.5rem; direction: rtl;`}>
         <!-- Info Tooltip for advanced sections -->
         <div style="background-color: #f8fafc; border-right: 3px solid #3b82f6; border-radius: 0.5rem; padding: 0.875rem; font-size: 0.75rem; color: #334155; line-height: 1.6; margin-bottom: 1rem;">
-          <strong>سکشن‌های محتوای داینامیک صفحه محصول:</strong> این بخش برای ساختاردهی و شخصی‌سازی چیدمان و محتوای صفحه این محصول کاربرد دارد. به جای جدول مشخصات فنی (Key-Value)، شما می‌توانید بلاک‌های محتوایی پویا مثل داستان محصول، روش تهیه سنتی، نکات سرو یا هر نوع محتوای اختصاصی دیگر را همراه با برچسب‌های مرتبط تعریف کنید تا در صفحه محصول نمایش داده شود.
+          <strong>سکشن‌های محتوای داینامیک صفحه محصول:</strong> این بخش برای ساختاردهی و شخصی‌سازی چیدمان و محتوای صفحه این محصول کاربرد دارد. به جای جدول مشخصات فنی (Key-Value)، شما می‌توانید بلاک‌های محتوایی پویا مثل مشخصات فنی، راهنمای استفاده، داستان برند یا هر نوع محتوای اختصاصی دیگر را همراه با برچسب‌های مرتبط تعریف کنید تا در صفحه محصول نمایش داده شود.
         </div>
 
         <div class="form-group">
@@ -261,9 +261,9 @@ const product = productList[0];
   const statusExplanation = document.getElementById('status-explanation');
 
   const statusExplanations: Record<string, string> = {
-    available: 'توضیح: محصول در منو نمایش داده شده و قیمت آن فعال است.',
-    unavailable: 'توضیح: محصول در منو نمایش داده می‌شود اما برچسب «ناموجود» خواهد خورد.',
-    inactive: 'توضیح: محصول به طور کامل از منوی سمت مشتری مخفی می‌شود.'
+    available: 'توضیح: محصول در کاتالوگ نمایش داده شده و قیمت آن فعال است.',
+    unavailable: 'توضیح: محصول در کاتالوگ نمایش داده می‌شود اما برچسب «ناموجود» خواهد خورد.',
+    inactive: 'توضیح: محصول به طور کامل از کاتالوگ سمت مشتری مخفی می‌شود.'
   };
 
   statusBtns.forEach(btn => {
@@ -447,7 +447,7 @@ const product = productList[0];
         <button type="button" class="btn-icon btn-icon-danger btn-remove-section" style="width: 1.5rem; height: 1.5rem; font-size: 0.6875rem;">✕</button>
       </div>
       <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-        <input type="text" class="form-input sec-title-input" placeholder="عنوان سکشن (مثال: داستان محصول، نحوه ساخت)" value="${title}" required style="padding: 0.5rem 0.75rem; font-size: 0.75rem;" />
+        <input type="text" class="form-input sec-title-input" placeholder="عنوان سکشن (مثال: مشخصات فنی، راهنمای استفاده)" value="${title}" required style="padding: 0.5rem 0.75rem; font-size: 0.75rem;" />
         <textarea class="form-input sec-desc-input" placeholder="محتوای متنی این سکشن..." style="padding: 0.5rem 0.75rem; font-size: 0.75rem; resize: vertical;" rows="2">${desc}</textarea>
         
         <div>

@@ -37,7 +37,7 @@ const unifiedSlogan = vendor.slogan || vendor.description;
     </div>
     <div class="onboarding-text-box">
       <span class="onboarding-title">راهنمای بهینه‌سازی شناسنامه مجموعه</span>
-      <p class="onboarding-desc">شعار و توضیحات کوتاه مجموعه به عنوان زیرعنوان اصلی در هدر منو ظاهر می‌شود. برای حفظ زیبایی بصری منوی دیجیتال مجموعه، از جملات کوتاه، تاثیرگذار و متمرکز (حداکثر ۱۰۰ کاراکتر) استفاده کنید.</p>
+      <p class="onboarding-desc">شعار و توضیحات کوتاه مجموعه به عنوان زیرعنوان اصلی در هدر کاتالوگ ظاهر می‌شود. برای حفظ زیبایی بصری کاتالوگ دیجیتال مجموعه، از جملات کوتاه، تاثیرگذار و متمرکز (حداکثر ۱۰۰ کاراکتر) استفاده کنید.</p>
     </div>
   </div>
 
@@ -59,10 +59,14 @@ const unifiedSlogan = vendor.slogan || vendor.description;
           <option value="رستوران" selected={vendor.type === 'رستوران' || vendor.type === 'رستوران مدرن'}>رستوران</option>
           <option value="کافه رستوران" selected={vendor.type === 'کافه رستوران' || vendor.type === 'رستوران مدرن فرانسوی-ایرانی'}>کافه رستوران</option>
           <option value="نان و شیرینی" selected={vendor.type === 'نان و شیرینی' || vendor.type === 'بوتیک قنادی فرانسوی' || vendor.type === 'قنادی و بوتیک شیرینی'}>نان و شیرینی</option>
+          <option value="پوشاک و اکسسوری" selected={vendor.type === 'پوشاک و اکسسوری'}>پوشاک و اکسسوری</option>
+          <option value="گالری و آثار هنری" selected={vendor.type === 'گالری و آثار هنری'}>گالری و آثار هنری</option>
+          <option value="فروشگاه دیجیتال" selected={vendor.type === 'فروشگاه دیجیتال'}>فروشگاه دیجیتال</option>
+          <option value="آرایشی و بهداشتی" selected={vendor.type === 'آرایشی و بهداشتی'}>آرایشی و بهداشتی</option>
           <option value="آجیل و خشکبار" selected={vendor.type === 'آجیل و خشکبار'}>آجیل و خشکبار</option>
           <option value="آبمیوه بستنی" selected={vendor.type === 'آبمیوه بستنی'}>آبمیوه بستنی</option>
           <option value="سایر" selected={vendor.type === 'سایر'}>سایر</option>
-          {vendor.type && !['کافه', 'کافه تخصصی', 'کافه گالری', 'رستوران', 'رستوران مدرن', 'کافه رستوران', 'رستوران مدرن فرانسوی-ایرانی', 'نان و شیرینی', 'بوتیک قنادی فرانسوی', 'قنادی و بوتیک شیرینی', 'آجیل و خشکبار', 'آبمیوه بستنی', 'سایر'].includes(vendor.type) && (
+          {vendor.type && !['کافه', 'کافه تخصصی', 'کافه گالری', 'رستوران', 'رستوران مدرن', 'کافه رستوران', 'رستوران مدرن فرانسوی-ایرانی', 'نان و شیرینی', 'بوتیک قنادی فرانسوی', 'قنادی و بوتیک شیرینی', 'پوشاک و اکسسوری', 'گالری و آثار هنری', 'فروشگاه دیجیتال', 'آرایشی و بهداشتی', 'آجیل و خشکبار', 'آبمیوه بستنی', 'سایر'].includes(vendor.type) && (
             <option value={vendor.type} selected>{vendor.type}</option>
           )}
         </select>
@@ -75,7 +79,7 @@ const unifiedSlogan = vendor.slogan || vendor.description;
           name="slogan" 
           class="form-input" 
           value={unifiedSlogan} 
-          placeholder="شعار یا توضیح کوتاهی که در هدر منو نمایش داده می‌شود..." 
+          placeholder="شعار یا توضیح کوتاهی که در هدر کاتالوگ نمایش داده می‌شود..." 
           required 
         />
       </div>
@@ -237,11 +241,21 @@ const unifiedSlogan = vendor.slogan || vendor.description;
     const logo = (formData.get('logo') as string).trim();
 
     // Dynamically assign logoIcon based on the selected vendor type
-    let logoIcon = 'utensils';
+    let logoIcon = 'store';
     if (type.includes('کافه') || type.toLowerCase().includes('cafe')) {
       logoIcon = 'coffee';
+    } else if (type.includes('رستوران') || type.toLowerCase().includes('restaurant')) {
+      logoIcon = 'utensils';
     } else if (type.includes('قنادی') || type.includes('شیرینی') || type.toLowerCase().includes('pastry') || type.toLowerCase().includes('bakery')) {
       logoIcon = 'cake';
+    } else if (type.includes('پوشاک') || type.includes('لباس')) {
+      logoIcon = 'shirt';
+    } else if (type.includes('گالری') || type.includes('هنر')) {
+      logoIcon = 'palette';
+    } else if (type.includes('دیجیتال')) {
+      logoIcon = 'laptop';
+    } else if (type.includes('آرایشی')) {
+      logoIcon = 'sparkles';
     }
 
     // Slogan and description are unified as requested

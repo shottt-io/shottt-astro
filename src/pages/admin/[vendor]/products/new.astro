@@ -54,7 +54,7 @@ const dbCategories = await db
     </div>
     <div class="onboarding-text-box">
       <span class="onboarding-title">راهنمای ثبت محصول موفق</span>
-      <p class="onboarding-desc">تصویر محصول را از سرویس‌های آنلاین آپلود کرده و آدرس آن را اینجا قرار دهید. بخش «تخفیف ویژه» با ایجاد تضاد قیمت قدیمی و جدید، مشتری را ترغیب به خرید می‌کند. سکشن‌های داینامیک در پایین فرم برای ثبت شناسنامه، ترکیبات، ارزش غذایی یا روش پخت محصول است.</p>
+      <p class="onboarding-desc">تصویر محصول را آپلود کرده و برش دهید. بخش «تخفیف ویژه» با ایجاد تضاد قیمت قدیمی و جدید، مشتری را ترغیب به خرید می‌کند. سکشن‌های داینامیک در پایین فرم برای ثبت ویژگی‌ها، راهنماها، مشخصات فنی یا داستان برند محصول است.</p>
     </div>
   </div>
 
@@ -70,7 +70,7 @@ const dbCategories = await db
 
         <div class="form-group">
           <label class="form-label">نام محصول *</label>
-          <input type="text" name="name" class="form-input" placeholder="مثال: کاپوچینو کارامل" required />
+          <input type="text" name="name" class="form-input" placeholder="مثال: ساعت هوشمند سری ۸" required />
         </div>
 
         <div class="form-group">
@@ -101,7 +101,7 @@ const dbCategories = await db
               </button>
             </div>
             <p class="status-explanation" id="status-explanation">
-              توضیح: محصول در منو نمایش داده شده و قیمت آن فعال است.
+              توضیح: محصول در کاتالوگ نمایش داده شده و قیمت آن فعال است.
             </p>
           </div>
         </div>
@@ -113,7 +113,7 @@ const dbCategories = await db
 
         <div class="form-group">
           <label class="form-label">توضیح کوتاه محصول</label>
-          <textarea name="description" class="form-input" rows="3" placeholder="توضیح جذاب و کوتاهی درباره بافت، مواد و طعم محصول..."></textarea>
+          <textarea name="description" class="form-input" rows="3" placeholder="توضیح جذاب و کوتاهی درباره مشخصات و ویژگی‌های محصول..."></textarea>
         </div>
 
         <div class="form-group">
@@ -152,7 +152,7 @@ const dbCategories = await db
               </div>
 
               <p style="font-size: 0.6875rem; color: #737373; line-height: 1.5; margin: 0; text-align: right; direction: rtl;">
-                توضیح: به دلیل استفاده از حالت پینترستی در نمایش منو، محدودیتی در نسبت ابعاد تصویر ندارید؛ اتفاقاً برای این نوع چیدمان، بهتر است عکس‌ها عمودی باشند تا زیباتر نمایش داده شوند. می‌توانید هر یک از نسبت‌های بالا یا کادر آزاد را برای محصول خود تنظیم کنید.
+                توضیح: به دلیل استفاده از حالت پینترستی در نمایش کاتالوگ، محدودیتی در نسبت ابعاد تصویر ندارید؛ اتفاقاً برای این نوع چیدمان، بهتر است عکس‌ها عمودی باشند تا زیباتر نمایش داده شوند. می‌توانید هر یک از نسبت‌های بالا یا کادر آزاد را برای محصول خود تنظیم کنید.
               </p>
             </div>
             <div class="modal-footer">
@@ -190,7 +190,7 @@ const dbCategories = await db
           </div>
           <div class="form-group" style="margin-bottom: 0;">
             <label class="form-label">عنوان تخفیف / لیبل تشویقی</label>
-            <input type="text" name="discountText" class="form-input" placeholder="مثال: آفر ویژه، پیشنهاد باریستا" />
+            <input type="text" name="discountText" class="form-input" placeholder="مثال: آفر ویژه، پیشنهاد ویژه" />
           </div>
         </div>
 
@@ -204,7 +204,7 @@ const dbCategories = await db
         <div id="sections-section-wrapper" style="display: none; border: 1px solid #e5e5e5; border-radius: 1rem; padding: 1.25rem; background: #ffffff; text-align: right; margin-bottom: 0.5rem; direction: rtl;">
           <!-- Info Tooltip for advanced sections -->
           <div style="background-color: #f8fafc; border-right: 3px solid #3b82f6; border-radius: 0.5rem; padding: 0.875rem; font-size: 0.75rem; color: #334155; line-height: 1.6; margin-bottom: 1rem;">
-            <strong>سکشن‌های محتوای داینامیک صفحه محصول:</strong> این بخش برای ساختاردهی و شخصی‌سازی چیدمان و محتوای صفحه این محصول کاربرد دارد. به جای جدول مشخصات فنی (Key-Value)، شما می‌توانید بلاک‌های محتوایی پویا مثل داستان محصول، روش تهیه سنتی، نکات سرو یا هر نوع محتوای اختصاصی دیگر را همراه با برچسب‌های مرتبط تعریف کنید تا در صفحه محصول نمایش داده شود.
+            <strong>سکشن‌های محتوای داینامیک صفحه محصول:</strong> این بخش برای ساختاردهی و شخصی‌سازی چیدمان و محتوای صفحه این محصول کاربرد دارد. به جای جدول مشخصات فنی (Key-Value)، شما می‌توانید بلاک‌های محتوایی پویا مثل مشخصات فنی، راهنمای استفاده، داستان برند یا هر نوع محتوای اختصاصی دیگر را همراه با برچسب‌های مرتبط تعریف کنید تا در صفحه محصول نمایش داده شود.
           </div>
 
           <div class="form-group">
@@ -233,9 +233,9 @@ const dbCategories = await db
   const statusExplanation = document.getElementById('status-explanation');
 
   const statusExplanations: Record<string, string> = {
-    available: 'توضیح: محصول در منو نمایش داده شده و قیمت آن فعال است.',
-    unavailable: 'توضیح: محصول در منو نمایش داده می‌شود اما برچسب «ناموجود» خواهد خورد.',
-    inactive: 'توضیح: محصول به طور کامل از منوی سمت مشتری مخفی می‌شود.'
+    available: 'توضیح: محصول در کاتالوگ نمایش داده شده و قیمت آن فعال است.',
+    unavailable: 'توضیح: محصول در کاتالوگ نمایش داده می‌شود اما برچسب «ناموجود» خواهد خورد.',
+    inactive: 'توضیح: محصول به طور کامل از کاتالوگ سمت مشتری مخفی می‌شود.'
   };
 
   statusBtns.forEach(btn => {
@@ -409,7 +409,7 @@ const dbCategories = await db
         <button type="button" class="btn-icon btn-icon-danger btn-remove-section" style="width: 1.5rem; height: 1.5rem; font-size: 0.6875rem;">✕</button>
       </div>
       <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-        <input type="text" class="form-input sec-title-input" placeholder="عنوان سکشن (مثال: داستان محصول، نحوه ساخت)" value="${title}" required style="padding: 0.5rem 0.75rem; font-size: 0.75rem;" />
+        <input type="text" class="form-input sec-title-input" placeholder="عنوان سکشن (مثال: مشخصات فنی، راهنمای استفاده)" value="${title}" required style="padding: 0.5rem 0.75rem; font-size: 0.75rem;" />
         <textarea class="form-input sec-desc-input" placeholder="محتوای متنی این سکشن..." style="padding: 0.5rem 0.75rem; font-size: 0.75rem; resize: vertical;" rows="2">${desc}</textarea>
         
         <div>

@@ -46,6 +46,39 @@ const { name, type, slogan, logoIcon, logo } = Astro.props;
               <path d="M8 21h8" />
             </svg>
           )}
+          {logoIcon === 'shirt' && (
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="logo-svg">
+              <path d="M20.38 3.46L16 6.14V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2.14L3.62 3.46a2 2 0 0 0-2.38.9L.08 6.78a2 2 0 0 0 .61 2.76L4 11.2V20a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8.8l3.31-2.22a2 2 0 0 0 .61-2.76l-1.16-2.42a2 2 0 0 0-2.38-.9z" />
+            </svg>
+          )}
+          {logoIcon === 'palette' && (
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="logo-svg">
+              <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 14.7255 3.09032 17.1962 4.85857 19C5.03442 19.1758 5.27581 19.2625 5.51864 19.2319L7.49842 18.9818C7.99406 18.919 8.44146 19.2274 8.56396 19.7118L9.04351 21.6067C9.09703 21.8183 9.25667 21.9868 9.46743 22.046C10.2882 22.2764 11.1396 22.3995 12 22Z" />
+              <circle cx="7.5" cy="10.5" r="1.5" fill="currentColor" />
+              <circle cx="11.5" cy="7.5" r="1.5" fill="currentColor" />
+              <circle cx="16.5" cy="9.5" r="1.5" fill="currentColor" />
+              <circle cx="15.5" cy="14.5" r="1.5" fill="currentColor" />
+            </svg>
+          )}
+          {logoIcon === 'laptop' && (
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="logo-svg">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+              <line x1="2" y1="20" x2="22" y2="20" />
+              <line x1="12" y1="17" x2="12" y2="20" />
+            </svg>
+          )}
+          {logoIcon === 'sparkles' && (
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="logo-svg">
+              <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-.767a.5.5 0 0 1 0-.992l6.135-.767A2 2 0 0 0 8.5 7.112l.767-6.135a.5.5 0 0 1 .992 0l.767 6.135a2 2 0 0 0 1.437 1.425l6.135.767a.5.5 0 0 1 0 .992l-6.135.767a2 2 0 0 0-1.437 1.425l-.767 6.135a.5.5 0 0 1-.992 0z" />
+              <path d="M20 3a.5.5 0 0 0-.39-.11l-1.534.192a.5.5 0 0 1-.359-.358l-.192-1.534a.5.5 0 0 0-.99 0L16.343 2.73a.5.5 0 0 1-.359.358L14.45 3.28a.5.5 0 0 0 0 .99l1.534.192a.5.5 0 0 1 .359.358l.192 1.534a.5.5 0 0 0 .99 0l.192-1.534a.5.5 0 0 1 .359-.358l1.534-.192A.5.5 0 0 0 20 3z" />
+            </svg>
+          )}
+          {(logoIcon === 'store' || !['coffee', 'utensils', 'cake', 'shirt', 'palette', 'laptop', 'sparkles'].includes(logoIcon)) && (
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="logo-svg">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+              <polyline points="9 22 9 12 15 12 15 22" />
+            </svg>
+          )}
         </div>
       )}
       

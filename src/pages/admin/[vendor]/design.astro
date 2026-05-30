@@ -22,7 +22,7 @@ if (vendorList.length === 0) {
 const vendor = vendorList[0];
 ---
 
-<AdminLayout title="طراحی و قالب منو" activeTab="design" vendorSlug={vendorSlug}>
+<AdminLayout title="طراحی و قالب کاتالوگ" activeTab="design" vendorSlug={vendorSlug}>
   <!-- Onboarding banner -->
   <div class="onboarding-banner">
     <div class="onboarding-icon-box">
@@ -34,12 +34,12 @@ const vendor = vendorList[0];
     </div>
     <div class="onboarding-text-box">
       <span class="onboarding-title">راهنمای انتخاب قالب مناسب</span>
-      <p class="onboarding-desc">چیدمان منو هویت بصری کسب‌وکار شما را شکل می‌دهد. اگر کیفیت عکاسی محصولات بالا است و طعم‌ها حرف اول را می‌زنند (مانند قنادی‌ها و کافه‌ها)، حالت پینترستی بهترین انتخاب است. اگر منویی طولانی با تنوع محصول زیاد دارید، حالت ساده دسترسی را سریع‌تر می‌کند.</p>
+      <p class="onboarding-desc">چیدمان کاتالوگ هویت بصری کسب‌وکار شما را شکل می‌دهد. اگر کیفیت عکاسی محصولات بالا است و تصاویر حرف اول را می‌زنند (مانند بوتیک‌ها، گالری‌های هنری و مجموعه‌های لوکس)، حالت پینترستی بهترین انتخاب است. اگر کاتالوگی طولانی با تنوع محصول زیاد دارید، حالت ساده دسترسی را سریع‌تر می‌کند.</p>
     </div>
   </div>
 
   <div class="admin-page-actions">
-    <h1 class="page-title-bold">چیدمان و قالب نمایش منو</h1>
+    <h1 class="page-title-bold">چیدمان و قالب نمایش کاتالوگ</h1>
   </div>
 
   <div class="admin-card">
@@ -60,7 +60,7 @@ const vendor = vendorList[0];
             />
             <div class="layout-card-info">
               <span class="layout-card-title">حالت پینترستی</span>
-              <p class="layout-card-desc">اگر تمایل به نمایش عکس‌محور و گالری کاتالوگ خود دارید. مناسب برای کافه‌های تخصصی و شیرینی‌پزی‌های لوکس که کیفیت تصویر برایشان کلیدی است. در این حالت عکس‌های عمودی زیباتر دیده می‌شوند.</p>
+              <p class="layout-card-desc">اگر تمایل به نمایش عکس‌محور و گالری کاتالوگ خود دارید. مناسب برای فروشگاه‌های خاص، گالری‌ها و مجموعه‌های لوکس که کیفیت تصویر برایشان کلیدی است. در این حالت عکس‌های عمودی زیباتر دیده می‌شوند.</p>
             </div>
             <!-- Graphic Mockup -->
             <div class="layout-preview-mockup">
@@ -83,7 +83,7 @@ const vendor = vendorList[0];
             />
             <div class="layout-card-info">
               <span class="layout-card-title">حالت ساده</span>
-              <p class="layout-card-desc">نمایش منظم و جمع‌وجور محصولات، با تمرکز بیشتر روی متن و دسترسی آسان. مناسب برای رستوران‌های کلاسیک، فست‌فودها و کاتالوگ‌هایی با تنوع اقلام بالا.</p>
+              <p class="layout-card-desc">نمایش منظم و جمع‌وجور محصولات، با تمرکز بیشتر روی متن و دسترسی آسان. مناسب برای فروشگاه‌های زنجیره‌ای، ارائه‌دهندگان خدمات و کاتالوگ‌هایی با تنوع اقلام بالا.</p>
             </div>
             <!-- Graphic Mockup -->
             <div class="layout-preview-mockup">
@@ -142,7 +142,7 @@ const vendor = vendorList[0];
       });
 
       if (response.ok) {
-        alert('طراحی و چیدمان منو با موفقیت به‌روزرسانی شد.');
+        alert('طراحی و چیدمان کاتالوگ با موفقیت به‌روزرسانی شد.');
         window.location.reload();
       } else {
         alert('خطا در ذخیره‌سازی اطلاعات.');
