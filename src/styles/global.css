@@ -1,4 +1,42 @@
-@import url('https://fonts.googleapis.com/css2?family=Estedad:wght@100..900&family=Outfit:wght@300;400;600;800;900&display=swap');
+/* Google Fonts Outfit Import (Must precede all other statements) */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&display=swap');
+
+/* Local Estedad font-face declarations (weights: 300, 400, 500, 700, 900) */
+@font-face {
+  font-family: 'Estedad';
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url('/fonts/estedad/estedad-arabic-300-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Estedad';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/estedad/estedad-arabic-400-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Estedad';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/estedad/estedad-arabic-500-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Estedad';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/estedad/estedad-arabic-700-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Estedad';
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+  src: url('/fonts/estedad/estedad-arabic-900-normal.woff2') format('woff2');
+}
 
 /* Reset and Base Styles */
 *, *::before, *::after {

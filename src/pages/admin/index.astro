@@ -53,9 +53,16 @@ if (userVendors.length === 1) {
       </div>
     </div>
     
-    <a href="/api/auth/logout" class="btn btn-secondary" style="font-size: 0.75rem; padding: 0.5rem 1rem;">
-      خروج از حساب
-    </a>
+    <div style="display: flex; gap: 0.5rem; align-items: center;">
+      {session.username === 'super' && (
+        <a href="/admin/super" class="btn btn-primary" style="font-size: 0.75rem; padding: 0.5rem 1rem;">
+          پنل سازمانی (مدیریت کل)
+        </a>
+      )}
+      <a href="/api/auth/logout" class="btn btn-secondary" style="font-size: 0.75rem; padding: 0.5rem 1rem;">
+        خروج از حساب
+      </a>
+    </div>
   </header>
 
   <main class="admin-dashboard-main">
