@@ -11,39 +11,18 @@ const vendors = await db.select().from(vendorsTable);
   <main class="landing-main">
     <header class="landing-header">
       <div class="landing-logo-container">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 170 60" fill="none" class="landing-logo-svg">
-          <defs>
-            <mask id="landing-s-mask">
-              <rect x="0" y="0" width="170" height="60" fill="#ffffff" />
-              <path d="M 68 40 C 68 30, 32 30, 32 40 C 32 49, 68 51, 68 60 C 68 70, 32 70, 32 60" 
-                    stroke="#000000" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none"
-                    transform="translate(25, 30) scale(0.35) translate(-50, -50)" />
-            </mask>
-          </defs>
-
-          <!-- Solid circle with transparent 'S' cutout -->
-          <circle cx="25" cy="30" r="18" fill="currentColor" mask="url(#landing-s-mask)" />
-
-          <!-- Typography "shottt" -->
-          <g stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
-            <!-- s -->
-            <path d="M 78 29 C 78 25, 66 25, 66 29 C 66 34, 78 34, 78 39 C 78 44, 66 44, 66 40" />
-            
-            <!-- h -->
-            <path d="M 88 15 L 88 44" />
-            <path d="M 88 29 C 91 25, 100 25, 100 30 L 100 44" />
-            
-            <!-- o -->
-            <circle cx="112" cy="35" r="8.5" />
-            
-            <!-- t1, t2, t3 -->
-            <path d="M 129 19 L 129 44" />
-            <path d="M 139 19 L 139 44" />
-            <path d="M 149 19 L 149 44" />
-            
-            <!-- Connected crossbar for all three t's -->
-            <path d="M 124 27 L 154 27" />
-          </g>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 110 38" fill="none" class="landing-logo-svg">
+          <style>
+            @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;900&amp;display=swap');
+            .logo-text-landing {
+              font-family: 'Outfit', -apple-system, sans-serif;
+              font-size: 26px;
+              fill: currentColor;
+            }
+          </style>
+          <text x="2" y="27" class="logo-text-landing" letter-spacing="-0.04em">
+            <tspan font-weight="300" opacity="0.8">sho</tspan><tspan font-weight="900" letter-spacing="-0.02em">ttt</tspan><tspan font-weight="900" fill="#f59e0b">.</tspan>
+          </text>
         </svg>
       </div>
       <h1 class="landing-title">دایرکتوری مجموعه‌ها</h1>

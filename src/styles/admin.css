@@ -39,7 +39,7 @@ body {
 
 .platform-logo-svg {
   height: 1.5rem; /* extremely minimal and sleek (24px) */
-  width: auto;
+  width: 4.375rem; /* ~70px (guarantees correct aspect ratio rendering) */
 }
 
 .sidenav-header {
