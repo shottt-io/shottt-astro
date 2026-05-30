@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 
-# Stage 1: Build the application
+# Stage 1: Build the application and prepare production dependencies
 FROM node:22-alpine AS builder
 WORKDIR /app
 
@@ -25,28 +25,11 @@ COPY . .
 # Build the Astro SSR application
 RUN npm run build
 
-
-# Stage 2: Install production dependencies only
-FROM node:22-alpine AS deps
-WORKDIR /app
-
-ENV CYPRESS_INSTALL_BINARY=0
-
-# Configure npm registry mirror
-RUN npm config set registry https://repo.hmirror.ir/npm
-
-# Copy package files
-COPY package*.json ./
-
-# Replace registry in package-lock.json to use the mirror
-RUN sed -i 's#https://registry.npmjs.org/#https://repo.hmirror.ir/npm/#g' package-lock.json
-
-# Install only production dependencies using caching
-RUN --mount=type=cache,target=/root/.npm \
-    npm ci --omit=dev --registry=https://repo.hmirror.ir/npm
+# Prune devDependencies to keep only production dependencies in node_modules
+RUN npm prune --omit=dev
 
 
-# Stage 3: Runtime image
+# Stage 2: Runtime image
 FROM node:22-alpine AS runner
 WORKDIR /app
 
@@ -58,11 +41,9 @@ ENV PORT=3000
 # Expose the server port
 EXPOSE 3000
 
-# Copy runtime dependencies
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/package.json ./package.json
-
-# Copy built application output
+# Copy production node_modules and built output from builder
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/dist ./dist
 
 # Start the server
