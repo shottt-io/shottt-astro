@@ -40,7 +40,7 @@ async function seed() {
         description: vendor.description,
         defaultLayout: vendor.defaultLayout,
         logoIcon: vendor.logoIcon,
-        coverImage: vendor.coverImage,
+        logo: vendor.logo,
       }).returning({ id: dbVendors.id });
 
       const vendorId = insertedVendor.id;

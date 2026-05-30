@@ -21,7 +21,7 @@ export const vendors = pgTable('vendors', {
   description: text('description').notNull(),
   defaultLayout: varchar('default_layout', { length: 50 }).default('pinterest').notNull(),
   logoIcon: varchar('logo_icon', { length: 50 }).notNull(),
-  coverImage: varchar('cover_image', { length: 2048 }).notNull(),
+  logo: varchar('logo', { length: 2048 }).notNull(),
 });
 
 // 2. Categories Table

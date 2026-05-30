@@ -10,10 +10,48 @@ const vendors = await db.select().from(vendorsTable);
 <Layout title="پلتفرم منوهای دیجیتال مدرن" description="کاتالوگ دیجیتال و منوهای مدرن مجموعه‌های برتر با طراحی ساده و زیبا">
   <main class="landing-main">
     <header class="landing-header">
-      <div class="logo-circle">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="landing-logo-svg">
-          <circle cx="12" cy="12" r="10" />
-          <path d="M12 6v6l4 2" />
+      <div class="landing-logo-container">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 170 60" fill="none" class="landing-logo-svg">
+          <!-- Logo Mark Icon (Scaled and translated) -->
+          <g transform="translate(10, 10)">
+            <!-- Viewfinder corners -->
+            <path d="M 10 15 V 10 H 15" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+            <path d="M 30 15 V 10 H 25" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+            <path d="M 10 25 V 30 H 15" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+            <path d="M 30 25 V 30 H 25" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+            
+            <!-- Camera lens / Shutter ring -->
+            <circle cx="20" cy="20" r="7.5" stroke="currentColor" stroke-width="2.5" fill="none" />
+            
+            <!-- Shutter blades -->
+            <path d="M 20 12.5 L 20 16.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+            <path d="M 13.5 24 L 17 21.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+            <path d="M 26.5 24 L 23 21.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+            
+            <!-- Inner core lens -->
+            <circle cx="20" cy="20" r="2" fill="currentColor" />
+          </g>
+
+          <!-- Typography "shottt" -->
+          <g stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+            <!-- s -->
+            <path d="M 78 29 C 78 25, 66 25, 66 29 C 66 34, 78 34, 78 39 C 78 44, 66 44, 66 40" />
+            
+            <!-- h -->
+            <path d="M 88 15 L 88 44" />
+            <path d="M 88 29 C 91 25, 100 25, 100 30 L 100 44" />
+            
+            <!-- o -->
+            <circle cx="112" cy="35" r="8.5" />
+            
+            <!-- t1, t2, t3 -->
+            <path d="M 129 19 L 129 44" />
+            <path d="M 139 19 L 139 44" />
+            <path d="M 149 19 L 149 44" />
+            
+            <!-- Connected crossbar for all three t's -->
+            <path d="M 124 27 L 154 27" />
+          </g>
         </svg>
       </div>
       <h1 class="landing-title">دایرکتوری مجموعه‌ها</h1>
@@ -25,7 +63,7 @@ const vendors = await db.select().from(vendorsTable);
         <a href={`/${vendor.slug}`} class="vendor-card-link">
           <article class="vendor-card">
             <div class="cover-wrapper image-zoom-container">
-              <img src={vendor.coverImage} alt={vendor.name} class="vendor-cover" loading="lazy" />
+              <img src={vendor.logo} alt={vendor.name} class="vendor-cover" loading="lazy" />
               <div class="vendor-badge">{vendor.type}</div>
             </div>
             
@@ -72,11 +110,8 @@ const vendors = await db.select().from(vendorsTable);
     gap: 0.75rem;
   }
 
-  .logo-circle {
-    width: 3rem;
+  .landing-logo-container {
     height: 3rem;
-    border-radius: 50%;
-    background-color: #f5f5f5;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -85,8 +120,8 @@ const vendors = await db.select().from(vendorsTable);
   }
 
   .landing-logo-svg {
-    width: 1.5rem;
-    height: 1.5rem;
+    height: 2.25rem;
+    width: auto;
   }
 
   .landing-title {

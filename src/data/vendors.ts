@@ -34,7 +34,7 @@ export interface Vendor {
   description: string;
   defaultLayout: 'pinterest' | 'simple';
   logoIcon: string;
-  coverImage: string;
+  logo: string;
   categories: Category[];
 }
 
@@ -47,7 +47,7 @@ export const vendors: Vendor[] = [
     description: 'مکانی آرامش‌بخش برای دوستداران قهوه تخصصی در فضایی سرشار از نور طبیعی و دکوراسیون مدرن و مینیمال.',
     defaultLayout: 'pinterest',
     logoIcon: 'coffee',
-    coverImage: 'https://images.unsplash.com/photo-1498804103079-a6351b050096?q=80&w=1200&auto=format&fit=crop',
+    logo: 'https://images.unsplash.com/photo-1498804103079-a6351b050096?q=80&w=1200&auto=format&fit=crop',
     categories: [
       {
         id: 'hot-drinks',
@@ -256,7 +256,7 @@ export const vendors: Vendor[] = [
     description: 'روایتی نوین از طعم‌های آشنای اصیل ایرانی با بکارگیری تکنیک‌های پیچیده آشپزی کلاسیک فرانسوی در ظروفی مینیمال.',
     defaultLayout: 'simple',
     logoIcon: 'utensils',
-    coverImage: 'https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?q=80&w=1200&auto=format&fit=crop',
+    logo: 'https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?q=80&w=1200&auto=format&fit=crop',
     categories: [
       {
         id: 'starters',
@@ -410,7 +410,7 @@ export const vendors: Vendor[] = [
     description: 'کارگاه تولید تخصصی و بوتیک قنادی با تمرکز بر تکنیک‌های مدرن فرانسوی و استفاده از کره حیوانی وارداتی اعلا.',
     defaultLayout: 'pinterest',
     logoIcon: 'cake',
-    coverImage: 'https://images.unsplash.com/photo-1517433456452-f9633a875f6f?q=80&w=1200&auto=format&fit=crop',
+    logo: 'https://images.unsplash.com/photo-1517433456452-f9633a875f6f?q=80&w=1200&auto=format&fit=crop',
     categories: [
       {
         id: 'pastries',

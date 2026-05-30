@@ -81,8 +81,37 @@ const unifiedSlogan = vendor.slogan || vendor.description;
       </div>
 
       <div class="form-group">
-        <label class="form-label">آدرس تصویر کاور مجموعه (URL) *</label>
-        <input type="url" name="coverImage" class="form-input" value={vendor.coverImage} required />
+        <label class="form-label">لوگوی مجموعه *</label>
+        <div class="image-upload-wrapper">
+          <input type="file" id="logo-file-input" accept="image/*" style="display: none;" />
+          <input type="hidden" name="logo" id="logo-url-hidden" value={vendor.logo} />
+          <div class="image-preview-container" id="logo-preview-container">
+            <img src={vendor.logo} id="logo-preview" class="image-preview-box" />
+            <div style="display: flex; flex-direction: column; gap: 0.375rem; align-items: flex-start;">
+              <button type="button" class="btn btn-secondary" id="btn-select-logo">انتخاب تصویر لوگو</button>
+              <span style="font-size: 0.6875rem; color: #737373;">پسوند پیشنهادی: WebP، ابعاد مربع (۱:۱)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cropper Modal -->
+      <div id="cropper-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+          <div class="modal-header">
+            <span class="modal-title">برش و بهینه‌سازی لوگو</span>
+            <button type="button" class="modal-close" id="btn-close-cropper">✕</button>
+          </div>
+          <div class="modal-body">
+            <div class="cropper-container">
+              <img id="cropper-image" src="" style="max-width: 100%; max-height: 350px; display: block;" />
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" id="btn-crop-save">برش و آپلود</button>
+            <button type="button" class="btn btn-secondary" id="btn-crop-cancel">انصراف</button>
+          </div>
+        </div>
       </div>
 
       <button type="submit" class="btn btn-primary btn-full" style="margin-top: 1.5rem; padding: 0.9rem;">
@@ -93,6 +122,110 @@ const unifiedSlogan = vendor.slogan || vendor.description;
 </AdminLayout>
 
 <script>
+  // Handle Logo Upload & Cropper
+  const selectLogoBtn = document.getElementById('btn-select-logo');
+  const logoFileInput = document.getElementById('logo-file-input') as HTMLInputElement;
+  const logoPreview = document.getElementById('logo-preview') as HTMLImageElement;
+  const logoUrlHidden = document.getElementById('logo-url-hidden') as HTMLInputElement;
+
+  const cropperModal = document.getElementById('cropper-modal') as HTMLDivElement;
+  const cropperImage = document.getElementById('cropper-image') as HTMLImageElement;
+  const closeCropperBtn = document.getElementById('btn-close-cropper');
+  const cropCancelBtn = document.getElementById('btn-crop-cancel');
+  const cropSaveBtn = document.getElementById('btn-crop-save');
+
+  let cropper: any = null;
+
+  selectLogoBtn?.addEventListener('click', () => {
+    logoFileInput?.click();
+  });
+
+  logoFileInput?.addEventListener('change', () => {
+    const files = logoFileInput.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (cropperImage) {
+          cropperImage.src = reader.result as string;
+          cropperModal.style.display = 'flex';
+          
+          if (cropper) {
+            cropper.destroy();
+          }
+          // @ts-ignore
+          cropper = new Cropper(cropperImage, {
+            aspectRatio: 1,
+            viewMode: 1,
+            autoCropArea: 1,
+          });
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  function closeCropper() {
+    cropperModal.style.display = 'none';
+    if (cropper) {
+      cropper.destroy();
+      cropper = null;
+    }
+    logoFileInput.value = '';
+  }
+
+  closeCropperBtn?.addEventListener('click', closeCropper);
+  cropCancelBtn?.addEventListener('click', closeCropper);
+
+  cropSaveBtn?.addEventListener('click', () => {
+    if (!cropper) return;
+
+    const canvas = cropper.getCroppedCanvas({
+      width: 600,
+      height: 600,
+      imageSmoothingEnabled: true,
+      imageSmoothingQuality: 'high',
+    });
+
+    cropSaveBtn.setAttribute('disabled', 'true');
+    cropSaveBtn.textContent = 'در حال آپلود...';
+
+    canvas.toBlob(async (blob) => {
+      if (!blob) {
+        alert('خطا در پردازش تصویر');
+        cropSaveBtn.removeAttribute('disabled');
+        cropSaveBtn.textContent = 'برش و آپلود';
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('file', blob, 'logo.webp');
+
+      try {
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          logoPreview.src = data.url;
+          logoUrlHidden.value = data.url;
+          closeCropper();
+        } else {
+          alert('خطا در آپلود لوگو: ' + (data.message || 'خطای نامشخص'));
+        }
+      } catch (err) {
+        console.error(err);
+        alert('خطا در ارتباط با سرور.');
+      } finally {
+        cropSaveBtn.removeAttribute('disabled');
+        cropSaveBtn.textContent = 'برش و آپلود';
+      }
+    }, 'image/webp', 0.85);
+  });
+
+  // Handle settings form submit
   const form = document.getElementById('general-settings-form') as HTMLFormElement;
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -101,7 +234,7 @@ const unifiedSlogan = vendor.slogan || vendor.description;
     const name = (formData.get('name') as string).trim();
     const type = (formData.get('type') as string).trim();
     const slogan = (formData.get('slogan') as string).trim();
-    const coverImage = (formData.get('coverImage') as string).trim();
+    const logo = (formData.get('logo') as string).trim();
 
     // Dynamically assign logoIcon based on the selected vendor type
     let logoIcon = 'utensils';
@@ -119,7 +252,7 @@ const unifiedSlogan = vendor.slogan || vendor.description;
       slogan,
       description: slogan, // Save same value to description in DB
       logoIcon,
-      coverImage
+      logo
     };
 
     try {

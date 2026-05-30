@@ -20,7 +20,7 @@ const userVendors = await db
     slug: vendorsTable.slug,
     type: vendorsTable.type,
     slogan: vendorsTable.slogan,
-    coverImage: vendorsTable.coverImage,
+    logo: vendorsTable.logo,
   })
   .from(vendorUsersTable)
   .innerJoin(vendorsTable, eq(vendorUsersTable.vendorId, vendorsTable.id))
@@ -67,7 +67,7 @@ if (userVendors.length === 1) {
         <a href={`/admin/${vendor.slug}`} class="vendor-admin-card-link">
           <div class="vendor-admin-card">
             <div class="vendor-cover-wrapper">
-              <img src={vendor.coverImage} alt={vendor.name} class="vendor-cover-img" />
+              <img src={vendor.logo} alt={vendor.name} class="vendor-cover-img" />
               <span class="vendor-type-badge">{vendor.type}</span>
             </div>
             <div class="vendor-info">
