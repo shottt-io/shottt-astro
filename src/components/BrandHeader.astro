@@ -84,11 +84,11 @@ const { name, type, slogan, logoIcon, logo } = Astro.props;
       
       <div class="brand-text">
         <h1 class="brand-name">{name}</h1>
-        <div class="brand-sub">
-          <span class="brand-type">{type}</span>
-          <span class="divider-bullet">•</span>
-          <span class="brand-slogan">{slogan}</span>
-        </div>
+        {slogan && (
+          <div class="brand-sub">
+            <span class="brand-slogan">{slogan}</span>
+          </div>
+        )}
       </div>
     </div>
     

@@ -3,58 +3,67 @@ import fs from 'fs';
 import path from 'path';
 
 async function buildAssets() {
-  const sourceImage = '/Users/mahdi.ketabdar/.gemini/antigravity/brain/d4612747-c68e-4c15-ad23-97363535eaf8/shottt_square_logo_1780148643771.png';
-  const croppedPath = '/Users/mahdi.ketabdar/Developer/shottt/scratch/cropped.png';
+  console.log('Generating unified brand logo assets with increased letter spacing...');
 
-  console.log('Cropping source image to get clean square logo...');
-  // 1. Crop to extract the black square logo without the background gradient
-  await sharp(sourceImage)
-    .extract({ left: 130, top: 130, width: 763, height: 763 })
-    .toFile(croppedPath);
-  console.log('Clean square logo saved to scratch/cropped.png');
-
-  // 2. Generate favicon.png (32x32)
-  console.log('Generating public/favicon.png (32x32)...');
-  await sharp(croppedPath)
-    .resize(32, 32)
-    .toFile('/Users/mahdi.ketabdar/Developer/shottt/public/favicon.png');
-
-  // 3. Generate favicon.ico (32x32, PNG container)
-  console.log('Generating public/favicon.ico...');
-  await sharp(croppedPath)
-    .resize(32, 32)
-    .toFile('/Users/mahdi.ketabdar/Developer/shottt/public/favicon.ico');
-
-  // 4. Generate the wordmark logo
-  console.log('Generating wordmark logo (sho + [ttt.])...');
-  const croppedBase64 = fs.readFileSync(croppedPath).toString('base64');
-  
-  // We construct an SVG containing the text "sho" and the base64-embedded square icon.
-  // The spacing is carefully calculated:
-  // - "sho" text starts at x=155, y=210.
-  // - The square icon is 180x180 pixels, placed at x=465, y=60.
-  const svgLogo = `
+  // 1. Generate the logo.png (sho + [ttt.])
+  // Spacing has been adjusted with positive letter-spacing (0.02em) for elegance.
+  // The box is at x=430, y=50, width=250, height=200.
+  const logoSvg = `
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 300" width="800" height="300" fill="none">
       <style>
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300&amp;display=swap');
-        .brand-sho {
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@800&amp;display=swap');
+        .brand-text {
           font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-          font-weight: 300;
+          font-weight: 800;
           font-size: 160px;
-          fill: #171717;
+          letter-spacing: 0.02em;
         }
       </style>
-      <text x="145" y="210" class="brand-sho" letter-spacing="-0.04em">sho</text>
-      <image x="455" y="60" width="180" height="180" href="data:image/png;base64,${croppedBase64}" />
+      <!-- "sho" in dark charcoal -->
+      <text x="130" y="195" class="brand-text" fill="#171717">sho</text>
+      
+      <!-- Rounded black box for "ttt." -->
+      <rect x="430" y="50" width="250" height="200" rx="32" fill="#171717" />
+      
+      <!-- "ttt." inside the box, matching size, weight and baseline of "sho" -->
+      <text x="555" y="195" class="brand-text" fill="#ffffff" text-anchor="middle">ttt.</text>
     </svg>
   `;
 
-  // Render the SVG to a 800x300 PNG image
-  await sharp(Buffer.from(svgLogo))
+  await sharp(Buffer.from(logoSvg))
     .png()
     .toFile('/Users/mahdi.ketabdar/Developer/shottt/public/logo.png');
-
   console.log('Wordmark logo saved to public/logo.png');
+
+  // 2. Generate the favicon.png & favicon.ico
+  // favicon text also matching the new 0.02em letter spacing
+  const faviconSvg = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240" fill="none">
+      <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@800&amp;display=swap');
+        .favicon-text {
+          font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          font-weight: 800;
+          font-size: 160px;
+          fill: #ffffff;
+          letter-spacing: 0.02em;
+        }
+      </style>
+      <rect x="15" y="20" width="210" height="200" rx="32" fill="#171717" />
+      <text x="120" y="165" class="favicon-text" text-anchor="middle">ttt.</text>
+    </svg>
+  `;
+
+  console.log('Generating public/favicon.png (32x32)...');
+  await sharp(Buffer.from(faviconSvg))
+    .resize(32, 32)
+    .toFile('/Users/mahdi.ketabdar/Developer/shottt/public/favicon.png');
+
+  console.log('Generating public/favicon.ico...');
+  await sharp(Buffer.from(faviconSvg))
+    .resize(32, 32)
+    .toFile('/Users/mahdi.ketabdar/Developer/shottt/public/favicon.ico');
+
   console.log('All assets generated successfully!');
 }
 

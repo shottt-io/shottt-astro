@@ -120,6 +120,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
           status: 'available',
         }).returning({ id: categoriesTable.id });
 
+        let itemSortOrder = 0;
         for (const item of category.items) {
           await db.insert(menuItemsTable).values({
             categoryId: newCategory.id,
@@ -135,6 +136,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
             span2: item.span2 || false,
             sections: item.sections || [],
             status: 'available',
+            sortOrder: itemSortOrder++,
           });
         }
       }
@@ -196,6 +198,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
               // Sort products by their position ascending
               const sortedProducts = [...cat.products].sort((a: any, b: any) => (a.position || 0) - (b.position || 0));
 
+              let itemSortOrder = 0;
               for (const prod of sortedProducts) {
                 // Download Product Image (once per product to optimize performance)
                 let productImageUrl = null;
@@ -229,6 +232,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
                       span2: false,
                       sections: sections,
                       status: 'available',
+                      sortOrder: itemSortOrder++,
                     });
                   }
 
@@ -256,6 +260,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
                       span2: false,
                       sections: sections,
                       status: 'available',
+                      sortOrder: itemSortOrder++,
                     });
                   }
                 } else {
@@ -271,6 +276,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
                     span2: false,
                     sections: sections,
                     status: 'available',
+                    sortOrder: itemSortOrder++,
                   });
                 }
               }

@@ -1080,3 +1080,32 @@ body {
   }
 }
 
+/* Category Grouping in Admin Products */
+.category-products-group {
+  margin-bottom: 2.25rem;
+  text-align: right;
+  direction: rtl;
+}
+
+.category-group-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.875rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1.5px solid #e5e5e5;
+}
+
+.category-group-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #171717;
+  margin: 0;
+}
+
+.category-products-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+

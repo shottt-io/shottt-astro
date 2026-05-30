@@ -15,8 +15,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
   // Create a new Headers instance to avoid immutable header modification issues
   const newHeaders = new Headers(response.headers);
 
-  if (pathname.startsWith('/admin') || pathname.startsWith('/api')) {
-    // Admin dashboard and APIs should NEVER be cached by CDN or browser
+  const isAdmin = context.cookies.has('admin_session');
+
+  if (pathname.startsWith('/admin') || pathname.startsWith('/api') || isAdmin) {
+    // Admin dashboard, APIs, and logged-in admins should NEVER be cached by CDN or browser
     newHeaders.set(
       'Cache-Control',
       'private, no-cache, no-store, must-revalidate'

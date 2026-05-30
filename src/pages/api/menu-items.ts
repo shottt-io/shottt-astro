@@ -6,7 +6,7 @@ import {
   vendorUsers as vendorUsersTable 
 } from '../../db/schema';
 import { getSession } from '../../utils/auth';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, asc, desc } from 'drizzle-orm';
 
 // Helper to check user access to a category ID
 async function checkCategoryAccess(userId: number, categoryId: number): Promise<boolean> {
@@ -71,6 +71,16 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       .replace(/[^a-z0-9\u0600-\u06FF]+/g, '-') // Support Persian and English chars
       .replace(/^-+|-+$/g, '');
 
+    // Determine the next sort order in this category
+    const maxSortList = await db
+      .select()
+      .from(menuItemsTable)
+      .where(eq(menuItemsTable.categoryId, categoryId))
+      .orderBy(desc(menuItemsTable.sortOrder))
+      .limit(1);
+
+    const nextSortOrder = maxSortList.length > 0 ? maxSortList[0].sortOrder + 1 : 0;
+
     await db.insert(menuItemsTable).values({
       categoryId: categoryId,
       name: name,
@@ -82,6 +92,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       discount: discount || null,
       sections: sections || [],
       status: status || 'available',
+      sortOrder: nextSortOrder,
     });
 
     return new Response(JSON.stringify({ success: true, message: 'آیتم با موفقیت ایجاد شد' }), { status: 200 });
@@ -100,11 +111,11 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
 
   try {
     const data = await request.json();
-    const { id, categoryId, name, price, image, description, span2, discount, sections, status } = data;
+    const { id, categoryId, name, price, image, description, span2, discount, sections, status, action, direction } = data;
     const itemId = parseInt(id);
 
-    if (!itemId || !categoryId || !name || !price) {
-      return new Response(JSON.stringify({ success: false, message: 'فیلدهای اجباری ناقص هستند' }), { status: 400 });
+    if (!itemId) {
+      return new Response(JSON.stringify({ success: false, message: 'شناسه آیتم الزامی است' }), { status: 400 });
     }
 
     // Check access to existing item
@@ -113,12 +124,95 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
       return new Response(JSON.stringify({ success: false, message: 'دسترسی غیرمجاز یا شناسه نامعتبر' }), { status: 403 });
     }
 
+    if (action === 'reorder') {
+      if (direction !== 'up' && direction !== 'down') {
+        return new Response(JSON.stringify({ success: false, message: 'جهت نامعتبر' }), { status: 400 });
+      }
+
+      // Fetch all items in the same category, sorted by sortOrder
+      let allItems = await db
+        .select()
+        .from(menuItemsTable)
+        .where(eq(menuItemsTable.categoryId, item.categoryId))
+        .orderBy(asc(menuItemsTable.sortOrder), asc(menuItemsTable.id));
+
+      // Clean up / normalize sortOrder if they are duplicate or default to 0
+      let needsCleanup = false;
+      const seenOrders = new Set<number>();
+      for (const it of allItems) {
+        if (seenOrders.has(it.sortOrder)) {
+          needsCleanup = true;
+          break;
+        }
+        seenOrders.add(it.sortOrder);
+      }
+
+      if (needsCleanup) {
+        for (let idx = 0; idx < allItems.length; idx++) {
+          await db
+            .update(menuItemsTable)
+            .set({ sortOrder: idx })
+            .where(eq(menuItemsTable.id, allItems[idx].id));
+          allItems[idx].sortOrder = idx;
+        }
+      }
+
+      const currentIndex = allItems.findIndex(i => i.id === itemId);
+      if (currentIndex === -1) {
+        return new Response(JSON.stringify({ success: false, message: 'آیتم یافت نشد' }), { status: 404 });
+      }
+
+      let targetIndex = -1;
+      if (direction === 'up' && currentIndex > 0) {
+        targetIndex = currentIndex - 1;
+      } else if (direction === 'down' && currentIndex < allItems.length - 1) {
+        targetIndex = currentIndex + 1;
+      }
+
+      if (targetIndex !== -1) {
+        const currentItem = allItems[currentIndex];
+        const targetItem = allItems[targetIndex];
+
+        // Swap sortOrder
+        const tempOrder = currentItem.sortOrder;
+
+        await db
+          .update(menuItemsTable)
+          .set({ sortOrder: targetItem.sortOrder })
+          .where(eq(menuItemsTable.id, currentItem.id));
+
+        await db
+          .update(menuItemsTable)
+          .set({ sortOrder: tempOrder })
+          .where(eq(menuItemsTable.id, targetItem.id));
+
+        return new Response(JSON.stringify({ success: true, message: 'ترتیب با موفقیت به‌روزرسانی شد' }), { status: 200 });
+      }
+
+      return new Response(JSON.stringify({ success: false, message: 'امکان جابجایی در این جهت وجود ندارد' }), { status: 400 });
+    }
+
+    // Default UPDATE behavior
+    if (!categoryId || !name || !price) {
+      return new Response(JSON.stringify({ success: false, message: 'فیلدهای اجباری ناقص هستند' }), { status: 400 });
+    }
+
     // Check access to new category (in case they changed it)
+    let updatedSortOrder = undefined;
     if (categoryId !== item.categoryId) {
       const hasNewAccess = await checkCategoryAccess(session.userId, categoryId);
       if (!hasNewAccess) {
         return new Response(JSON.stringify({ success: false, message: 'عدم دسترسی به دسته‌بندی جدید' }), { status: 403 });
       }
+
+      // Determine the next sort order in the new category
+      const maxSortList = await db
+        .select()
+        .from(menuItemsTable)
+        .where(eq(menuItemsTable.categoryId, categoryId))
+        .orderBy(desc(menuItemsTable.sortOrder))
+        .limit(1);
+      updatedSortOrder = maxSortList.length > 0 ? maxSortList[0].sortOrder + 1 : 0;
     }
 
     // Auto-generate slug from name if needed
@@ -140,6 +234,7 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
         discount: discount || null,
         sections: sections || [],
         status: status || 'available',
+        ...(updatedSortOrder !== undefined ? { sortOrder: updatedSortOrder } : {}),
       })
       .where(eq(menuItemsTable.id, itemId));
 

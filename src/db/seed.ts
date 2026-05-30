@@ -60,6 +60,8 @@ async function seed() {
 
         const categoryId = insertedCategory.id;
 
+        let itemSortOrder = 0;
+
         for (const item of category.items) {
           console.log(`    🍔 Inserting item: ${item.name}...`);
           
@@ -77,6 +79,7 @@ async function seed() {
             span2: item.span2 || false,
             sections: item.sections || [],
             status: 'available',
+            sortOrder: itemSortOrder++,
           });
         }
       }

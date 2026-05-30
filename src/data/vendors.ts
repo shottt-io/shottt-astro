@@ -438,7 +438,7 @@ export const vendors: Vendor[] = [
             name: 'تارت کارامل نمکی و بادام‌زمینی تفت‌داده',
             price: '95',
             priceFormatted: '۹۵',
-            image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=600&auto=format&fit=crop',
+            image: 'https://images.unsplash.com/photo-1506084868230-bb9d95c24759?q=80&w=600&auto=format&fit=crop',
             description: 'خمیر تارت کاکائویی ترد، لایه سس کارامل نمکی داغ، کرم بادام‌زمینی خرد شده و گاناش بادام‌زمینی.',
             sections: [
               {
@@ -510,7 +510,7 @@ export const vendors: Vendor[] = [
             name: 'نان ساوردو کلاسیک فرانسوی (قالب بزرگ)',
             price: '85',
             priceFormatted: '۸۵',
-            image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=600&auto=format&fit=crop',
+            image: 'https://images.unsplash.com/photo-1549931319-a545dcf3bc73?q=80&w=600&auto=format&fit=crop',
             description: 'نان گندم و چاودار تخمیری با پوسته ترد قهوه‌ای تیره و مغز نرم اسفنجی، تهیه شده با خمیرمایه قدیمی ۳ ساله.',
             sections: [
               {

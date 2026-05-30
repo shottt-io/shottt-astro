@@ -46,6 +46,7 @@ export const menuItems = pgTable('menu_items', {
   span2: boolean('span2').default(false).notNull(),
   sections: jsonb('sections').$type<DBProductSection[]>().default([]).notNull(),
   status: varchar('status', { length: 50 }).default('available').notNull(),
+  sortOrder: integer('sort_order').default(0).notNull(),
 });
 
 // 4. Users Table

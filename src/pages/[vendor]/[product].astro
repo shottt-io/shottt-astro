@@ -134,11 +134,9 @@ const canonicalUrl = new URL(canonicalPath, Astro.url.origin).toString();
         ) : (
           <div class="product-no-image">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" class="no-image-icon">
-              <path d="M6 2v6c0 1.1.9 2 2 2h0c1.1 0 2-.9 2-2V2" />
-              <line x1="8" x2="8" y1="2" y2="8" />
-              <line x1="8" x2="8" y1="10" y2="22" />
-              <path d="M16 2a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" />
-              <line x1="16" x2="16" y1="13" y2="22" />
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+              <circle cx="8.5" cy="8.5" r="1.5" />
+              <polyline points="21 15 16 10 5 21" />
             </svg>
           </div>
         )}
@@ -194,6 +192,14 @@ const canonicalUrl = new URL(canonicalPath, Astro.url.origin).toString();
       </div>
 
     </div>
+
+    <!-- Product Page Footer -->
+    <footer class="product-page-footer animate-fade-in" style="animation-delay: 0.15s;">
+      <div class="footer-divider"></div>
+      <a href="/" class="footer-platform-link">
+        توسعه پیدا کرده با <span>shottt</span>
+      </a>
+    </footer>
   </main>
 </Layout>
 
@@ -384,5 +390,49 @@ const canonicalUrl = new URL(canonicalPath, Astro.url.origin).toString();
     padding: 0.25rem 0.625rem;
     border-radius: 0.5rem;
     font-weight: 500;
+  }
+
+  /* Product Page Footer Styles */
+  .product-page-footer {
+    margin-top: auto;
+    padding: 3rem 0 1.5rem 0;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    max-width: 42rem;
+    margin: 0 auto;
+    box-sizing: border-box;
+  }
+
+  .footer-divider {
+    width: 100%;
+    height: 1px;
+    background-color: #f5f5f5;
+    margin-bottom: 0.5rem;
+  }
+
+  .footer-platform-link {
+    font-size: 0.75rem;
+    font-weight: 300;
+    color: #a3a3a3;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .footer-platform-link span {
+    font-weight: 700;
+    font-family: 'Outfit', sans-serif;
+    color: #737373;
+  }
+
+  .footer-platform-link:hover {
+    color: #171717;
+  }
+  
+  .footer-platform-link:hover span {
+    color: #171717;
   }
 </style>
