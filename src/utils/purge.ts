@@ -4,24 +4,34 @@
  * Requires ARVAN_API_KEY and ARVAN_DOMAIN in environment variables.
  */
 
-const ARVAN_API_KEY = import.meta.env.ARVAN_API_KEY;
-const ARVAN_DOMAIN = import.meta.env.ARVAN_DOMAIN;
-const ARVAN_CDN_BASE = `https://napi.arvancloud.ir/cdn/4.0/domains/${ARVAN_DOMAIN}/caching`;
+function getArvanConfig() {
+  const apiKey = process.env.ARVAN_API_KEY || import.meta.env.ARVAN_API_KEY;
+  const domain = process.env.ARVAN_DOMAIN || import.meta.env.ARVAN_DOMAIN;
+  return { apiKey, domain };
+}
 
 /**
  * Purges a list of URLs from ArvanCloud CDN cache.
- * Silently fails if env vars are not configured (e.g. local dev).
  */
 async function purgeUrls(urls: string[]): Promise<void> {
-  if (!ARVAN_API_KEY || !ARVAN_DOMAIN) {
-    return; // No-op in local dev
+  const { apiKey, domain } = getArvanConfig();
+
+  console.log(`[ArvanPurge] Attempting to purge URLs:`, urls);
+  console.log(`[ArvanPurge] Config - Domain: ${domain}, API Key configured: ${!!apiKey}`);
+
+  if (!apiKey || !domain) {
+    console.warn(`[ArvanPurge] Skipping purge: ARVAN_API_KEY or ARVAN_DOMAIN is not set in environment.`);
+    return;
   }
 
   try {
-    const res = await fetch(`${ARVAN_CDN_BASE}/purge`, {
+    const apiEndpoint = `https://napi.arvancloud.ir/cdn/4.0/domains/${domain}/caching/purge`;
+    console.log(`[ArvanPurge] POST request to ${apiEndpoint}`);
+
+    const res = await fetch(apiEndpoint, {
       method: 'POST',
       headers: {
-        'Authorization': ARVAN_API_KEY,
+        'Authorization': apiKey,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -30,8 +40,10 @@ async function purgeUrls(urls: string[]): Promise<void> {
       }),
     });
 
-    if (!res.ok) {
-      const body = await res.text();
+    const body = await res.text();
+    if (res.ok) {
+      console.log(`[ArvanPurge] Successfully purged ${urls.join(', ')}. Response: ${res.status} ${body}`);
+    } else {
       console.error(`[ArvanPurge] Failed to purge ${urls.join(', ')}: ${res.status} ${body}`);
     }
   } catch (err) {
@@ -44,6 +56,8 @@ async function purgeUrls(urls: string[]): Promise<void> {
  * Homepage (/) is NOT purged here — it only changes on new code deployments.
  */
 export async function purgeVendorCache(vendorSlug: string): Promise<void> {
-  const base = `https://${ARVAN_DOMAIN}`;
+  const { domain } = getArvanConfig();
+  const activeDomain = domain || 'shottt.io';
+  const base = `https://${activeDomain}`;
   await purgeUrls([`${base}/${vendorSlug}`]);
 }

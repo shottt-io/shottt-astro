@@ -184,6 +184,10 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
           .set({ sortOrder: tempOrder })
           .where(eq(categoriesTable.id, targetCategory.id));
 
+        // Purge CDN cache
+        const vendorSlug = await getVendorSlug(category.vendorId);
+        if (vendorSlug) purgeVendorCache(vendorSlug).catch(() => {});
+
         return new Response(JSON.stringify({ success: true, message: 'ترتیب با موفقیت به‌روزرسانی شد' }), { status: 200 });
       }
 

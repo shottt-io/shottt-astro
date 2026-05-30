@@ -43,6 +43,7 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -106,11 +107,6 @@ h1, h2, h3, h4, h5, h6 {
   will-change: transform;
 }
 
-.image-zoom-container:hover img,
-.image-zoom-container:active img {
-  transform: scale(1.02);
-}
-
 /* Hide Scrollbar helper but preserve scrolling */
 .scrollbar-none {
   -ms-overflow-style: none;  /* IE and Edge */
@@ -125,6 +121,7 @@ h1, h2, h3, h4, h5, h6 {
 button, a {
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Special Offer Colors */
