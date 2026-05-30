@@ -1,6 +1,10 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { vendors } from '../data/vendors';
+import { db } from '../db/db';
+import { vendors as vendorsTable } from '../db/schema';
+
+// Fetch all vendors dynamically from PostgreSQL at runtime
+const vendors = await db.select().from(vendorsTable);
 ---
 
 <Layout title="پلتفرم منوهای دیجیتال لوکس" description="کاتالوگ دیجیتال و منوهای آرتزین مجموعه‌های برتر با طراحی مینیمال سوئیسی">

@@ -3,17 +3,63 @@ import Layout from '../layouts/Layout.astro';
 import BrandHeader from '../components/BrandHeader.astro';
 import CategoryNav from '../components/CategoryNav.astro';
 import MenuLayout from '../components/MenuLayout.astro';
-import { vendors } from '../data/vendors';
+import { db } from '../db/db';
+import { vendors as vendorsTable, categories as categoriesTable, menuItems as menuItemsTable } from '../db/schema';
+import { eq, asc } from 'drizzle-orm';
 
-// Static paths for SSG pre-rendering on the server
-export function getStaticPaths() {
-  return vendors.map((vendor) => ({
-    params: { vendor: vendor.slug },
-    props: { vendor },
-  }));
+const vendorSlug = Astro.params.vendor;
+if (!vendorSlug) {
+  return new Response("Not Found", { status: 404 });
 }
 
-const { vendor } = Astro.props;
+// Fetch the vendor from PostgreSQL
+const vendorList = await db
+  .select()
+  .from(vendorsTable)
+  .where(eq(vendorsTable.slug, vendorSlug))
+  .limit(1);
+
+if (vendorList.length === 0) {
+  return new Response("Vendor Not Found", { status: 404 });
+}
+
+const vendor = vendorList[0];
+
+// Fetch categories for this vendor sorted by sort_order
+const dbCategories = await db
+  .select()
+  .from(categoriesTable)
+  .where(eq(categoriesTable.vendorId, vendor.id))
+  .orderBy(asc(categoriesTable.sortOrder));
+
+// Fetch all menu items for the categories and map to UI schema
+const categories = await Promise.all(
+  dbCategories.map(async (category) => {
+    const items = await db
+      .select()
+      .from(menuItemsTable)
+      .where(eq(menuItemsTable.categoryId, category.id));
+
+    return {
+      id: category.id.toString(),
+      name: category.name,
+      items: items.map((item) => ({
+        id: item.id.toString(),
+        name: item.name,
+        slug: item.slug || undefined,
+        price: item.price,
+        image: item.image || undefined,
+        description: item.description || undefined,
+        discount: item.discount ? {
+          originalPrice: item.discount.originalPrice,
+          discountText: item.discount.discountText,
+        } : undefined,
+        span2: item.span2,
+        sections: item.sections,
+      })),
+    };
+  })
+);
 ---
 
 <Layout 
@@ -31,12 +77,12 @@ const { vendor } = Astro.props;
     />
 
     <!-- Frosted Glass Categories Sticky Bar -->
-    <CategoryNav categories={vendor.categories} />
+    <CategoryNav categories={categories} />
 
     <!-- Core Menu Items List (Pinterest Masonry or Compact List layout) -->
     <MenuLayout 
-      categories={vendor.categories}
-      layoutMode={vendor.defaultLayout}
+      categories={categories}
+      layoutMode={vendor.defaultLayout as 'pinterest' | 'simple'}
       vendorSlug={vendor.slug}
     />
   </main>

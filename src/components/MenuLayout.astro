@@ -60,7 +60,7 @@ function getLayoutBlocks(items: MenuItem[]): LayoutBlock[] {
                 return (
                   <div class="full-width-block">
                     <a
-                      href={`/${vendorSlug}/${item.id}`}
+                      href={`/${vendorSlug}/${item.slug || item.id}`}
                       class="product-card-full animate-slide-up"
                     >
                       {item.image ? (
@@ -103,10 +103,10 @@ function getLayoutBlocks(items: MenuItem[]): LayoutBlock[] {
                           {item.discount ? (
                             <>
                               <span class="price-tag price-old">{item.discount.originalPrice}</span>
-                              <span class="price-tag price-new">{item.priceFormatted}</span>
+                              <span class="price-tag price-new">{item.price}</span>
                             </>
                           ) : (
-                            <span class="price-tag">{item.priceFormatted}</span>
+                            <span class="price-tag">{item.price}</span>
                           )}
                         </div>
                       </div>
@@ -122,7 +122,7 @@ function getLayoutBlocks(items: MenuItem[]): LayoutBlock[] {
                     <div class="pinterest-column">
                       {rightColItems.map((item, index) => (
                         <a
-                          href={`/${vendorSlug}/${item.id}`}
+                          href={`/${vendorSlug}/${item.slug || item.id}`}
                           class="product-card animate-slide-up"
                         >
                           {item.image ? (
@@ -165,10 +165,10 @@ function getLayoutBlocks(items: MenuItem[]): LayoutBlock[] {
                               {item.discount ? (
                                 <>
                                   <span class="price-tag price-old">{item.discount.originalPrice}</span>
-                                  <span class="price-tag price-new">{item.priceFormatted}</span>
+                                  <span class="price-tag price-new">{item.price}</span>
                                 </>
                               ) : (
-                                <span class="price-tag">{item.priceFormatted}</span>
+                                <span class="price-tag">{item.price}</span>
                               )}
                             </div>
                           </div>
@@ -180,7 +180,7 @@ function getLayoutBlocks(items: MenuItem[]): LayoutBlock[] {
                     <div class="pinterest-column">
                       {leftColItems.map((item, index) => (
                         <a
-                          href={`/${vendorSlug}/${item.id}`}
+                          href={`/${vendorSlug}/${item.slug || item.id}`}
                           class="product-card animate-slide-up"
                         >
                           {item.image ? (
@@ -223,10 +223,10 @@ function getLayoutBlocks(items: MenuItem[]): LayoutBlock[] {
                               {item.discount ? (
                                 <>
                                   <span class="price-tag price-old">{item.discount.originalPrice}</span>
-                                  <span class="price-tag price-new">{item.priceFormatted}</span>
+                                  <span class="price-tag price-new">{item.price}</span>
                                 </>
                               ) : (
-                                <span class="price-tag">{item.priceFormatted}</span>
+                                <span class="price-tag">{item.price}</span>
                               )}
                             </div>
                           </div>
@@ -243,7 +243,7 @@ function getLayoutBlocks(items: MenuItem[]): LayoutBlock[] {
           <div class="compact-list">
             {category.items.map((item) => (
               <a
-                href={`/${vendorSlug}/${item.id}`}
+                href={`/${vendorSlug}/${item.slug || item.id}`}
                 class="list-row animate-slide-up"
               >
                 <div class="list-right">
@@ -289,10 +289,10 @@ function getLayoutBlocks(items: MenuItem[]): LayoutBlock[] {
                     {item.discount ? (
                       <>
                         <span class="price-tag price-old">{item.discount.originalPrice}</span>
-                        <span class="price-tag price-new">{item.priceFormatted}</span>
+                        <span class="price-tag price-new">{item.price}</span>
                       </>
                     ) : (
-                      <span class="price-tag">{item.priceFormatted}</span>
+                      <span class="price-tag">{item.price}</span>
                     )}
                   </div>
                 </div>

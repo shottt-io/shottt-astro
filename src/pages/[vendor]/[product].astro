@@ -1,44 +1,99 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { vendors } from '../../data/vendors';
-import type { Vendor, MenuItem } from '../../data/vendors';
+import { db } from '../../db/db';
+import { vendors as vendorsTable, menuItems as menuItemsTable, categories as categoriesTable } from '../../db/schema';
+import { eq } from 'drizzle-orm';
 
-// Pre-render static paths for all products under all vendors (SSG)
-export function getStaticPaths() {
-  const paths: any[] = [];
-  
-  vendors.forEach((vendor) => {
-    vendor.categories.forEach((category) => {
-      category.items.forEach((item) => {
-        paths.push({
-          params: {
-            vendor: vendor.slug,
-            product: item.id
-          },
-          props: {
-            vendor,
-            product: item
-          }
-        });
-      });
-    });
-  });
+const vendorSlug = Astro.params.vendor;
+const productIdStr = Astro.params.product;
 
-  return paths;
+if (!vendorSlug || !productIdStr) {
+  return new Response("Not Found", { status: 404 });
 }
 
-interface Props {
-  vendor: Vendor;
-  product: MenuItem;
+// Fetch the vendor first to ensure vendor exists
+const vendorList = await db
+  .select()
+  .from(vendorsTable)
+  .where(eq(vendorsTable.slug, vendorSlug))
+  .limit(1);
+
+if (vendorList.length === 0) {
+  return new Response("Vendor Not Found", { status: 404 });
+}
+const vendor = vendorList[0];
+
+let dbProduct;
+const isNumeric = /^\d+$/.test(productIdStr);
+
+if (isNumeric) {
+  // Query by numeric ID
+  const id = parseInt(productIdStr, 10);
+  const productList = await db
+    .select()
+    .from(menuItemsTable)
+    .where(eq(menuItemsTable.id, id))
+    .limit(1);
+
+  if (productList.length === 0) {
+    return new Response("Product Not Found", { status: 404 });
+  }
+  dbProduct = productList[0];
+
+  // If the product has a slug defined, redirect (301) to the slug-based URL
+  if (dbProduct.slug) {
+    return Astro.redirect(`/${vendorSlug}/${dbProduct.slug}`, 301);
+  }
+} else {
+  // Query by slug
+  const productList = await db
+    .select()
+    .from(menuItemsTable)
+    .where(eq(menuItemsTable.slug, productIdStr))
+    .limit(1);
+
+  if (productList.length === 0) {
+    return new Response("Product Not Found", { status: 404 });
+  }
+  dbProduct = productList[0];
 }
 
-const { vendor, product } = Astro.props;
+// Verify the product category belongs to the vendor
+const categoryList = await db
+  .select()
+  .from(categoriesTable)
+  .where(eq(categoriesTable.id, dbProduct.categoryId))
+  .limit(1);
+
+if (categoryList.length === 0 || categoryList[0].vendorId !== vendor.id) {
+  return new Response("Product does not belong to vendor", { status: 404 });
+}
+
+const product = {
+  id: dbProduct.id.toString(),
+  name: dbProduct.name,
+  slug: dbProduct.slug || undefined,
+  price: dbProduct.price,
+  image: dbProduct.image || undefined,
+  description: dbProduct.description || undefined,
+  discount: dbProduct.discount ? {
+    originalPrice: dbProduct.discount.originalPrice,
+    discountText: dbProduct.discount.discountText,
+  } : undefined,
+  span2: dbProduct.span2,
+  sections: dbProduct.sections,
+};
+
+// Generate the canonical URL pointing to the slug version if it exists, otherwise to the ID version
+const canonicalPath = `/${vendor.slug}/${product.slug || product.id}`;
+const canonicalUrl = new URL(canonicalPath, Astro.url.origin).toString();
 ---
 
 <Layout 
   title={`${product.name} — ${vendor.name}`} 
   description={product.description || `جزئیات محصول ${product.name} در منوی دیجیتال ${vendor.name}`}
   ogImage={product.image}
+  canonicalUrl={canonicalUrl}
 >
   <main class="product-page-main">
     <div class="product-content-card">
@@ -55,19 +110,21 @@ const { vendor, product } = Astro.props;
       <!-- Natural Aspect Ratio Product Image (No Cropping) -->
       <div class="product-image-container animate-fade-in">
         {product.image ? (
-          <img 
-            src={product.image} 
-            alt={product.name} 
-            class="product-detail-image"
-            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
-          />
-          <div class="product-fallback" style="display: none;">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" class="fallback-icon">
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-              <circle cx="8.5" cy="8.5" r="1.5" />
-              <polyline points="21 15 16 10 5 21" />
-            </svg>
-          </div>
+          <>
+            <img 
+              src={product.image} 
+              alt={product.name} 
+              class="product-detail-image"
+              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+            />
+            <div class="product-fallback" style="display: none;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" class="fallback-icon">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                <circle cx="8.5" cy="8.5" r="1.5" />
+                <polyline points="21 15 16 10 5 21" />
+              </svg>
+            </div>
+          </>
         ) : (
           <div class="product-no-image">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" class="no-image-icon">
@@ -91,10 +148,10 @@ const { vendor, product } = Astro.props;
             {product.discount ? (
               <>
                 <span class="price-tag price-old detail-price-tag">{product.discount.originalPrice}</span>
-                <span class="price-tag price-new detail-price-tag">{product.priceFormatted}</span>
+                <span class="price-tag price-new detail-price-tag">{product.price}</span>
               </>
             ) : (
-              <span class="price-tag detail-price-tag">{product.priceFormatted}</span>
+              <span class="price-tag detail-price-tag">{product.price}</span>
             )}
           </div>
         </div>

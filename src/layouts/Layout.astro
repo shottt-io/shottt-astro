@@ -5,9 +5,10 @@ interface Props {
   title: string;
   description?: string;
   ogImage?: string;
+  canonicalUrl?: string;
 }
 
-const { title, description = 'منوی دیجیتال لوکس و مدرن آرتزین', ogImage } = Astro.props;
+const { title, description = 'منوی دیجیتال لوکس و مدرن آرتزین', ogImage, canonicalUrl } = Astro.props;
 ---
 
 <!DOCTYPE html>
@@ -22,6 +23,7 @@ const { title, description = 'منوی دیجیتال لوکس و مدرن آر�
     <!-- SEO Meta Tags -->
     <title>{title}</title>
     <meta name="description" content={description} />
+    {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
