@@ -54,14 +54,24 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
   <div class="admin-layout-container" style="direction: rtl;">
     <!-- Mobile Header -->
     <header class="admin-mobile-header">
+      <button class="hamburger-btn" id="mobile-nav-toggle" aria-label="منوی ناوبری">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="nav-icon-svg">
+          <line x1="4" y1="12" x2="20" y2="12" />
+          <line x1="4" y1="6" x2="20" y2="6" />
+          <line x1="4" y1="18" x2="20" y2="18" />
+        </svg>
+      </button>
       <span class="mobile-page-title">مدیریت سازمان</span>
       <div class="mobile-header-avatar">
         {session.name.substring(0, 1)}
       </div>
     </header>
 
+    <!-- Navigation Backdrop (Mobile) -->
+    <div class="admin-sidenav-backdrop" id="sidenav-backdrop"></div>
+
     <!-- Super Admin Navigation Sidebar -->
-    <aside class="admin-sidenav" style="height: 100vh; position: sticky; top: 0;">
+    <aside class="admin-sidenav" id="admin-sidenav">
       <div class="platform-brand">
         <img src="/logo.png" alt="shottt" class="platform-logo-img" />
       </div>
@@ -76,6 +86,7 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
             <p class="brand-sub-title">مدیریت کل سیستم</p>
           </div>
         </div>
+        <button class="btn-icon mobile-close-nav-btn" id="mobile-nav-close" aria-label="بستن منو">✕</button>
       </div>
 
       <nav class="sidenav-menu">
@@ -134,7 +145,7 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
     </aside>
 
     <!-- Main Workspace Content -->
-    <div class="admin-workspace" style="max-width: 55rem; width: 100%; padding: 2.5rem 1.5rem;">
+    <div class="admin-workspace" style="width: 100%; padding: 2.5rem 1.5rem;">
       
       <!-- TAB 1: VENDORS/COLLECTIONS -->
       <div id="tab-content-vendors" class="tab-content">
@@ -169,7 +180,7 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
                   <a href={`/admin/${v.slug}/products`} class="btn btn-secondary" style="font-size: 0.75rem; padding: 0.4rem 0.8rem;">
                     پنل مجموعه
                   </a>
-                  <button class="btn btn-icon btn-icon-danger btn-delete-vendor" data-id={v.id} data-name={v.name} title="حذف مجموعه">
+                  <button class="btn-icon btn-icon-danger btn-delete-vendor" data-id={v.id} data-name={v.name} title="حذف مجموعه">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="list-icon-svg">
                       <polyline points="3 6 5 6 21 6" />
                       <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
@@ -233,7 +244,7 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
                   </button>
                   
                   {!isSuperUser && (
-                    <button class="btn btn-icon btn-icon-danger btn-delete-user" data-id={u.id} data-name={u.name} title="حذف کاربر">
+                    <button class="btn-icon btn-icon-danger btn-delete-user" data-id={u.id} data-name={u.name} title="حذف کاربر">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="list-icon-svg">
                         <polyline points="3 6 5 6 21 6" />
                         <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
@@ -379,6 +390,28 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
 </Layout>
 
 <script>
+  // Mobile navigation drawer toggle logic
+  const mobileNavToggle = document.getElementById('mobile-nav-toggle');
+  const mobileNavClose = document.getElementById('mobile-nav-close');
+  const sidenav = document.getElementById('admin-sidenav');
+  const backdrop = document.getElementById('sidenav-backdrop');
+
+  function openNav() {
+    sidenav?.classList.add('active');
+    backdrop?.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeNav() {
+    sidenav?.classList.remove('active');
+    backdrop?.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  mobileNavToggle?.addEventListener('click', openNav);
+  mobileNavClose?.addEventListener('click', closeNav);
+  backdrop?.addEventListener('click', closeNav);
+
   // Tab Navigation Switching
   const tabBtnVendors = document.getElementById('tab-btn-vendors');
   const tabBtnUsers = document.getElementById('tab-btn-users');
@@ -397,6 +430,8 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
       if (tabContentVendors) tabContentVendors.style.display = 'none';
       if (tabContentUsers) tabContentUsers.style.display = 'block';
     }
+    // Close mobile nav drawer when tab is switched
+    closeNav();
   }
 
   tabBtnVendors?.addEventListener('click', () => switchTab('vendors'));

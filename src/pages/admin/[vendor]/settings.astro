@@ -90,9 +90,10 @@ const unifiedSlogan = vendor.slogan || vendor.description;
           <input type="file" id="logo-file-input" accept="image/*" style="display: none;" />
           <input type="hidden" name="logo" id="logo-url-hidden" value={vendor.logo} />
           <div class="image-preview-container" id="logo-preview-container">
-            <img src={vendor.logo} id="logo-preview" class="image-preview-box" />
+            <img src={vendor.logo} id="logo-preview" class="image-preview-box" style={vendor.logo ? 'display: block;' : 'display: none;'} />
             <div style="display: flex; flex-direction: column; gap: 0.375rem; align-items: flex-start;">
               <button type="button" class="btn btn-secondary" id="btn-select-logo">انتخاب تصویر لوگو</button>
+              <button type="button" class="btn btn-danger" id="btn-remove-logo" style={vendor.logo ? 'display: block; font-size: 0.75rem; padding: 0.4rem 0.8rem;' : 'display: none; font-size: 0.75rem; padding: 0.4rem 0.8rem;'}>حذف لوگو</button>
               <span style="font-size: 0.6875rem; color: #737373;">ابعاد مربع (۱:۱)</span>
             </div>
           </div>
@@ -131,6 +132,21 @@ const unifiedSlogan = vendor.slogan || vendor.description;
   const logoFileInput = document.getElementById('logo-file-input') as HTMLInputElement;
   const logoPreview = document.getElementById('logo-preview') as HTMLImageElement;
   const logoUrlHidden = document.getElementById('logo-url-hidden') as HTMLInputElement;
+  const removeLogoBtn = document.getElementById('btn-remove-logo');
+
+  removeLogoBtn?.addEventListener('click', () => {
+    if (logoPreview) {
+      logoPreview.src = '';
+      logoPreview.style.display = 'none';
+    }
+    if (logoUrlHidden) {
+      logoUrlHidden.value = '';
+    }
+    if (removeLogoBtn) {
+      removeLogoBtn.style.display = 'none';
+    }
+    logoFileInput.value = '';
+  });
 
   const cropperModal = document.getElementById('cropper-modal') as HTMLDivElement;
   const cropperImage = document.getElementById('cropper-image') as HTMLImageElement;
@@ -214,7 +230,11 @@ const unifiedSlogan = vendor.slogan || vendor.description;
         const data = await response.json();
         if (data.success) {
           logoPreview.src = data.url;
+          logoPreview.style.display = 'block';
           logoUrlHidden.value = data.url;
+          if (removeLogoBtn) {
+            removeLogoBtn.style.display = 'block';
+          }
           closeCropper();
         } else {
           alert('خطا در آپلود لوگو: ' + (data.message || 'خطای نامشخص'));

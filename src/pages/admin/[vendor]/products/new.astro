@@ -125,6 +125,7 @@ const dbCategories = await db
               <img src="" id="product-preview" class="image-preview-box" style="display: none;" />
               <div style="display: flex; flex-direction: column; gap: 0.375rem; align-items: flex-start;">
                 <button type="button" class="btn btn-secondary" id="btn-select-product-image">انتخاب تصویر محصول</button>
+                <button type="button" class="btn btn-danger" id="btn-remove-product-image" style="display: none; font-size: 0.75rem; padding: 0.4rem 0.8rem;">حذف تصویر</button>
               </div>
             </div>
           </div>
@@ -254,6 +255,21 @@ const dbCategories = await db
   const productPreview = document.getElementById('product-preview') as HTMLImageElement;
   const productImagePreviewContainer = document.getElementById('product-preview-container');
   const productImageUrlHidden = document.getElementById('product-image-url-hidden') as HTMLInputElement;
+  const removeProductImageBtn = document.getElementById('btn-remove-product-image');
+
+  removeProductImageBtn?.addEventListener('click', () => {
+    if (productPreview) {
+      productPreview.src = '';
+      productPreview.style.display = 'none';
+    }
+    if (productImageUrlHidden) {
+      productImageUrlHidden.value = '';
+    }
+    if (removeProductImageBtn) {
+      removeProductImageBtn.style.display = 'none';
+    }
+    productImageFileInput.value = '';
+  });
 
   const cropperModal = document.getElementById('cropper-modal') as HTMLDivElement;
   const cropperImage = document.getElementById('cropper-image') as HTMLImageElement;
@@ -373,6 +389,9 @@ const dbCategories = await db
           }
           if (productImageUrlHidden) {
             productImageUrlHidden.value = finalUrl;
+          }
+          if (removeProductImageBtn) {
+            removeProductImageBtn.style.display = 'block';
           }
           closeCropper();
         } else {

@@ -26,7 +26,11 @@ const userVendors = await db
   .innerJoin(vendorsTable, eq(vendorUsersTable.vendorId, vendorsTable.id))
   .where(eq(vendorUsersTable.userId, session.userId));
 
-// 3. Handle routing based on access count
+// 3. Handle routing
+if (session.username === 'super') {
+  return Astro.redirect('/admin/super');
+}
+
 if (userVendors.length === 0) {
   // Session is stale or user has no vendor access (e.g. after database seed/reset).
   // Clear the session cookie and redirect to login.
@@ -34,10 +38,8 @@ if (userVendors.length === 0) {
   return Astro.redirect('/admin/login');
 }
 
-if (userVendors.length === 1) {
-  // Direct redirect for single-vendor admins
-  return Astro.redirect(`/admin/${userVendors[0].slug}`);
-}
+// Redirect directly to the first available vendor panel
+return Astro.redirect(`/admin/${userVendors[0].slug}`);
 ---
 
 <Layout title="پنل مدیریت مجموعه‌ها" description="داشبورد انتخاب مجموعه جهت مدیریت کاتالوگ">
