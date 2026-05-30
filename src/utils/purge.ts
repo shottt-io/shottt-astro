@@ -24,6 +24,9 @@ async function purgeUrls(urls: string[]): Promise<void> {
     return;
   }
 
+  // ArvanCloud API key requires the "Apikey " prefix. Prepend it if not present.
+  const authHeader = apiKey.trim().startsWith('Apikey ') ? apiKey.trim() : `Apikey ${apiKey.trim()}`;
+
   try {
     const apiEndpoint = `https://napi.arvancloud.ir/cdn/4.0/domains/${domain}/caching/purge`;
     console.log(`[ArvanPurge] POST request to ${apiEndpoint}`);
@@ -31,20 +34,25 @@ async function purgeUrls(urls: string[]): Promise<void> {
     const res = await fetch(apiEndpoint, {
       method: 'POST',
       headers: {
-        'Authorization': apiKey,
+        'Authorization': authHeader,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         purge_type: 'individual',
         files: urls,
       }),
+      redirect: 'manual', // Prevent undici redirect loops (redirect count exceeded) if WAF/gateway redirects
     });
 
     const body = await res.text();
     if (res.ok) {
       console.log(`[ArvanPurge] Successfully purged ${urls.join(', ')}. Response: ${res.status} ${body}`);
     } else {
-      console.error(`[ArvanPurge] Failed to purge ${urls.join(', ')}: ${res.status} ${body}`);
+      if (res.status >= 300 && res.status < 400) {
+        console.error(`[ArvanPurge] Failed to purge ${urls.join(', ')}: Redirected with status ${res.status}. Location: ${res.headers.get('location')}`);
+      } else {
+        console.error(`[ArvanPurge] Failed to purge ${urls.join(', ')}: ${res.status} ${body}`);
+      }
     }
   } catch (err) {
     console.error('[ArvanPurge] Network error during purge:', err);
