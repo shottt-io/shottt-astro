@@ -28,8 +28,10 @@ const userVendors = await db
 
 // 3. Handle routing based on access count
 if (userVendors.length === 0) {
-  // Logged in but has no vendors assigned - this shouldn't happen under normal circumstances
-  return new Response("شما دسترسی به هیچ مجموعه‌ای ندارید.", { status: 403 });
+  // Session is stale or user has no vendor access (e.g. after database seed/reset).
+  // Clear the session cookie and redirect to login.
+  Astro.cookies.delete('admin_session', { path: '/' });
+  return Astro.redirect('/admin/login');
 }
 
 if (userVendors.length === 1) {

@@ -1,27 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
   <style>
-    .logo-stroke { stroke: #171717; }
-    .logo-fill { fill: #171717; }
+    .favicon-circle { fill: #171717; }
     @media (prefers-color-scheme: dark) {
-      .logo-stroke { stroke: #ffffff; }
-      .logo-fill { fill: #ffffff; }
+      .favicon-circle { fill: #ffffff; }
     }
   </style>
 
-  <!-- Viewfinder corners -->
-  <path class="logo-stroke" d="M 24 36 V 24 H 36" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" />
-  <path class="logo-stroke" d="M 76 36 V 24 H 64" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" />
-  <path class="logo-stroke" d="M 24 64 V 76 H 36" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" />
-  <path class="logo-stroke" d="M 76 64 V 76 H 64" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" />
-  
-  <!-- Camera lens / Shutter ring -->
-  <circle class="logo-stroke" cx="50" cy="50" r="18" stroke-width="5.5" fill="none" />
-  
-  <!-- Shutter blades -->
-  <path class="logo-stroke" d="M 50 32 L 50 42" stroke-width="3.5" stroke-linecap="round" />
-  <path class="logo-stroke" d="M 34 59 L 43 54" stroke-width="3.5" stroke-linecap="round" />
-  <path class="logo-stroke" d="M 66 59 L 57 54" stroke-width="3.5" stroke-linecap="round" />
-  
-  <!-- Inner core lens -->
-  <circle class="logo-fill" cx="50" cy="50" r="5" />
+  <defs>
+    <mask id="favicon-s-mask">
+      <!-- White allows the circle to render -->
+      <rect x="0" y="0" width="100" height="100" fill="#ffffff" />
+      <!-- Black cuts the 'S' monogram out of the circle -->
+      <path d="M 68 40 C 68 30, 32 30, 32 40 C 32 49, 68 51, 68 60 C 68 70, 32 70, 32 60" 
+            stroke="#000000" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+    </mask>
+  </defs>
+
+  <!-- Solid circle with dynamic colors and transparent 'S' cutout -->
+  <circle class="favicon-circle" cx="50" cy="50" r="42" mask="url(#favicon-s-mask)" />
 </svg>
