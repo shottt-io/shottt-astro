@@ -24,11 +24,13 @@ export const onRequest = defineMiddleware(async (context, next) => {
     newHeaders.set('Pragma', 'no-cache');
     newHeaders.set('Expires', '0');
   } else if (context.request.method === 'GET' && response.status === 200) {
-    // Public pages (landing and vendor catalogs) cached on CDN for 8 hours
-    // and served stale for up to 10 minutes while background revalidation occurs
+    // Public pages (landing and vendor catalogs) cached on CDN for 5 seconds
+    // and served stale for up to 10 minutes while background revalidation occurs.
+    // This allows instant load times via CDN while ensuring database updates
+    // propagate to users within seconds via background revalidation.
     newHeaders.set(
       'Cache-Control',
-      'public, max-age=0, s-maxage=28800, stale-while-revalidate=600'
+      'public, max-age=0, s-maxage=5, stale-while-revalidate=600'
     );
   }
 
