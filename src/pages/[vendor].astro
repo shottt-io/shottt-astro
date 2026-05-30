@@ -1,0 +1,52 @@
+---
+import Layout from '../layouts/Layout.astro';
+import BrandHeader from '../components/BrandHeader.astro';
+import CategoryNav from '../components/CategoryNav.astro';
+import MenuLayout from '../components/MenuLayout.astro';
+import { vendors } from '../data/vendors';
+
+// Static paths for SSG pre-rendering on the server
+export function getStaticPaths() {
+  return vendors.map((vendor) => ({
+    params: { vendor: vendor.slug },
+    props: { vendor },
+  }));
+}
+
+const { vendor } = Astro.props;
+---
+
+<Layout 
+  title={`${vendor.name} — منوی دیجیتال`} 
+  description={`${vendor.type} ${vendor.name} - ${vendor.slogan}. ${vendor.description}`}
+  ogImage={vendor.coverImage}
+>
+  <main class="menu-main-wrapper">
+    <!-- Brand Info Header -->
+    <BrandHeader 
+      name={vendor.name}
+      type={vendor.type}
+      slogan={vendor.slogan}
+      logoIcon={vendor.logoIcon}
+    />
+
+    <!-- Frosted Glass Categories Sticky Bar -->
+    <CategoryNav categories={vendor.categories} />
+
+    <!-- Core Menu Items List (Pinterest Masonry or Compact List layout) -->
+    <MenuLayout 
+      categories={vendor.categories}
+      layoutMode={vendor.defaultLayout}
+      vendorSlug={vendor.slug}
+    />
+  </main>
+</Layout>
+
+<style>
+  .menu-main-wrapper {
+    background-color: #FFFFFF;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+  }
+</style>

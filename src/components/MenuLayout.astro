@@ -1,0 +1,630 @@
+---
+import type { Category, MenuItem } from '../data/vendors';
+import SectionDivider from './SectionDivider.astro';
+
+interface Props {
+  categories: Category[];
+  layoutMode: 'pinterest' | 'simple';
+  vendorSlug: string;
+}
+
+const { categories, layoutMode, vendorSlug } = Astro.props;
+
+// Heights array for Pinterest masonry normal images
+const heightClasses = ['h-40', 'h-52', 'h-44', 'h-56', 'h-48', 'h-64'];
+
+// Layout block structure to support full-width spanning featured items
+interface LayoutBlock {
+  type: 'grid' | 'full';
+  items: MenuItem[];
+}
+
+function getLayoutBlocks(items: MenuItem[]): LayoutBlock[] {
+  const blocks: LayoutBlock[] = [];
+  let currentGridItems: MenuItem[] = [];
+
+  items.forEach((item) => {
+    if (item.span2) {
+      if (currentGridItems.length > 0) {
+        blocks.push({ type: 'grid', items: currentGridItems });
+        currentGridItems = [];
+      }
+      blocks.push({ type: 'full', items: [item] });
+    } else {
+      currentGridItems.push(item);
+    }
+  });
+
+  if (currentGridItems.length > 0) {
+    blocks.push({ type: 'grid', items: currentGridItems });
+  }
+
+  return blocks;
+}
+---
+
+<div class="menu-layout-container">
+  {categories.map((category) => {
+    const layoutBlocks = getLayoutBlocks(category.items);
+
+    return (
+      <section id={category.id} class="menu-section">
+        <SectionDivider name={category.name} />
+
+        {layoutMode === 'pinterest' ? (
+          /* Mode A: Pinterest Masonry with Column Span 2 support */
+          <div class="masonry-layout-blocks">
+            {layoutBlocks.map((block) => {
+              if (block.type === 'full') {
+                const item = block.items[0];
+                return (
+                  <div class="full-width-block">
+                    <a
+                      href={`/${vendorSlug}/${item.id}`}
+                      class="product-card-full animate-slide-up"
+                    >
+                      {item.image ? (
+                        <div class="image-wrapper-full image-zoom-container">
+                          <img
+                            src={item.image}
+                            alt={item.name}
+                            class="product-image-full"
+                            loading="lazy"
+                            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                          />
+                          <div class="fallback-placeholder full-fallback" style="display: none;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" class="fallback-icon">
+                              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                              <circle cx="8.5" cy="8.5" r="1.5" />
+                              <polyline points="21 15 16 10 5 21" />
+                            </svg>
+                          </div>
+                          {item.discount && (
+                            <div class="discount-badge">
+                              {item.discount.discountText}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div class="no-image-wrapper-full">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" class="no-image-icon">
+                            <path d="M6 2v6c0 1.1.9 2 2 2h0c1.1 0 2-.9 2-2V2" />
+                            <line x1="8" x2="8" y1="2" y2="8" />
+                            <line x1="8" x2="8" y1="10" y2="22" />
+                            <path d="M16 2a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" />
+                            <line x1="16" x2="16" y1="13" y2="22" />
+                          </svg>
+                        </div>
+                      )}
+                      
+                      <div class="product-details">
+                        <h3 class="product-title title-full">{item.name}</h3>
+                        <div class="price-container">
+                          {item.discount ? (
+                            <>
+                              <span class="price-tag price-old">{item.discount.originalPrice}</span>
+                              <span class="price-tag price-new">{item.priceFormatted}</span>
+                            </>
+                          ) : (
+                            <span class="price-tag">{item.priceFormatted}</span>
+                          )}
+                        </div>
+                      </div>
+                    </a>
+                  </div>
+                );
+              } else {
+                const rightColItems = block.items.filter((_, i) => i % 2 === 0);
+                const leftColItems = block.items.filter((_, i) => i % 2 !== 0);
+                return (
+                  <div class="pinterest-grid">
+                    {/* Right Column */}
+                    <div class="pinterest-column">
+                      {rightColItems.map((item, index) => (
+                        <a
+                          href={`/${vendorSlug}/${item.id}`}
+                          class="product-card animate-slide-up"
+                        >
+                          {item.image ? (
+                            <div class="image-wrapper image-zoom-container">
+                              <img
+                                src={item.image}
+                                alt={item.name}
+                                class={`product-image ${heightClasses[(index * 2) % heightClasses.length]}`}
+                                loading="lazy"
+                                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                              />
+                              <div class="fallback-placeholder" style="display: none;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" class="fallback-icon">
+                                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                                  <circle cx="8.5" cy="8.5" r="1.5" />
+                                  <polyline points="21 15 16 10 5 21" />
+                                </svg>
+                              </div>
+                              {item.discount && (
+                                <div class="discount-badge">
+                                  {item.discount.discountText}
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <div class="no-image-wrapper">
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" class="no-image-icon">
+                                <path d="M6 2v6c0 1.1.9 2 2 2h0c1.1 0 2-.9 2-2V2" />
+                                <line x1="8" x2="8" y1="2" y2="8" />
+                                <line x1="8" x2="8" y1="10" y2="22" />
+                                <path d="M16 2a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" />
+                                <line x1="16" x2="16" y1="13" y2="22" />
+                              </svg>
+                            </div>
+                          )}
+                          
+                          <div class="product-details">
+                            <h3 class="product-title">{item.name}</h3>
+                            <div class="price-container">
+                              {item.discount ? (
+                                <>
+                                  <span class="price-tag price-old">{item.discount.originalPrice}</span>
+                                  <span class="price-tag price-new">{item.priceFormatted}</span>
+                                </>
+                              ) : (
+                                <span class="price-tag">{item.priceFormatted}</span>
+                              )}
+                            </div>
+                          </div>
+                        </a>
+                      ))}
+                    </div>
+
+                    {/* Left Column */}
+                    <div class="pinterest-column">
+                      {leftColItems.map((item, index) => (
+                        <a
+                          href={`/${vendorSlug}/${item.id}`}
+                          class="product-card animate-slide-up"
+                        >
+                          {item.image ? (
+                            <div class="image-wrapper image-zoom-container">
+                              <img
+                                src={item.image}
+                                alt={item.name}
+                                class={`product-image ${heightClasses[(index * 2 + 1) % heightClasses.length]}`}
+                                loading="lazy"
+                                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                              />
+                              <div class="fallback-placeholder" style="display: none;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" class="fallback-icon">
+                                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                                  <circle cx="8.5" cy="8.5" r="1.5" />
+                                  <polyline points="21 15 16 10 5 21" />
+                                </svg>
+                              </div>
+                              {item.discount && (
+                                <div class="discount-badge">
+                                  {item.discount.discountText}
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <div class="no-image-wrapper">
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" class="no-image-icon">
+                                <path d="M6 2v6c0 1.1.9 2 2 2h0c1.1 0 2-.9 2-2V2" />
+                                <line x1="8" x2="8" y1="2" y2="8" />
+                                <line x1="8" x2="8" y1="10" y2="22" />
+                                <path d="M16 2a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" />
+                                <line x1="16" x2="16" y1="13" y2="22" />
+                              </svg>
+                            </div>
+                          )}
+                          
+                          <div class="product-details">
+                            <h3 class="product-title">{item.name}</h3>
+                            <div class="price-container">
+                              {item.discount ? (
+                                <>
+                                  <span class="price-tag price-old">{item.discount.originalPrice}</span>
+                                  <span class="price-tag price-new">{item.priceFormatted}</span>
+                                </>
+                              ) : (
+                                <span class="price-tag">{item.priceFormatted}</span>
+                              )}
+                            </div>
+                          </div>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                );
+              }
+            })}
+          </div>
+        ) : (
+          /* Mode B: Ultra-Compact List View */
+          <div class="compact-list">
+            {category.items.map((item) => (
+              <a
+                href={`/${vendorSlug}/${item.id}`}
+                class="list-row animate-slide-up"
+              >
+                <div class="list-right">
+                  {item.image ? (
+                    <div class="mini-thumb-wrapper">
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        class="mini-thumb"
+                        loading="lazy"
+                        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                      />
+                      <div class="fallback-placeholder mini-fallback" style="display: none;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" class="fallback-icon">
+                          <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                          <circle cx="8.5" cy="8.5" r="1.5" />
+                          <polyline points="21 15 16 10 5 21" />
+                        </svg>
+                      </div>
+                    </div>
+                  ) : (
+                    <div class="mini-thumb-placeholder">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" class="mini-placeholder-icon">
+                        <path d="M6 2v6c0 1.1.9 2 2 2h0c1.1 0 2-.9 2-2V2" />
+                        <line x1="8" x2="8" y1="2" y2="8" />
+                        <line x1="8" x2="8" y1="10" y2="22" />
+                        <path d="M16 2a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" />
+                        <line x1="16" x2="16" y1="13" y2="22" />
+                      </svg>
+                    </div>
+                  )}
+                  
+                  <div class="list-info">
+                    <h3 class="list-title">{item.name}</h3>
+                    {item.discount && (
+                      <span class="list-discount-badge">{item.discount.discountText}</span>
+                    )}
+                  </div>
+                </div>
+                
+                <div class="list-left">
+                  <div class="price-container text-left">
+                    {item.discount ? (
+                      <>
+                        <span class="price-tag price-old">{item.discount.originalPrice}</span>
+                        <span class="price-tag price-new">{item.priceFormatted}</span>
+                      </>
+                    ) : (
+                      <span class="price-tag">{item.priceFormatted}</span>
+                    )}
+                  </div>
+                </div>
+              </a>
+            ))}
+          </div>
+        )}
+      </section>
+    );
+  })}
+</div>
+
+<style>
+  .menu-layout-container {
+    max-width: 42rem; /* max-w-2xl */
+    margin: 0 auto;
+    padding-bottom: 5rem;
+    direction: rtl;
+  }
+
+  .menu-section {
+    scroll-margin-top: 5rem; /* Ensure section doesn't hide behind category header */
+  }
+
+  .masonry-layout-blocks {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  /* --- MODE A: PINTEREST STYLE MASONRY --- */
+  .pinterest-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    padding: 0 1rem;
+  }
+
+  .pinterest-column {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  /* Full-width block (col-span 2) */
+  .full-width-block {
+    padding: 0 1rem;
+    width: 100%;
+  }
+
+  .product-card-full {
+    background-color: #FFFFFF;
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .image-wrapper-full {
+    position: relative;
+    width: 100%;
+    height: 15rem; /* Bold, taller featured image height */
+    border-radius: 2rem; /* rounded-3xl equivalent */
+    overflow: hidden;
+    background-color: #fafafa;
+    display: flex;
+  }
+
+  .product-image-full {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .full-fallback {
+    min-height: 15rem;
+  }
+
+  .no-image-wrapper-full {
+    width: 100%;
+    height: 12rem;
+    background-color: #f5f5f5;
+    border-radius: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #a3a3a3;
+  }
+
+  .product-card {
+    background-color: #FFFFFF;
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    overflow: hidden;
+    text-decoration: none; /* Reset anchor tag decoration */
+    color: inherit;
+  }
+
+  .image-wrapper {
+    position: relative;
+    width: 100%;
+    border-radius: 1.5rem;
+    overflow: hidden;
+    background-color: #fafafa;
+    display: flex;
+  }
+
+  .product-image {
+    width: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* Pinterest height helpers */
+  .h-40 { height: 10rem; }
+  .h-44 { height: 11rem; }
+  .h-48 { height: 12rem; }
+  .h-52 { height: 13rem; }
+  .h-56 { height: 14rem; }
+  .h-64 { height: 16rem; }
+
+  /* Fallback and No-image styles */
+  .fallback-placeholder {
+    width: 100%;
+    height: 100%;
+    min-height: 8rem;
+    background-color: #fafafa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #d4d4d4;
+  }
+
+  .fallback-icon {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+
+  .no-image-wrapper {
+    width: 100%;
+    height: 8rem;
+    background-color: #f5f5f5;
+    border-radius: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #a3a3a3;
+  }
+
+  .no-image-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .discount-badge {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    background-color: rgba(255, 255, 255, 0.95);
+    color: #9f1239;
+    font-size: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    border: 1px solid rgba(254, 226, 226, 0.4);
+    font-weight: 400;
+  }
+
+  @media (min-width: 640px) {
+    .discount-badge {
+      font-size: 0.5625rem;
+    }
+  }
+
+  .product-details {
+    padding: 0.5rem 0.25rem 0 0.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: nowrap; /* Strictly force single line */
+    gap: 0.5rem;
+  }
+
+  .product-title {
+    font-size: 0.75rem; /* Slightly smaller as requested */
+    font-weight: 300;
+    color: #171717;
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; /* Puts ... when overflowing */
+    flex: 1 1 auto;
+    min-width: 0; /* Required for text-overflow to work in flex container */
+  }
+
+  .title-full {
+    font-size: 0.8125rem; /* Slightly larger for featured full-width item */
+    font-weight: 400;
+  }
+
+  .price-container {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-shrink: 0;
+    margin-right: auto;
+  }
+
+  .price-tag {
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: #262626;
+  }
+
+  .text-left {
+    justify-content: flex-end;
+  }
+
+  /* --- MODE B: ULTRA-COMPACT LIST VIEW --- */
+  .compact-list {
+    display: flex;
+    flex-direction: column;
+    padding: 0 1.25rem;
+  }
+
+  .list-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.625rem 0;
+    border-bottom: 1px solid #f5f5f5;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .list-row:last-child {
+    border-bottom: none;
+  }
+
+  .list-right {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0; /* Allow title to truncate */
+    flex: 1 1 auto;
+  }
+
+  .mini-thumb-wrapper {
+    position: relative;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    background-color: #fafafa;
+    flex-shrink: 0;
+  }
+
+  @media (min-width: 640px) {
+    .mini-thumb-wrapper {
+      width: 3.25rem;
+      height: 3.25rem;
+    }
+  }
+
+  .mini-thumb {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .mini-fallback {
+    min-height: 100%;
+  }
+
+  .mini-thumb-placeholder {
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 0.75rem;
+    background-color: #f5f5f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #a3a3a3;
+    flex-shrink: 0;
+  }
+
+  @media (min-width: 640px) {
+    .mini-thumb-placeholder {
+      width: 3.25rem;
+      height: 3.25rem;
+    }
+  }
+
+  .mini-placeholder-icon {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .list-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    min-width: 0; /* Allow title to truncate */
+    flex: 1 1 auto;
+    padding-left: 0.5rem;
+  }
+
+  .list-title {
+    font-size: 0.8125rem;
+    font-weight: 300;
+    color: #171717;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .list-discount-badge {
+    align-self: flex-start;
+    background-color: #fff1f2;
+    color: #9f1239;
+    font-size: 0.5rem;
+    padding: 0.05rem 0.35rem;
+    border-radius: 4px;
+    font-weight: 400;
+  }
+
+  .list-left {
+    flex-shrink: 0;
+  }
+</style>

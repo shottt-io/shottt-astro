@@ -1,0 +1,158 @@
+---
+import type { Category } from '../data/vendors';
+
+interface Props {
+  categories: Category[];
+}
+
+const { categories } = Astro.props;
+---
+
+<nav class="category-nav" id="category-nav">
+  <div class="nav-container scrollbar-none">
+    <div class="nav-scroll-content">
+      {categories.map((category, index) => (
+        <a
+          href={`#${category.id}`}
+          class={`nav-item ${index === 0 ? 'active' : ''}`}
+          data-category-id={category.id}
+        >
+          {category.name}
+        </a>
+      ))}
+    </div>
+  </div>
+</nav>
+
+<script>
+  // Dynamic highlighting on scroll & smooth scroll on click
+  document.addEventListener('DOMContentLoaded', () => {
+    const navContainer = document.querySelector('.nav-container');
+    const navItems = document.querySelectorAll('.nav-item');
+    const sections = document.querySelectorAll('section.menu-section');
+    
+    if (!navContainer || navItems.length === 0) return;
+
+    // Smooth scroll on click
+    navItems.forEach(item => {
+      item.addEventListener('click', (e) => {
+        e.preventDefault();
+        const targetId = item.getAttribute('href')?.substring(1);
+        if (!targetId) return;
+
+        const targetSection = document.getElementById(targetId);
+        if (targetSection) {
+          // Adjust scroll position to account for sticky nav height (~60px)
+          const navHeight = 65;
+          const targetOffset = targetSection.offsetTop - navHeight;
+          
+          window.scrollTo({
+            top: targetOffset,
+            behavior: 'smooth'
+          });
+        }
+      });
+    });
+
+    // Auto-highlight active tab on scroll using IntersectionObserver
+    const observerOptions = {
+      root: null,
+      rootMargin: '-80px 0px -60% 0px', // Highlight when section is in top 40% of viewport
+      threshold: 0
+    };
+
+    let activeItem: Element | null = document.querySelector('.nav-item.active');
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const sectionId = entry.target.id;
+          const correspondingNavItem = document.querySelector(`.nav-item[href="#${sectionId}"]`);
+          
+          if (correspondingNavItem && correspondingNavItem !== activeItem) {
+            if (activeItem) activeItem.classList.remove('active');
+            correspondingNavItem.classList.add('active');
+            activeItem = correspondingNavItem;
+            
+            // Scroll nav item into view inside the category bar
+            scrollNavItemIntoView(correspondingNavItem);
+          }
+        }
+      });
+    }, observerOptions);
+
+    sections.forEach((section) => observer.observe(section));
+
+    function scrollNavItemIntoView(item: Element) {
+      if (!navContainer) return;
+      const containerRect = navContainer.getBoundingClientRect();
+      const itemRect = item.getBoundingClientRect();
+      
+      // Calculate how far to scroll the container to center the item
+      const containerScrollLeft = navContainer.scrollLeft;
+      const itemOffset = itemRect.left - containerRect.left;
+      const targetScroll = containerScrollLeft + itemOffset - (containerRect.width / 2) + (itemRect.width / 2);
+      
+      navContainer.scrollTo({
+        left: targetScroll,
+        behavior: 'smooth'
+      });
+    }
+  });
+</script>
+
+<style>
+  .category-nav {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    background-color: rgba(255, 255, 255, 0.7); /* bg-white/70 */
+    backdrop-filter: blur(24px); /* backdrop-blur-xl */
+    -webkit-backdrop-filter: blur(24px);
+    padding: 0.75rem 0;
+  }
+
+  .nav-container {
+    max-width: 42rem; /* max-w-2xl */
+    margin: 0 auto;
+    overflow-x: auto;
+    display: flex;
+    padding: 0 1rem;
+    position: relative;
+    /* Direction is handled by document root, but let's be explicit for scroll alignment */
+    direction: rtl;
+  }
+
+  .nav-scroll-content {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: nowrap;
+    align-items: center;
+    padding-bottom: 2px; /* Prevent cuts from transform shadows */
+  }
+
+  .nav-item {
+    display: inline-block;
+    padding: 0.45rem 1rem;
+    font-size: 0.8125rem;
+    font-weight: 300;
+    text-decoration: none;
+    border-radius: 9999px; /* Capsule */
+    white-space: nowrap;
+    color: #525252; /* neutral-600 */
+    background-color: rgba(245, 245, 245, 0.5); /* bg-neutral-100/50 */
+    border: 1px solid transparent;
+  }
+
+  .nav-item:hover {
+    background-color: rgba(245, 245, 245, 0.8); /* bg-neutral-100/80 */
+    color: #171717;
+  }
+
+  .nav-item.active {
+    background-color: #0a0a0a; /* bg-neutral-950 */
+    color: #FFFFFF;
+    font-weight: 400;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.05); /* shadow-md */
+  }
+</style>
