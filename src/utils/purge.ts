@@ -27,14 +27,17 @@ async function purgeUrls(urls: string[]): Promise<void> {
   // Clean the API Key: trim whitespace and remove potential wrapping quotes (common in env vars)
   let cleanKey = apiKey.trim().replace(/^['"]|['"]$/g, '').trim();
 
-  // Log obfuscated key for debugging env issues
-  const maskedKey = cleanKey.startsWith('Apikey ') 
-    ? `Apikey ${cleanKey.substring(7, 10)}...${cleanKey.substring(cleanKey.length - 4)}`
-    : `${cleanKey.substring(0, 3)}...${cleanKey.substring(cleanKey.length - 4)}`;
-  console.log(`[ArvanPurge] API Key length: ${cleanKey.length}, Masked: "${maskedKey}"`);
+  // If the user already prepended any variation of "apikey ", strip it so we can standardize it
+  if (cleanKey.toLowerCase().startsWith('apikey ')) {
+    cleanKey = cleanKey.substring(7).trim();
+  }
 
-  // ArvanCloud API key requires the "Apikey " prefix. Prepend it if not present.
-  const authHeader = cleanKey.startsWith('Apikey ') ? cleanKey : `Apikey ${cleanKey}`;
+  // Log obfuscated key for debugging env issues
+  const maskedKey = `${cleanKey.substring(0, 3)}...${cleanKey.substring(cleanKey.length - 4)}`;
+  console.log(`[ArvanPurge] API Key length: ${cleanKey.length}, Masked: "Apikey ${maskedKey}"`);
+
+  // ArvanCloud API key requires the "Apikey " prefix.
+  const authHeader = `Apikey ${cleanKey}`;
 
   try {
     const apiEndpoint = `https://napi.arvancloud.ir/cdn/4.0/domains/${domain}/caching/purge`;
@@ -47,8 +50,8 @@ async function purgeUrls(urls: string[]): Promise<void> {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        purge_type: 'individual',
-        files: urls,
+        purge: 'individual',
+        purge_urls: urls,
       }),
       redirect: 'manual', // Prevent undici redirect loops (redirect count exceeded) if WAF/gateway redirects
     });
