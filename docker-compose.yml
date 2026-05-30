@@ -1,0 +1,46 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: shottt_web
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgres://postgres:postgres_password@db:5432/shottt
+      # AWS/S3 storage environment variables (Optional fallback to local storage if not provided)
+      # - S3_ENDPOINT=https://s3.ir-thr-at1.arvanstorage.ir
+      # - S3_ACCESS_KEY_ID=your_access_key
+      # - S3_SECRET_ACCESS_KEY=your_secret_key
+      # - S3_BUCKET=your_bucket_name
+      # - S3_PUBLIC_URL=https://your-cdn-url.com
+      # - S3_REGION=us-east-1
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - uploads_data:/app/public/uploads
+
+  db:
+    image: postgres:16-alpine
+    container_name: shottt_db
+    restart: always
+    environment:
+      - POSTGRES_DB=shottt
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d shottt"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+  uploads_data:
