@@ -10,9 +10,6 @@ interface Props {
 
 const { categories, layoutMode, vendorSlug } = Astro.props;
 
-// Heights array for Pinterest masonry normal images
-const heightClasses = ['h-40', 'h-52', 'h-44', 'h-56', 'h-48', 'h-64'];
-
 // Layout block structure to support full-width spanning featured items
 interface LayoutBlock {
   type: 'grid' | 'full';
@@ -61,7 +58,7 @@ function getLayoutBlocks(items: MenuItem[]): LayoutBlock[] {
                   <div class="full-width-block">
                     <a
                       href={`/${vendorSlug}/${item.slug || item.id}`}
-                      class="product-card-full animate-slide-up"
+                      class={`product-card-full animate-slide-up ${item.status === 'unavailable' ? 'is-unavailable' : ''}`}
                     >
                       {item.image ? (
                         <div class="image-wrapper-full image-zoom-container">
@@ -79,7 +76,11 @@ function getLayoutBlocks(items: MenuItem[]): LayoutBlock[] {
                               <polyline points="21 15 16 10 5 21" />
                             </svg>
                           </div>
-                          {item.discount && (
+                          {item.status === 'unavailable' ? (
+                            <div class="status-badge-out-of-stock">
+                              ناموجود
+                            </div>
+                          ) : item.discount && (
                             <div class="discount-badge">
                               {item.discount.discountText}
                             </div>
@@ -123,14 +124,15 @@ function getLayoutBlocks(items: MenuItem[]): LayoutBlock[] {
                       {rightColItems.map((item, index) => (
                         <a
                           href={`/${vendorSlug}/${item.slug || item.id}`}
-                          class="product-card animate-slide-up"
+                          class={`product-card animate-slide-up ${item.status === 'unavailable' ? 'is-unavailable' : ''}`}
+                          data-sort-order={index * 2}
                         >
                           {item.image ? (
                             <div class="image-wrapper image-zoom-container">
                               <img
                                 src={item.image}
                                 alt={item.name}
-                                class={`product-image ${heightClasses[(index * 2) % heightClasses.length]}`}
+                                class="product-image"
                                 loading="lazy"
                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
                               />
@@ -141,7 +143,11 @@ function getLayoutBlocks(items: MenuItem[]): LayoutBlock[] {
                                   <polyline points="21 15 16 10 5 21" />
                                 </svg>
                               </div>
-                              {item.discount && (
+                              {item.status === 'unavailable' ? (
+                                <div class="status-badge-out-of-stock">
+                                  ناموجود
+                                </div>
+                              ) : item.discount && (
                                 <div class="discount-badge">
                                   {item.discount.discountText}
                                 </div>
@@ -181,14 +187,15 @@ function getLayoutBlocks(items: MenuItem[]): LayoutBlock[] {
                       {leftColItems.map((item, index) => (
                         <a
                           href={`/${vendorSlug}/${item.slug || item.id}`}
-                          class="product-card animate-slide-up"
+                          class={`product-card animate-slide-up ${item.status === 'unavailable' ? 'is-unavailable' : ''}`}
+                          data-sort-order={index * 2 + 1}
                         >
                           {item.image ? (
                             <div class="image-wrapper image-zoom-container">
                               <img
                                 src={item.image}
                                 alt={item.name}
-                                class={`product-image ${heightClasses[(index * 2 + 1) % heightClasses.length]}`}
+                                class="product-image"
                                 loading="lazy"
                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
                               />
@@ -199,7 +206,11 @@ function getLayoutBlocks(items: MenuItem[]): LayoutBlock[] {
                                   <polyline points="21 15 16 10 5 21" />
                                 </svg>
                               </div>
-                              {item.discount && (
+                              {item.status === 'unavailable' ? (
+                                <div class="status-badge-out-of-stock">
+                                  ناموجود
+                                </div>
+                              ) : item.discount && (
                                 <div class="discount-badge">
                                   {item.discount.discountText}
                                 </div>
@@ -244,7 +255,7 @@ function getLayoutBlocks(items: MenuItem[]): LayoutBlock[] {
             {category.items.map((item) => (
               <a
                 href={`/${vendorSlug}/${item.slug || item.id}`}
-                class="list-row animate-slide-up"
+                class={`list-row animate-slide-up ${item.status === 'unavailable' ? 'is-unavailable' : ''}`}
               >
                 <div class="list-right">
                   {item.image ? (
@@ -277,8 +288,13 @@ function getLayoutBlocks(items: MenuItem[]): LayoutBlock[] {
                   )}
                   
                   <div class="list-info">
-                    <h3 class="list-title">{item.name}</h3>
-                    {item.discount && (
+                    <div style="display: flex; align-items: center; gap: 0.375rem;">
+                      <h3 class="list-title">{item.name}</h3>
+                      {item.status === 'unavailable' && (
+                        <span class="compact-unavailable-badge">ناموجود</span>
+                      )}
+                    </div>
+                    {item.discount && item.status !== 'unavailable' && (
                       <span class="list-discount-badge">{item.discount.discountText}</span>
                     )}
                   </div>
@@ -311,6 +327,35 @@ function getLayoutBlocks(items: MenuItem[]): LayoutBlock[] {
     margin: 0 auto;
     padding-bottom: 5rem;
     direction: rtl;
+  }
+
+  .is-unavailable {
+    opacity: 0.6;
+    filter: grayscale(30%);
+  }
+
+  .status-badge-out-of-stock {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    background-color: rgba(64, 64, 64, 0.85);
+    color: #ffffff;
+    font-size: 0.5625rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    font-weight: 500;
+    z-index: 2;
+    letter-spacing: 0.025em;
+  }
+
+  .compact-unavailable-badge {
+    background-color: #f5f5f5;
+    color: #737373;
+    font-size: 0.625rem;
+    padding: 0.1rem 0.35rem;
+    border-radius: 4px;
+    font-weight: 500;
+    white-space: nowrap;
   }
 
   .menu-section {
@@ -408,17 +453,9 @@ function getLayoutBlocks(items: MenuItem[]): LayoutBlock[] {
 
   .product-image {
     width: 100%;
-    object-fit: cover;
+    height: auto;
     display: block;
   }
-
-  /* Pinterest height helpers */
-  .h-40 { height: 10rem; }
-  .h-44 { height: 11rem; }
-  .h-48 { height: 12rem; }
-  .h-52 { height: 13rem; }
-  .h-56 { height: 14rem; }
-  .h-64 { height: 16rem; }
 
   /* Fallback and No-image styles */
   .fallback-placeholder {
@@ -628,3 +665,81 @@ function getLayoutBlocks(items: MenuItem[]): LayoutBlock[] {
     flex-shrink: 0;
   }
 </style>
+
+<script>
+  function balanceMasonryColumns() {
+    const grids = document.querySelectorAll('.pinterest-grid');
+    grids.forEach((grid) => {
+      const columns = grid.querySelectorAll('.pinterest-column');
+      if (columns.length < 2) return;
+      
+      const rightCol = columns[0];
+      const leftCol = columns[1];
+      
+      // Save all existing cards from both columns
+      const cards = Array.from(grid.querySelectorAll('.product-card'));
+      if (cards.length === 0) return;
+
+      // Sort cards to match their original SSR order
+      cards.sort((a, b) => {
+        const orderA = parseInt(a.getAttribute('data-sort-order') || '0');
+        const orderB = parseInt(b.getAttribute('data-sort-order') || '0');
+        return orderA - orderB;
+      });
+      
+      // Measure all card heights first while they are fully rendered in the DOM
+      const cardHeights = cards.map((card) => card.offsetHeight || 0);
+      
+      // Remove all cards from DOM temporarily to reset column heights to 0
+      cards.forEach((card) => card.remove());
+      
+      // Distribute cards based on virtual accumulated heights (including column gaps)
+      let rightHeight = 0;
+      let leftHeight = 0;
+      const gap = 20; // 1.25rem gap is 20px
+
+      cards.forEach((card, index) => {
+        // Remove animation class to prevent flickering/re-animating on shift
+        card.classList.remove('animate-slide-up');
+        
+        const cardHeight = cardHeights[index];
+        
+        if (rightHeight <= leftHeight) {
+          const currentCount = rightCol.childElementCount;
+          rightCol.appendChild(card);
+          rightHeight += cardHeight + (currentCount > 0 ? gap : 0);
+        } else {
+          const currentCount = leftCol.childElementCount;
+          leftCol.appendChild(card);
+          leftHeight += cardHeight + (currentCount > 0 ? gap : 0);
+        }
+      });
+    });
+  }
+
+  let resizeTimeout = null;
+  function debouncedBalance() {
+    if (resizeTimeout) {
+      clearTimeout(resizeTimeout);
+    }
+    resizeTimeout = setTimeout(balanceMasonryColumns, 10);
+  }
+
+  // Set up event listeners
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', balanceMasonryColumns);
+  } else {
+    balanceMasonryColumns();
+  }
+
+  window.addEventListener('load', balanceMasonryColumns);
+  window.addEventListener('resize', debouncedBalance);
+
+  // Monitor image loading dynamically without causing infinite loops
+  document.querySelectorAll('.pinterest-grid img').forEach((img) => {
+    if (img.complete) return;
+    img.addEventListener('load', debouncedBalance, { once: true });
+    img.addEventListener('error', debouncedBalance, { once: true });
+  });
+</script>
+

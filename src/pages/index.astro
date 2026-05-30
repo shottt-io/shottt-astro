@@ -11,24 +11,7 @@ const vendors = await db.select().from(vendorsTable);
   <main class="landing-main">
     <header class="landing-header">
       <div class="landing-logo-container">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 135 38" fill="none" class="landing-logo-svg">
-          <!-- Logo Symbol (Lens/Aperture) -->
-          <g transform="translate(4, 3)">
-            <!-- Solid circle background -->
-            <circle cx="16" cy="16" r="15" class="logo-symbol-circle-landing" />
-            
-            <!-- White lens details -->
-            <circle cx="16" cy="16" r="7.5" stroke-width="1.8" fill="none" class="logo-symbol-details-landing" />
-            <circle cx="16" cy="16" r="3.5" stroke-width="1.2" fill="none" class="logo-symbol-details-landing" />
-            <line x1="10" y1="10" x2="13.5" y2="13.5" stroke-width="1.5" stroke-linecap="round" class="logo-symbol-details-landing" />
-            <line x1="18.5" y1="18.5" x2="22" y2="22" stroke-width="1.5" stroke-linecap="round" class="logo-symbol-details-landing" />
-          </g>
-
-          <!-- Typography "shottt." -->
-          <text x="42" y="27" class="logo-text-landing" letter-spacing="-0.04em">
-            <tspan font-weight="300" opacity="0.8">sho</tspan><tspan font-weight="900" letter-spacing="-0.02em">ttt</tspan><tspan font-weight="900">.</tspan>
-          </text>
-        </svg>
+        <img src="/logo.png" alt="shottt" class="landing-logo-img" />
       </div>
       <h1 class="landing-title">دایرکتوری مجموعه‌ها</h1>
       <p class="landing-subtitle">نمایشگاه کاتالوگ‌ها و منوهای دیجیتال مجموعه‌های برتر</p>
@@ -95,23 +78,9 @@ const vendors = await db.select().from(vendorsTable);
     margin-bottom: 0.5rem;
   }
 
-  .landing-logo-svg {
+  .landing-logo-img {
     height: 2.25rem;
-    width: 8rem; /* aspect ratio width matching 135/38 */
-  }
-
-  .logo-text-landing {
-    font-family: 'Outfit', sans-serif;
-    font-size: 26px;
-    fill: #171717;
-  }
-
-  .logo-symbol-circle-landing {
-    fill: #171717;
-  }
-
-  .logo-symbol-details-landing {
-    stroke: #ffffff;
+    width: auto;
   }
 
   .landing-title {

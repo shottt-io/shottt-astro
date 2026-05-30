@@ -41,10 +41,12 @@ const items = await db
     price: menuItemsTable.price,
     image: menuItemsTable.image,
     span2: menuItemsTable.span2,
+    status: menuItemsTable.status,
   })
   .from(menuItemsTable)
   .innerJoin(categoriesTable, eq(menuItemsTable.categoryId, categoriesTable.id))
-  .where(eq(categoriesTable.vendorId, vendor.id));
+  .where(eq(categoriesTable.vendorId, vendor.id))
+  .orderBy(asc(menuItemsTable.id));
 ---
 
 <AdminLayout title="مدیریت محصولات" activeTab="products" vendorSlug={vendorSlug}>
@@ -105,7 +107,15 @@ const items = await db
               loading="lazy"
             />
             <div class="item-title-desc">
-              <span class="item-name-bold">{item.name}</span>
+              <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <span class="item-name-bold">{item.name}</span>
+                {item.status === 'unavailable' && (
+                  <span class="status-badge status-badge-unavailable">ناموجود</span>
+                )}
+                {item.status === 'inactive' && (
+                  <span class="status-badge status-badge-inactive">غیرفعال</span>
+                )}
+              </div>
               <span class="item-desc-sub">{item.price} هزار تومان {item.span2 && ' • دو ستونه'}</span>
             </div>
           </div>

@@ -54,7 +54,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
   try {
     const data = await request.json();
-    const { categoryId, name, price, image, description, span2, discount, sections } = data;
+    const { categoryId, name, price, image, description, span2, discount, sections, status } = data;
 
     if (!categoryId || !name || !price) {
       return new Response(JSON.stringify({ success: false, message: 'فیلدهای اجباری ناقص هستند' }), { status: 400 });
@@ -81,6 +81,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       span2: !!span2,
       discount: discount || null,
       sections: sections || [],
+      status: status || 'available',
     });
 
     return new Response(JSON.stringify({ success: true, message: 'آیتم با موفقیت ایجاد شد' }), { status: 200 });
@@ -99,7 +100,7 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
 
   try {
     const data = await request.json();
-    const { id, categoryId, name, price, image, description, span2, discount, sections } = data;
+    const { id, categoryId, name, price, image, description, span2, discount, sections, status } = data;
     const itemId = parseInt(id);
 
     if (!itemId || !categoryId || !name || !price) {
@@ -138,6 +139,7 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
         span2: !!span2,
         discount: discount || null,
         sections: sections || [],
+        status: status || 'available',
       })
       .where(eq(menuItemsTable.id, itemId));
 

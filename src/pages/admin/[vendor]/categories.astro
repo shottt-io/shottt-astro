@@ -72,6 +72,34 @@ const dbCategories = await db
             <div class="item-title-desc">
               <span class="item-name-bold">{category.name}</span>
             </div>
+            
+            <!-- Inline Status Selector -->
+            <div class="category-status-pills" data-id={category.id}>
+              <button 
+                type="button" 
+                class={`cat-status-pill ${(!category.status || category.status === 'available') ? 'active' : ''}`} 
+                data-status="available" 
+                title="موجود در منو"
+              >
+                موجود
+              </button>
+              <button 
+                type="button" 
+                class={`cat-status-pill ${(category.status === 'unavailable') ? 'active' : ''}`} 
+                data-status="unavailable" 
+                title="ناموجود"
+              >
+                ناموجود
+              </button>
+              <button 
+                type="button" 
+                class={`cat-status-pill ${(category.status === 'inactive') ? 'active' : ''}`} 
+                data-status="inactive" 
+                title="غیرفعال (مخفی)"
+              >
+                غیرفعال
+              </button>
+            </div>
           </div>
           
           <div class="item-left-controls">
@@ -128,6 +156,33 @@ const dbCategories = await db
 </AdminLayout>
 
 <script>
+  // Change Category Status Action
+  document.querySelectorAll('.cat-status-pill').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.closest('.category-status-pills')?.getAttribute('data-id');
+      const status = btn.getAttribute('data-status');
+      if (!id || !status) return;
+
+      try {
+        const response = await fetch('/api/categories', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, status, action: 'update_status' })
+        });
+        if (response.ok) {
+          // Instantly toggle active classes in UI
+          const container = btn.closest('.category-status-pills');
+          container?.querySelectorAll('.cat-status-pill').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+        } else {
+          alert('خطا در به‌روزرسانی وضعیت.');
+        }
+      } catch {
+        alert('ارتباط با سرور برقرار نشد.');
+      }
+    });
+  });
+
   // Add Category Action
   const addCategoryBtn = document.getElementById('btn-add-category');
   addCategoryBtn?.addEventListener('click', async () => {

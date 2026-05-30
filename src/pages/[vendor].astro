@@ -5,7 +5,7 @@ import CategoryNav from '../components/CategoryNav.astro';
 import MenuLayout from '../components/MenuLayout.astro';
 import { db } from '../db/db';
 import { vendors as vendorsTable, categories as categoriesTable, menuItems as menuItemsTable } from '../db/schema';
-import { eq, asc } from 'drizzle-orm';
+import { eq, asc, and, ne } from 'drizzle-orm';
 
 const vendorSlug = Astro.params.vendor;
 if (!vendorSlug) {
@@ -25,11 +25,16 @@ if (vendorList.length === 0) {
 
 const vendor = vendorList[0];
 
-// Fetch categories for this vendor sorted by sort_order
+// Fetch categories for this vendor sorted by sort_order (exclude inactive categories)
 const dbCategories = await db
   .select()
   .from(categoriesTable)
-  .where(eq(categoriesTable.vendorId, vendor.id))
+  .where(
+    and(
+      eq(categoriesTable.vendorId, vendor.id),
+      ne(categoriesTable.status, 'inactive')
+    )
+  )
   .orderBy(asc(categoriesTable.sortOrder));
 
 // Fetch all menu items for the categories and map to UI schema
@@ -38,11 +43,18 @@ const categories = await Promise.all(
     const items = await db
       .select()
       .from(menuItemsTable)
-      .where(eq(menuItemsTable.categoryId, category.id));
+      .where(
+        and(
+          eq(menuItemsTable.categoryId, category.id),
+          ne(menuItemsTable.status, 'inactive')
+        )
+      )
+      .orderBy(asc(menuItemsTable.id));
 
     return {
       id: category.id.toString(),
       name: category.name,
+      status: category.status,
       items: items.map((item) => ({
         id: item.id.toString(),
         name: item.name,
@@ -56,6 +68,7 @@ const categories = await Promise.all(
         } : undefined,
         span2: item.span2,
         sections: item.sections,
+        status: (category.status === 'unavailable' || item.status === 'unavailable') ? 'unavailable' : item.status,
       })),
     };
   })

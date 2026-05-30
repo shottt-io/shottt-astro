@@ -30,6 +30,7 @@ export const categories = pgTable('categories', {
   vendorId: integer('vendor_id').references(() => vendors.id, { onDelete: 'cascade' }).notNull(),
   name: varchar('name', { length: 255 }).notNull(),
   sortOrder: integer('sort_order').default(0).notNull(),
+  status: varchar('status', { length: 50 }).default('available').notNull(),
 });
 
 // 3. Menu Items Table (handles sections & discounts as JSONB)
@@ -44,6 +45,7 @@ export const menuItems = pgTable('menu_items', {
   discount: jsonb('discount').$type<DBDiscount>(),
   span2: boolean('span2').default(false).notNull(),
   sections: jsonb('sections').$type<DBProductSection[]>().default([]).notNull(),
+  status: varchar('status', { length: 50 }).default('available').notNull(),
 });
 
 // 4. Users Table

@@ -55,6 +55,7 @@ async function seed() {
           vendorId: vendorId,
           name: category.name,
           sortOrder: sortOrder++,
+          status: 'available',
         }).returning({ id: dbCategories.id });
 
         const categoryId = insertedCategory.id;
@@ -75,6 +76,7 @@ async function seed() {
             } : undefined,
             span2: item.span2 || false,
             sections: item.sections || [],
+            status: 'available',
           });
         }
       }

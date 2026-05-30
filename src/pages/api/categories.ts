@@ -91,12 +91,25 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
   }
 
   try {
-    const { id, name, action, direction } = await request.json();
+    const { id, name, action, direction, status } = await request.json();
     const categoryId = parseInt(id);
 
     const category = await checkCategoryAccess(session.userId, categoryId);
     if (!category) {
       return new Response(JSON.stringify({ success: false, message: 'دسترسی غیرمجاز یا شناسه نامعتبر' }), { status: 403 });
+    }
+
+    if (action === 'update_status') {
+      if (!status || (status !== 'available' && status !== 'unavailable' && status !== 'inactive')) {
+        return new Response(JSON.stringify({ success: false, message: 'وضعیت نامعتبر' }), { status: 400 });
+      }
+
+      await db
+        .update(categoriesTable)
+        .set({ status })
+        .where(eq(categoriesTable.id, categoryId));
+
+      return new Response(JSON.stringify({ success: true, message: 'وضعیت با موفقیت به‌روزرسانی شد' }), { status: 200 });
     }
 
     if (action === 'rename') {

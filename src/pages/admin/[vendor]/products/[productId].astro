@@ -98,6 +98,32 @@ const product = productList[0];
       </div>
 
       <div class="form-group">
+        <label class="form-label">وضعیت محصول *</label>
+        <div class="status-selector-container">
+          <input type="hidden" name="status" id="status-field" value={product.status || 'available'} />
+          <div class="status-pills">
+            <button type="button" class={`status-pill-btn ${(!product.status || product.status === 'available') ? 'active' : ''}`} data-status="available">
+              <span class="status-dot dot-available"></span>
+              موجود
+            </button>
+            <button type="button" class={`status-pill-btn ${(product.status === 'unavailable') ? 'active' : ''}`} data-status="unavailable">
+              <span class="status-dot dot-unavailable"></span>
+              ناموجود
+            </button>
+            <button type="button" class={`status-pill-btn ${(product.status === 'inactive') ? 'active' : ''}`} data-status="inactive">
+              <span class="status-dot dot-inactive"></span>
+              غیرفعال
+            </button>
+          </div>
+          <p class="status-explanation" id="status-explanation">
+            {(!product.status || product.status === 'available') && 'توضیح: محصول در منو نمایش داده شده و قیمت آن فعال است.'}
+            {(product.status === 'unavailable') && 'توضیح: محصول در منو نمایش داده می‌شود اما برچسب «ناموجود» خواهد خورد.'}
+            {(product.status === 'inactive') && 'توضیح: محصول به طور کامل از منوی سمت مشتری مخفی می‌شود.'}
+          </p>
+        </div>
+      </div>
+
+      <div class="form-group">
         <label class="form-label">قیمت محصول (به هزار تومان) *</label>
         <input type="text" name="price" class="form-input" value={product.price} required />
       </div>
@@ -229,6 +255,27 @@ const product = productList[0];
 </AdminLayout>
 
 <script>
+  // Handle Status Pill Selector
+  const statusBtns = document.querySelectorAll('.status-pill-btn');
+  const statusField = document.getElementById('status-field') as HTMLInputElement;
+  const statusExplanation = document.getElementById('status-explanation');
+
+  const statusExplanations: Record<string, string> = {
+    available: 'توضیح: محصول در منو نمایش داده شده و قیمت آن فعال است.',
+    unavailable: 'توضیح: محصول در منو نمایش داده می‌شود اما برچسب «ناموجود» خواهد خورد.',
+    inactive: 'توضیح: محصول به طور کامل از منوی سمت مشتری مخفی می‌شود.'
+  };
+
+  statusBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      statusBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const status = btn.getAttribute('data-status') || 'available';
+      if (statusField) statusField.value = status;
+      if (statusExplanation) statusExplanation.textContent = statusExplanations[status];
+    });
+  });
+
   // Handle Product Image Upload & Cropper
   const selectProductImageBtn = document.getElementById('btn-select-product-image');
   const productImageFileInput = document.getElementById('product-file-input') as HTMLInputElement;
@@ -475,6 +522,7 @@ const product = productList[0];
     const description = (formData.get('description') as string).trim();
     const image = (formData.get('image') as string).trim();
     const span2 = formData.get('span2') === 'on';
+    const status = (formData.get('status') as string || 'available').trim();
 
     // Discount (only send if checked)
     let discount = null;
@@ -512,7 +560,8 @@ const product = productList[0];
       image: image || null,
       span2,
       discount,
-      sections
+      sections,
+      status
     };
 
     try {
