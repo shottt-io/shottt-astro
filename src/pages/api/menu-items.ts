@@ -3,10 +3,12 @@ import { db } from '../../db/db';
 import { 
   menuItems as menuItemsTable, 
   categories as categoriesTable, 
+  vendors as vendorsTable,
   vendorUsers as vendorUsersTable 
 } from '../../db/schema';
 import { getSession } from '../../utils/auth';
 import { eq, and, asc, desc } from 'drizzle-orm';
+import { purgeVendorCache } from '../../utils/purge';
 
 // Helper to check user access to a category ID
 async function checkCategoryAccess(userId: number, categoryId: number): Promise<boolean> {
@@ -26,6 +28,17 @@ async function checkCategoryAccess(userId: number, categoryId: number): Promise<
     .limit(1);
 
   return access.length > 0;
+}
+
+// Helper to get vendor slug from a category ID
+async function getVendorSlugByCategoryId(categoryId: number): Promise<string | null> {
+  const result = await db
+    .select({ slug: vendorsTable.slug })
+    .from(categoriesTable)
+    .innerJoin(vendorsTable, eq(categoriesTable.vendorId, vendorsTable.id))
+    .where(eq(categoriesTable.id, categoryId))
+    .limit(1);
+  return result.length > 0 ? result[0].slug : null;
 }
 
 // Helper to check user access to a menu item ID and return the item
@@ -94,6 +107,10 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       status: status || 'available',
       sortOrder: nextSortOrder,
     });
+
+    // Purge CDN cache
+    const vendorSlug = await getVendorSlugByCategoryId(categoryId);
+    if (vendorSlug) purgeVendorCache(vendorSlug).catch(() => {});
 
     return new Response(JSON.stringify({ success: true, message: 'آیتم با موفقیت ایجاد شد' }), { status: 200 });
   } catch (error) {
@@ -238,6 +255,10 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
       })
       .where(eq(menuItemsTable.id, itemId));
 
+    // Purge CDN cache
+    const vendorSlug = await getVendorSlugByCategoryId(categoryId);
+    if (vendorSlug) purgeVendorCache(vendorSlug).catch(() => {});
+
     return new Response(JSON.stringify({ success: true, message: 'آیتم با موفقیت به‌روزرسانی شد' }), { status: 200 });
   } catch (error) {
     console.error(error);
@@ -264,6 +285,10 @@ export const DELETE: APIRoute = async ({ request, cookies }) => {
     await db
       .delete(menuItemsTable)
       .where(eq(menuItemsTable.id, itemId));
+
+    // Purge CDN cache
+    const vendorSlug = await getVendorSlugByCategoryId(item.categoryId);
+    if (vendorSlug) purgeVendorCache(vendorSlug).catch(() => {});
 
     return new Response(JSON.stringify({ success: true, message: 'آیتم با موفقیت حذف شد' }), { status: 200 });
   } catch (error) {

@@ -15,10 +15,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
   // Create a new Headers instance to avoid immutable header modification issues
   const newHeaders = new Headers(response.headers);
 
-  const isAdmin = context.cookies.has('admin_session');
-
-  if (pathname.startsWith('/admin') || pathname.startsWith('/api') || isAdmin) {
-    // Admin dashboard, APIs, and logged-in admins should NEVER be cached by CDN or browser
+  if (pathname.startsWith('/admin') || pathname.startsWith('/api')) {
+    // Admin dashboard and APIs should NEVER be cached by CDN or browser
     newHeaders.set(
       'Cache-Control',
       'private, no-cache, no-store, must-revalidate'
@@ -26,13 +24,12 @@ export const onRequest = defineMiddleware(async (context, next) => {
     newHeaders.set('Pragma', 'no-cache');
     newHeaders.set('Expires', '0');
   } else if (context.request.method === 'GET' && response.status === 200) {
-    // Public pages (landing and vendor catalogs) cached on CDN for 5 seconds
-    // and served stale for up to 10 minutes while background revalidation occurs.
-    // This allows instant load times via CDN while ensuring database updates
-    // propagate to users within seconds via background revalidation.
+    // Public pages (landing and vendor catalogs) cached on CDN for 12 hours.
+    // Cache is invalidated automatically via ArvanCloud Purge API on every
+    // data mutation (products, categories, vendor settings).
     newHeaders.set(
       'Cache-Control',
-      'public, max-age=0, s-maxage=5, stale-while-revalidate=600'
+      'public, max-age=0, s-maxage=43200, stale-while-revalidate=60'
     );
   }
 

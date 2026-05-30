@@ -3,6 +3,7 @@ import { db } from '../../db/db';
 import { categories as categoriesTable, vendors as vendorsTable, vendorUsers as vendorUsersTable } from '../../db/schema';
 import { getSession } from '../../utils/auth';
 import { eq, and, asc, desc } from 'drizzle-orm';
+import { purgeVendorCache } from '../../utils/purge';
 
 // Helper to check user access to a vendor ID
 async function checkVendorAccess(userId: number, vendorId: number): Promise<boolean> {
@@ -29,6 +30,12 @@ async function checkCategoryAccess(userId: number, categoryId: number) {
   if (!hasAccess) return null;
   
   return category;
+}
+
+// Helper to get vendor slug by vendor ID
+async function getVendorSlug(vendorId: number): Promise<string | null> {
+  const vendor = await db.select({ slug: vendorsTable.slug }).from(vendorsTable).where(eq(vendorsTable.id, vendorId)).limit(1);
+  return vendor.length > 0 ? vendor[0].slug : null;
 }
 
 // POST: Create category
@@ -76,6 +83,9 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       sortOrder: nextSortOrder
     });
 
+    // Purge CDN cache
+    purgeVendorCache(vendorSlug).catch(() => {});
+
     return new Response(JSON.stringify({ success: true, message: 'مجموعه با موفقیت ایجاد شد' }), { status: 200 });
   } catch (error) {
     console.error(error);
@@ -109,6 +119,10 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
         .set({ status })
         .where(eq(categoriesTable.id, categoryId));
 
+      // Purge CDN cache
+      const vendorSlug = await getVendorSlug(category.vendorId);
+      if (vendorSlug) purgeVendorCache(vendorSlug).catch(() => {});
+
       return new Response(JSON.stringify({ success: true, message: 'وضعیت با موفقیت به‌روزرسانی شد' }), { status: 200 });
     }
 
@@ -121,6 +135,10 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
         .update(categoriesTable)
         .set({ name: name.trim() })
         .where(eq(categoriesTable.id, categoryId));
+
+      // Purge CDN cache
+      const vendorSlug = await getVendorSlug(category.vendorId);
+      if (vendorSlug) purgeVendorCache(vendorSlug).catch(() => {});
 
       return new Response(JSON.stringify({ success: true, message: 'نام مجموعه با موفقیت تغییر کرد' }), { status: 200 });
     } 
@@ -198,6 +216,10 @@ export const DELETE: APIRoute = async ({ request, cookies }) => {
     await db
       .delete(categoriesTable)
       .where(eq(categoriesTable.id, categoryId));
+
+    // Purge CDN cache
+    const vendorSlug = await getVendorSlug(category.vendorId);
+    if (vendorSlug) purgeVendorCache(vendorSlug).catch(() => {});
 
     return new Response(JSON.stringify({ success: true, message: 'مجموعه با موفقیت حذف شد' }), { status: 200 });
   } catch (error) {

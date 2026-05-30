@@ -3,6 +3,7 @@ import { db } from '../../db/db';
 import { vendors as vendorsTable, vendorUsers as vendorUsersTable } from '../../db/schema';
 import { getSession } from '../../utils/auth';
 import { eq, and } from 'drizzle-orm';
+import { purgeVendorCache } from '../../utils/purge';
 
 // Helper to check user access to a vendor ID
 async function checkVendorAccess(userId: number, vendorId: number): Promise<boolean> {
@@ -64,6 +65,9 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
       .update(vendorsTable)
       .set(updatedData)
       .where(eq(vendorsTable.id, vendor.id));
+
+    // Purge CDN cache for this vendor so changes are immediately visible
+    purgeVendorCache(slug).catch(() => {});
 
     return new Response(JSON.stringify({ success: true, message: 'اطلاعات با موفقیت به‌روزرسانی شد' }), { status: 200 });
   } catch (error) {
