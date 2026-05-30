@@ -33,9 +33,19 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     const s3Region = process.env.S3_REGION || import.meta.env.S3_REGION || 'us-east-1';
 
     if (s3Endpoint && s3AccessKeyId && s3SecretAccessKey && s3Bucket) {
+      let formattedEndpoint = s3Endpoint;
+      if (!/^https?:\/\//i.test(formattedEndpoint)) {
+        formattedEndpoint = `https://${formattedEndpoint}`;
+      }
+
+      let formattedPublicUrl = s3PublicUrl;
+      if (formattedPublicUrl && !/^https?:\/\//i.test(formattedPublicUrl)) {
+        formattedPublicUrl = `https://${formattedPublicUrl}`;
+      }
+
       // S3 Client configuration
       const s3Client = new S3Client({
-        endpoint: s3Endpoint,
+        endpoint: formattedEndpoint,
         region: s3Region,
         credentials: {
           accessKeyId: s3AccessKeyId,
@@ -56,9 +66,9 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       );
 
       // Construct public URL
-      const publicUrl = s3PublicUrl
-        ? `${s3PublicUrl.replace(/\/$/, '')}/${filename}`
-        : `${s3Endpoint.replace(/\/$/, '')}/${s3Bucket}/${filename}`;
+      const publicUrl = formattedPublicUrl
+        ? `${formattedPublicUrl.replace(/\/$/, '')}/${filename}`
+        : `${formattedEndpoint.replace(/\/$/, '')}/${s3Bucket}/${filename}`;
 
       return new Response(JSON.stringify({ success: true, url: publicUrl }), { status: 200 });
     } else {
