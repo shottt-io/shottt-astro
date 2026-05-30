@@ -80,7 +80,7 @@ const categories = await Promise.all(
   description={`${vendor.type} ${vendor.name} - ${vendor.slogan}. ${vendor.description}`}
   ogImage={vendor.coverImage}
 >
-  <main class="menu-main-wrapper" id="page-main" style="opacity: 0;">
+  <main class="menu-main-wrapper" id="page-main">
     <!-- Brand Info Header -->
     <BrandHeader 
       name={vendor.name}
@@ -116,11 +116,6 @@ const categories = await Promise.all(
     flex-grow: 1;
     display: flex;
     flex-direction: column;
-    transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-
-  .menu-main-wrapper.page-ready {
-    opacity: 1;
   }
 
   /* Product Page Footer Styles */
@@ -168,48 +163,4 @@ const categories = await Promise.all(
   }
 </style>
 
-<script>
-  // Wait for first images to load before revealing the page
-  // This prevents the layout jump caused by images loading after content renders
-  (function () {
-    const main = document.getElementById('page-main');
-    if (!main) return;
 
-    // Collect the first few images visible in the viewport
-    const allImgs = Array.from(main.querySelectorAll('img'));
-    const firstImgs = allImgs.slice(0, 6); // Wait for up to 6 initial images
-
-    function revealPage() {
-      main.classList.add('page-ready');
-    }
-
-    if (firstImgs.length === 0) {
-      // No images — reveal immediately with a short grace period
-      setTimeout(revealPage, 80);
-      return;
-    }
-
-    // Timeout fallback: reveal after 900ms no matter what
-    const fallbackTimer = setTimeout(revealPage, 900);
-
-    let loadedCount = 0;
-    const needed = firstImgs.length;
-
-    function onImageSettled() {
-      loadedCount++;
-      if (loadedCount >= needed) {
-        clearTimeout(fallbackTimer);
-        revealPage();
-      }
-    }
-
-    firstImgs.forEach((img) => {
-      if (img.complete) {
-        onImageSettled();
-      } else {
-        img.addEventListener('load', onImageSettled, { once: true });
-        img.addEventListener('error', onImageSettled, { once: true });
-      }
-    });
-  })();
-</script>

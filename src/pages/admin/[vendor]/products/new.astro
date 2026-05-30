@@ -326,9 +326,20 @@ const dbCategories = await db
   cropSaveBtn?.addEventListener('click', () => {
     if (!cropper) return;
 
+    const cropData = cropper.getData();
+    const ratio = cropData.width / cropData.height;
+    let targetWidth = 600;
+    let targetHeight = 600;
+
+    if (ratio > 1) {
+      targetHeight = Math.round(600 / ratio);
+    } else {
+      targetWidth = Math.round(600 * ratio);
+    }
+
     const canvas = cropper.getCroppedCanvas({
-      width: 600,
-      height: 600,
+      width: targetWidth,
+      height: targetHeight,
       imageSmoothingEnabled: true,
       imageSmoothingQuality: 'high',
     });
@@ -355,12 +366,13 @@ const dbCategories = await db
 
         const data = await response.json();
         if (data.success) {
+          const finalUrl = data.url + '?ratio=' + ratio.toFixed(4);
           if (productPreview) {
-            productPreview.src = data.url;
+            productPreview.src = finalUrl;
             productPreview.style.display = 'block';
           }
           if (productImageUrlHidden) {
-            productImageUrlHidden.value = data.url;
+            productImageUrlHidden.value = finalUrl;
           }
           closeCropper();
         } else {
