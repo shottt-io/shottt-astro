@@ -1,0 +1,207 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getSession } from '../../utils/auth';
+import { db } from '../../db/db';
+import { vendors as vendorsTable, vendorUsers as vendorUsersTable } from '../../db/schema';
+import { eq } from 'drizzle-orm';
+import '../../styles/admin.css';
+
+// 1. Get Session
+const session = getSession(Astro.cookies);
+if (!session) {
+  return Astro.redirect('/admin/login');
+}
+
+// 2. Query vendors linked to this user
+const userVendors = await db
+  .select({
+    id: vendorsTable.id,
+    name: vendorsTable.name,
+    slug: vendorsTable.slug,
+    type: vendorsTable.type,
+    slogan: vendorsTable.slogan,
+    coverImage: vendorsTable.coverImage,
+  })
+  .from(vendorUsersTable)
+  .innerJoin(vendorsTable, eq(vendorUsersTable.vendorId, vendorsTable.id))
+  .where(eq(vendorUsersTable.userId, session.userId));
+
+// 3. Handle routing based on access count
+if (userVendors.length === 0) {
+  // Logged in but has no vendors assigned - this shouldn't happen under normal circumstances
+  return new Response("شما دسترسی به هیچ مجموعه‌ای ندارید.", { status: 403 });
+}
+
+if (userVendors.length === 1) {
+  // Direct redirect for single-vendor admins
+  return Astro.redirect(`/admin/${userVendors[0].slug}`);
+}
+---
+
+<Layout title="پنل مدیریت مجموعه‌ها" description="داشبورد انتخاب مجموعه جهت مدیریت منو">
+  <!-- Administrative Glass Header -->
+  <header class="admin-header">
+    <div class="admin-user-profile">
+      <div class="admin-avatar">
+        {session.name.substring(0, 1)}
+      </div>
+      <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 0.125rem;">
+        <span class="admin-username">{session.name}</span>
+        <span style="font-size: 0.625rem; color: #a3a3a3;">مدیر ارشد سیستم</span>
+      </div>
+    </div>
+    
+    <a href="/api/auth/logout" class="btn btn-secondary" style="font-size: 0.75rem; padding: 0.5rem 1rem;">
+      خروج از حساب
+    </a>
+  </header>
+
+  <main class="admin-dashboard-main">
+    <div class="dashboard-header">
+      <h1 class="dashboard-title">انتخاب مجموعه برای مدیریت</h1>
+      <p class="dashboard-subtitle">شما به {userVendors.length} مجموعه دسترسی دارید. یکی را برای ویرایش منو و تنظیمات انتخاب کنید.</p>
+    </div>
+
+    <div class="vendor-grid">
+      {userVendors.map((vendor) => (
+        <a href={`/admin/${vendor.slug}`} class="vendor-admin-card-link">
+          <div class="vendor-admin-card">
+            <div class="vendor-cover-wrapper">
+              <img src={vendor.coverImage} alt={vendor.name} class="vendor-cover-img" />
+              <span class="vendor-type-badge">{vendor.type}</span>
+            </div>
+            <div class="vendor-info">
+              <h2 class="vendor-name">{vendor.name}</h2>
+              <p class="vendor-slogan">{vendor.slogan}</p>
+              <div class="manage-action">
+                <span>ورود به پنل ویرایش</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="action-arrow">
+                  <line x1="19" y1="12" x2="5" y2="12" />
+                  <polyline points="12 19 5 12 12 5" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </a>
+      ))}
+    </div>
+  </main>
+</Layout>
+
+<style>
+  .admin-dashboard-main {
+    max-width: 42rem;
+    margin: 0 auto;
+    padding: 3rem 1.5rem;
+    direction: rtl;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .dashboard-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+
+  .dashboard-title {
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: #0a0a0a;
+    margin-bottom: 0.5rem;
+  }
+
+  .dashboard-subtitle {
+    font-size: 0.8125rem;
+    color: #737373;
+    line-height: 1.5;
+  }
+
+  .vendor-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .vendor-admin-card-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+
+  .vendor-admin-card {
+    background: #FFFFFF;
+    border-radius: 1.5rem;
+    border: 1px solid #f0f0f0;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .vendor-admin-card-link:hover .vendor-admin-card {
+    border-color: #d4d4d4;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+  }
+
+  .vendor-cover-wrapper {
+    height: 10rem;
+    position: relative;
+    width: 100%;
+    background-color: #fafafa;
+  }
+
+  .vendor-cover-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .vendor-type-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: rgba(255, 255, 255, 0.95);
+    color: #171717;
+    font-size: 0.6875rem;
+    padding: 0.3rem 0.65rem;
+    border-radius: 9999px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+
+  .vendor-info {
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .vendor-name {
+    font-size: 1.125rem;
+    font-weight: 500;
+    color: #0a0a0a;
+  }
+
+  .vendor-slogan {
+    font-size: 0.75rem;
+    color: #737373;
+    margin-bottom: 0.75rem;
+  }
+
+  .manage-action {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #171717;
+  }
+
+  .action-arrow {
+    width: 0.875rem;
+    height: 0.875rem;
+    transition: transform 0.3s ease;
+  }
+
+  .vendor-admin-card-link:hover .action-arrow {
+    transform: translateX(-4px); /* RTL moves left */
+  }
+</style>

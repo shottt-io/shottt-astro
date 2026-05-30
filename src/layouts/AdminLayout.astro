@@ -1,0 +1,214 @@
+---
+import Layout from './Layout.astro';
+import { getSession } from '../utils/auth';
+import { db } from '../db/db';
+import { vendors as vendorsTable, vendorUsers as vendorUsersTable } from '../db/schema';
+import { eq, and } from 'drizzle-orm';
+import '../styles/admin.css';
+
+interface Props {
+  title: string;
+  activeTab: 'categories' | 'products' | 'settings' | 'design';
+  vendorSlug: string;
+}
+
+const { title, activeTab, vendorSlug } = Astro.props;
+
+// 1. Authenticate user
+const session = getSession(Astro.cookies);
+if (!session) {
+  return Astro.redirect('/admin/login');
+}
+
+// 2. Fetch vendor
+const vendorList = await db
+  .select()
+  .from(vendorsTable)
+  .where(eq(vendorsTable.slug, vendorSlug))
+  .limit(1);
+
+if (vendorList.length === 0) {
+  return new Response("مجموعه یافت نشد.", { status: 404 });
+}
+const vendor = vendorList[0];
+
+// 3. Verify authorization
+const hasAccess = await db
+  .select()
+  .from(vendorUsersTable)
+  .where(
+    and(
+      eq(vendorUsersTable.userId, session.userId),
+      eq(vendorUsersTable.vendorId, vendor.id)
+    )
+  )
+  .limit(1);
+
+if (hasAccess.length === 0) {
+  return Astro.redirect('/admin');
+}
+
+// 4. Query user vendor count
+const userVendors = await db
+  .select({ id: vendorUsersTable.id })
+  .from(vendorUsersTable)
+  .where(eq(vendorUsersTable.userId, session.userId));
+const hasMultipleVendors = userVendors.length > 1;
+---
+
+<Layout title={`${title} — پنل مدیریت ${vendor.name}`} description={`پنل مدیریت برای ${vendor.name}`}>
+  <div class="admin-layout-container">
+    <!-- Mobile Header -->
+    <header class="admin-mobile-header">
+      <button class="hamburger-btn" id="mobile-nav-toggle" aria-label="منوی ناوبری">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="nav-icon-svg">
+          <line x1="4" y1="12" x2="20" y2="12" />
+          <line x1="4" y1="6" x2="20" y2="6" />
+          <line x1="4" y1="18" x2="20" y2="18" />
+        </svg>
+      </button>
+      
+      <span class="mobile-page-title">{title}</span>
+      
+      <div class="mobile-header-avatar">
+        {session.name.substring(0, 1)}
+      </div>
+    </header>
+
+    <!-- Navigation Backdrop (Mobile) -->
+    <div class="admin-sidenav-backdrop" id="sidenav-backdrop"></div>
+
+    <!-- Sidebar Navigation -->
+    <aside class="admin-sidenav" id="admin-sidenav">
+      <div class="sidenav-header">
+        <div class="brand-badge-wrapper">
+          <div class="brand-avatar">
+            {vendor.name.substring(0, 1)}
+          </div>
+          <div class="brand-meta">
+            <h2 class="brand-title-name">{vendor.name}</h2>
+            <p class="brand-sub-title">{vendor.type}</p>
+          </div>
+        </div>
+        <button class="btn-icon mobile-close-nav-btn" id="mobile-nav-close" aria-label="بستن منو">✕</button>
+      </div>
+
+      <nav class="sidenav-menu">
+        <a href={`/admin/${vendorSlug}/products`} class={`sidenav-link ${activeTab === 'products' ? 'active' : ''}`}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="menu-icon-svg">
+            <polyline points="21 8 21 21 3 21 3 8" />
+            <rect x="1" y="3" width="22" height="5" />
+            <line x1="10" y1="12" x2="14" y2="12" />
+          </svg>
+          <span>محصولات</span>
+        </a>
+
+        <a href={`/admin/${vendorSlug}/categories`} class={`sidenav-link ${activeTab === 'categories' ? 'active' : ''}`}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="menu-icon-svg">
+            <line x1="4" y1="6" x2="20" y2="6" />
+            <line x1="4" y1="12" x2="20" y2="12" />
+            <line x1="4" y1="18" x2="20" y2="18" />
+          </svg>
+          <span>دسته‌بندی‌ها</span>
+        </a>
+
+        <a href={`/admin/${vendorSlug}/design`} class={`sidenav-link ${activeTab === 'design' ? 'active' : ''}`}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="menu-icon-svg">
+            <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 14.7255 3.09032 17.1962 4.85857 19C5.03442 19.1758 5.27581 19.2625 5.51864 19.2319L7.49842 18.9818C7.99406 18.919 8.44146 19.2274 8.56396 19.7118L9.04351 21.6067C9.09703 21.8183 9.25667 21.9868 9.46743 22.046C10.2882 22.2764 11.1396 22.3995 12 22Z" />
+            <circle cx="7.5" cy="10.5" r="1.5" fill="currentColor" />
+            <circle cx="11.5" cy="7.5" r="1.5" fill="currentColor" />
+            <circle cx="16.5" cy="9.5" r="1.5" fill="currentColor" />
+            <circle cx="15.5" cy="14.5" r="1.5" fill="currentColor" />
+          </svg>
+          <span>طراحی و قالب</span>
+        </a>
+
+        <a href={`/admin/${vendorSlug}/settings`} class={`sidenav-link ${activeTab === 'settings' ? 'active' : ''}`}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="menu-icon-svg">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+          </svg>
+          <span>تنظیمات عمومی</span>
+        </a>
+
+        <div class="menu-divider"></div>
+
+        <a href={`/${vendorSlug}`} target="_blank" class="sidenav-link external-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="menu-icon-svg text-gray">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+            <polyline points="15 3 21 3 21 9" />
+            <line x1="10" y1="14" x2="21" y2="3" />
+          </svg>
+          <span>مشاهده منوی زنده</span>
+        </a>
+      </nav>
+
+      <div class="sidenav-footer">
+        {hasMultipleVendors && (
+          <a href="/admin" class="sidenav-footer-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="footer-icon-svg">
+              <path d="M19 12H5" />
+              <polyline points="12 19 5 12 12 5" />
+            </svg>
+            <span>سوئیچ مجموعه</span>
+          </a>
+        )}
+        
+        <div class="user-meta-badge">
+          <div class="user-avatar">
+            {session.name.substring(0, 1)}
+          </div>
+          <div class="user-text-info">
+            <span class="user-name-bold">{session.name}</span>
+            <span class="user-role-label">مدیر مجموعه</span>
+          </div>
+        </div>
+
+        <a href="/api/auth/logout" class="sidenav-footer-link logout-link" style="margin-top: 0.5rem;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="footer-icon-svg">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+          <span>خروج از حساب</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main Workspace Content Area -->
+    <div class="admin-workspace">
+      <slot />
+    </div>
+  </div>
+</Layout>
+
+<script>
+  // Mobile navigation drawer toggle logic
+  const mobileNavToggle = document.getElementById('mobile-nav-toggle');
+  const mobileNavClose = document.getElementById('mobile-nav-close');
+  const sidenav = document.getElementById('admin-sidenav');
+  const backdrop = document.getElementById('sidenav-backdrop');
+
+  function openNav() {
+    sidenav?.classList.add('active');
+    backdrop?.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeNav() {
+    sidenav?.classList.remove('active');
+    backdrop?.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  mobileNavToggle?.addEventListener('click', openNav);
+  mobileNavClose?.addEventListener('click', closeNav);
+  backdrop?.addEventListener('click', closeNav);
+</script>
+
+<style is:global>
+  /* Global font fixes for all inputs and buttons in admin */
+  button, input, select, textarea {
+    font-family: 'Estedad', sans-serif !important;
+  }
+</style>

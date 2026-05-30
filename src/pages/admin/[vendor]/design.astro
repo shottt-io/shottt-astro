@@ -1,0 +1,159 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { db } from '../../../db/db';
+import { vendors as vendorsTable } from '../../../db/schema';
+import { eq } from 'drizzle-orm';
+
+const vendorSlug = Astro.params.vendor;
+if (!vendorSlug) {
+  return Astro.redirect('/admin');
+}
+
+// Fetch vendor settings
+const vendorList = await db
+  .select()
+  .from(vendorsTable)
+  .where(eq(vendorsTable.slug, vendorSlug))
+  .limit(1);
+
+if (vendorList.length === 0) {
+  return new Response("مجموعه یافت نشد.", { status: 404 });
+}
+const vendor = vendorList[0];
+---
+
+<AdminLayout title="طراحی و قالب منو" activeTab="design" vendorSlug={vendorSlug}>
+  <!-- Onboarding banner -->
+  <div class="onboarding-banner">
+    <div class="onboarding-icon-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width: 1.125rem; height: 1.125rem;">
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="16" x2="12" y2="12" />
+        <line x1="12" y1="8" x2="12.01" y2="8" />
+      </svg>
+    </div>
+    <div class="onboarding-text-box">
+      <span class="onboarding-title">راهنمای انتخاب قالب مناسب</span>
+      <p class="onboarding-desc">چیدمان منو هویت بصری کسب‌وکار شما را شکل می‌دهد. اگر کیفیت عکاسی محصولات بالا است و طعم‌ها حرف اول را می‌زنند (مانند قنادی‌ها و کافه‌ها)، قالب پینترست بهترین انتخاب است. اگر منویی طولانی با تنوع محصول زیاد دارید، قالب خطی و ساده دسترسی را سریع‌تر می‌کند.</p>
+    </div>
+  </div>
+
+  <div class="admin-page-actions">
+    <h1 class="page-title-bold">چیدمان و قالب نمایش منو</h1>
+  </div>
+
+  <div class="admin-card">
+    <form id="design-settings-form" style="display: flex; flex-direction: column; gap: 1.5rem;">
+      <input type="hidden" id="selected-layout" name="defaultLayout" value={vendor.defaultLayout} />
+      
+      <div class="form-group">
+        <label class="form-label">قالب نمایش محصولات را انتخاب کنید:</label>
+        
+        <div class="layout-radio-group">
+          <!-- Option A: Pinterest (Masonry) -->
+          <div class={`layout-radio-card ${vendor.defaultLayout === 'pinterest' ? 'active' : ''}`} data-layout="pinterest">
+            <input 
+              type="radio" 
+              name="layout-opt" 
+              class="layout-radio-input" 
+              checked={vendor.defaultLayout === 'pinterest'} 
+            />
+            <div class="layout-card-info">
+              <span class="layout-card-title">کارت‌های آبشاری (Pinterest)</span>
+              <p class="layout-card-desc">اگر تمایل به نمایش عکس‌محور و گالری کاتالوگ خود دارید. مناسب برای کافه‌های تخصصی و شیرینی‌پزی‌های لوکس که کیفیت تصویر برایشان کلیدی است.</p>
+            </div>
+            <!-- Graphic Mockup -->
+            <div class="layout-preview-mockup">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; width: 85%; height: 80%;">
+                <div style="border: 1px dashed #d4d4d4; border-radius: 4px; height: 1.5rem; background: #fdfdfd;"></div>
+                <div style="border: 1px dashed #d4d4d4; border-radius: 4px; height: 2.2rem; background: #fdfdfd;"></div>
+                <div style="border: 1px dashed #d4d4d4; border-radius: 4px; height: 2.1rem; background: #fdfdfd; transform: translateY(-0.6rem);"></div>
+                <div style="border: 1px dashed #d4d4d4; border-radius: 4px; height: 1.4rem; background: #fdfdfd;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Option B: Simple List -->
+          <div class={`layout-radio-card ${vendor.defaultLayout === 'simple' ? 'active' : ''}`} data-layout="simple">
+            <input 
+              type="radio" 
+              name="layout-opt" 
+              class="layout-radio-input" 
+              checked={vendor.defaultLayout === 'simple'} 
+            />
+            <div class="layout-card-info">
+              <span class="layout-card-title">لیست خطی منظم (Simple List)</span>
+              <p class="layout-card-desc">راه‌اندازی سریع و ساده، با تمرکز بیشتر روی متن و دسترسی آسان. مناسب برای رستوران‌های کلاسیک، فست‌فودها و کاتالوگ‌هایی با تنوع اقلام بالا.</p>
+            </div>
+            <!-- Graphic Mockup -->
+            <div class="layout-preview-mockup">
+              <div style="display: flex; flex-direction: column; gap: 5px; width: 85%; height: 80%; justify-content: center;">
+                <div style="border: 1px dashed #d4d4d4; border-radius: 4px; height: 0.8rem; background: #fdfdfd; display: flex; align-items: center; padding: 0 4px;"><div style="width: 0.5rem; height: 0.5rem; border-radius: 2px; background: #e5e5e5;"></div></div>
+                <div style="border: 1px dashed #d4d4d4; border-radius: 4px; height: 0.8rem; background: #fdfdfd; display: flex; align-items: center; padding: 0 4px;"><div style="width: 0.5rem; height: 0.5rem; border-radius: 2px; background: #e5e5e5;"></div></div>
+                <div style="border: 1px dashed #d4d4d4; border-radius: 4px; height: 0.8rem; background: #fdfdfd; display: flex; align-items: center; padding: 0 4px;"><div style="width: 0.5rem; height: 0.5rem; border-radius: 2px; background: #e5e5e5;"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-full" style="margin-top: 1.5rem; padding: 0.9rem;">
+        ذخیره تغییرات قالب نمایش
+      </button>
+    </form>
+  </div>
+</AdminLayout>
+
+<script>
+  // UI interaction for radio cards
+  const cards = document.querySelectorAll('.layout-radio-card');
+  const inputHidden = document.getElementById('selected-layout') as HTMLInputElement;
+
+  cards.forEach(card => {
+    card.addEventListener('click', () => {
+      // Clear previous active
+      cards.forEach(c => {
+        c.classList.remove('active');
+        const radio = c.querySelector('.layout-radio-input') as HTMLInputElement;
+        if (radio) radio.checked = false;
+      });
+
+      // Select current
+      card.classList.add('active');
+      const radio = card.querySelector('.layout-radio-input') as HTMLInputElement;
+      if (radio) radio.checked = true;
+
+      const layoutVal = card.getAttribute('data-layout') || 'pinterest';
+      inputHidden.value = layoutVal;
+    });
+  });
+
+  // Submit form
+  const form = document.getElementById('design-settings-form') as HTMLFormElement;
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const layout = inputHidden.value;
+
+    try {
+      const response = await fetch('/api/vendors', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug: getVendorSlug(), defaultLayout: layout })
+      });
+
+      if (response.ok) {
+        alert('طراحی و چیدمان منو با موفقیت به‌روزرسانی شد.');
+        window.location.reload();
+      } else {
+        alert('خطا در ذخیره‌سازی اطلاعات.');
+      }
+    } catch {
+      alert('ارتباط با سرور برقرار نشد.');
+    }
+  });
+
+  function getVendorSlug() {
+    const parts = window.location.pathname.split('/');
+    return parts[2]; // /admin/[vendorSlug]/design
+  }
+</script>

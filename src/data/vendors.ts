@@ -44,7 +44,7 @@ export const vendors: Vendor[] = [
     name: 'کافه لومیر',
     type: 'کافه گالری',
     slogan: 'بازتاب هنر در فنجان شما',
-    description: 'مکانی آرامش‌بخش برای دوستداران هنر، معماری و قهوه تخصصی در فضایی سرشار از نور طبیعی و خطوط مینیمال سوئیسی.',
+    description: 'مکانی آرامش‌بخش برای دوستداران قهوه تخصصی در فضایی سرشار از نور طبیعی و دکوراسیون مدرن و مینیمال.',
     defaultLayout: 'pinterest',
     logoIcon: 'coffee',
     coverImage: 'https://images.unsplash.com/photo-1498804103079-a6351b050096?q=80&w=1200&auto=format&fit=crop',

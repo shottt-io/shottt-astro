@@ -1,0 +1,147 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { db } from '../../../db/db';
+import { vendors as vendorsTable } from '../../../db/schema';
+import { eq } from 'drizzle-orm';
+
+const vendorSlug = Astro.params.vendor;
+if (!vendorSlug) {
+  return Astro.redirect('/admin');
+}
+
+// Fetch vendor settings
+const vendorList = await db
+  .select()
+  .from(vendorsTable)
+  .where(eq(vendorsTable.slug, vendorSlug))
+  .limit(1);
+
+if (vendorList.length === 0) {
+  return new Response("مجموعه یافت نشد.", { status: 404 });
+}
+const vendor = vendorList[0];
+
+// Use slogan as the unified description since they are the same
+const unifiedSlogan = vendor.slogan || vendor.description;
+---
+
+<AdminLayout title="تنظیمات عمومی" activeTab="settings" vendorSlug={vendorSlug}>
+  <!-- Onboarding banner -->
+  <div class="onboarding-banner">
+    <div class="onboarding-icon-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width: 1.125rem; height: 1.125rem;">
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="16" x2="12" y2="12" />
+        <line x1="12" y1="8" x2="12.01" y2="8" />
+      </svg>
+    </div>
+    <div class="onboarding-text-box">
+      <span class="onboarding-title">راهنمای بهینه‌سازی شناسنامه مجموعه</span>
+      <p class="onboarding-desc">شعار و توضیحات کوتاه مجموعه به عنوان زیرعنوان اصلی در هدر منو ظاهر می‌شود. برای حفظ زیبایی بصری منوی دیجیتال مجموعه، از جملات کوتاه، تاثیرگذار و متمرکز (حداکثر ۱۰۰ کاراکتر) استفاده کنید.</p>
+    </div>
+  </div>
+
+  <div class="admin-page-actions">
+    <h1 class="page-title-bold">تنظیمات شناسنامه مجموعه</h1>
+  </div>
+
+  <div class="admin-card">
+    <form id="general-settings-form" style="display: flex; flex-direction: column; gap: 1.25rem;">
+      <div class="form-group">
+        <label class="form-label">نام مجموعه *</label>
+        <input type="text" name="name" class="form-input" value={vendor.name} required />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">نوع مجموعه *</label>
+        <select name="type" class="form-select" required>
+          <option value="کافه" selected={vendor.type === 'کافه' || vendor.type === 'کافه تخصصی' || vendor.type === 'کافه گالری'}>کافه</option>
+          <option value="رستوران" selected={vendor.type === 'رستوران' || vendor.type === 'رستوران مدرن'}>رستوران</option>
+          <option value="کافه رستوران" selected={vendor.type === 'کافه رستوران' || vendor.type === 'رستوران مدرن فرانسوی-ایرانی'}>کافه رستوران</option>
+          <option value="نان و شیرینی" selected={vendor.type === 'نان و شیرینی' || vendor.type === 'بوتیک قنادی فرانسوی' || vendor.type === 'قنادی و بوتیک شیرینی'}>نان و شیرینی</option>
+          <option value="آجیل و خشکبار" selected={vendor.type === 'آجیل و خشکبار'}>آجیل و خشکبار</option>
+          <option value="آبمیوه بستنی" selected={vendor.type === 'آبمیوه بستنی'}>آبمیوه بستنی</option>
+          <option value="سایر" selected={vendor.type === 'سایر'}>سایر</option>
+          {vendor.type && !['کافه', 'کافه تخصصی', 'کافه گالری', 'رستوران', 'رستوران مدرن', 'کافه رستوران', 'رستوران مدرن فرانسوی-ایرانی', 'نان و شیرینی', 'بوتیک قنادی فرانسوی', 'قنادی و بوتیک شیرینی', 'آجیل و خشکبار', 'آبمیوه بستنی', 'سایر'].includes(vendor.type) && (
+            <option value={vendor.type} selected>{vendor.type}</option>
+          )}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">شعار و توضیح کوتاه مجموعه *</label>
+        <input 
+          type="text" 
+          name="slogan" 
+          class="form-input" 
+          value={unifiedSlogan} 
+          placeholder="شعار یا توضیح کوتاهی که در هدر منو نمایش داده می‌شود..." 
+          required 
+        />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">آدرس تصویر کاور مجموعه (URL) *</label>
+        <input type="url" name="coverImage" class="form-input" value={vendor.coverImage} required />
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-full" style="margin-top: 1.5rem; padding: 0.9rem;">
+        ذخیره تنظیمات عمومی
+      </button>
+    </form>
+  </div>
+</AdminLayout>
+
+<script>
+  const form = document.getElementById('general-settings-form') as HTMLFormElement;
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(form);
+    
+    const name = (formData.get('name') as string).trim();
+    const type = (formData.get('type') as string).trim();
+    const slogan = (formData.get('slogan') as string).trim();
+    const coverImage = (formData.get('coverImage') as string).trim();
+
+    // Dynamically assign logoIcon based on the selected vendor type
+    let logoIcon = 'utensils';
+    if (type.includes('کافه') || type.toLowerCase().includes('cafe')) {
+      logoIcon = 'coffee';
+    } else if (type.includes('قنادی') || type.includes('شیرینی') || type.toLowerCase().includes('pastry') || type.toLowerCase().includes('bakery')) {
+      logoIcon = 'cake';
+    }
+
+    // Slogan and description are unified as requested
+    const payload = {
+      slug: getVendorSlug(),
+      name,
+      type,
+      slogan,
+      description: slogan, // Save same value to description in DB
+      logoIcon,
+      coverImage
+    };
+
+    try {
+      const response = await fetch('/api/vendors', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (response.ok) {
+        alert('تنظیمات عمومی مجموعه با موفقیت ذخیره شد.');
+        window.location.reload();
+      } else {
+        alert('خطا در ذخیره‌سازی اطلاعات.');
+      }
+    } catch {
+      alert('ارتباط با سرور برقرار نشد.');
+    }
+  });
+
+  function getVendorSlug() {
+    const parts = window.location.pathname.split('/');
+    return parts[2]; // /admin/[vendorSlug]/settings
+  }
+</script>

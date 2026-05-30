@@ -45,3 +45,19 @@ export const menuItems = pgTable('menu_items', {
   span2: boolean('span2').default(false).notNull(),
   sections: jsonb('sections').$type<DBProductSection[]>().default([]).notNull(),
 });
+
+// 4. Users Table
+export const users = pgTable('users', {
+  id: serial('id').primaryKey(),
+  username: varchar('username', { length: 255 }).notNull().unique(),
+  password: varchar('password', { length: 255 }).notNull(), // SHA-256 hash
+  name: varchar('name', { length: 255 }),
+});
+
+// 5. Vendor Users Table (Join Table)
+export const vendorUsers = pgTable('vendor_users', {
+  id: serial('id').primaryKey(),
+  vendorId: integer('vendor_id').references(() => vendors.id, { onDelete: 'cascade' }).notNull(),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+});
+

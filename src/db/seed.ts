@@ -1,6 +1,17 @@
 import { db, client } from './db';
-import { vendors as dbVendors, categories as dbCategories, menuItems as dbMenuItems } from './schema';
+import { 
+  vendors as dbVendors, 
+  categories as dbCategories, 
+  menuItems as dbMenuItems,
+  users as dbUsers,
+  vendorUsers as dbVendorUsers
+} from './schema';
 import { vendors as mockVendors } from '../data/vendors';
+import { createHash } from 'crypto';
+
+function hashPassword(password: string): string {
+  return createHash('sha256').update(password).digest('hex');
+}
 
 async function seed() {
   console.log('⏳ Starting database seeding...');
@@ -10,8 +21,12 @@ async function seed() {
     console.log('🧹 Clearing old database records...');
     await db.delete(dbMenuItems);
     await db.delete(dbCategories);
+    await db.delete(dbVendorUsers);
+    await db.delete(dbUsers);
     await db.delete(dbVendors);
     console.log('✅ Database cleared.');
+
+    const vendorIdMap = new Map<string, number>();
 
     // 2. Insert mock vendors, categories, and products
     for (const vendor of mockVendors) {
@@ -29,6 +44,8 @@ async function seed() {
       }).returning({ id: dbVendors.id });
 
       const vendorId = insertedVendor.id;
+      vendorIdMap.set(vendor.slug, vendorId);
+      
       let sortOrder = 0;
 
       for (const category of vendor.categories) {
@@ -59,6 +76,35 @@ async function seed() {
             span2: item.span2 || false,
             sections: item.sections || [],
           });
+        }
+      }
+    }
+
+    // 3. Insert admin users and map permissions
+    console.log('👤 Inserting admin users...');
+    const usersData = [
+      { name: 'مدیر کافه لومیر', username: 'lumiere', password: hashPassword('lumiere123'), targetSlugs: ['cafe-lumiere'] },
+      { name: 'مدیر بیسترو دادا', username: 'dada', password: hashPassword('dada123'), targetSlugs: ['bistro-dada'] },
+      { name: 'مدیر آتلیه شیرینی', username: 'pastry', password: hashPassword('pastry123'), targetSlugs: ['pastry-atelier'] },
+      { name: 'مدیر کل مجموعه‌ها', username: 'super', password: hashPassword('super123'), targetSlugs: ['cafe-lumiere', 'bistro-dada', 'pastry-atelier'] },
+    ];
+
+    for (const u of usersData) {
+      console.log(`➕ Inserting user: ${u.username}...`);
+      const [insertedUser] = await db.insert(dbUsers).values({
+        username: u.username,
+        password: u.password,
+        name: u.name,
+      }).returning({ id: dbUsers.id });
+
+      for (const slug of u.targetSlugs) {
+        const vendorId = vendorIdMap.get(slug);
+        if (vendorId) {
+          await db.insert(dbVendorUsers).values({
+            userId: insertedUser.id,
+            vendorId: vendorId,
+          });
+          console.log(`  🔗 Linked user ${u.username} to vendor: ${slug}`);
         }
       }
     }

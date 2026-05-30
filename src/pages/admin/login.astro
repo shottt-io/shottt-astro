@@ -1,0 +1,218 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import '../../styles/admin.css';
+
+// Redirect to /admin if already logged in
+import { getSession } from '../../utils/auth';
+const session = getSession(Astro.cookies);
+if (session) {
+  return Astro.redirect('/admin');
+}
+---
+
+<Layout title="ورود به پنل مدیریت کاتالوگ دیجیتال" description="ورود به پنل مدیریت مجموعه‌ها و منوهای دیجیتال">
+  <main class="login-wrapper">
+    <div class="login-container animate-slide-up">
+      <header class="login-header">
+        <div class="logo-circle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="login-logo-svg">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+          </svg>
+        </div>
+        <h1 class="login-title">ورود به مدیریت</h1>
+        <p class="login-subtitle">اطلاعات کاربری مجموعه خود را وارد کنید</p>
+      </header>
+
+      <div class="admin-card">
+        <div id="error-banner" class="error-banner"></div>
+        
+        <form id="login-form" class="login-form">
+          <div class="form-group">
+            <label for="username" class="form-label">نام کاربری</label>
+            <input 
+              type="text" 
+              id="username" 
+              name="username" 
+              class="form-input" 
+              placeholder="مثال: lumiere" 
+              required 
+              autocomplete="username"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="password" class="form-label">رمز عبور</label>
+            <input 
+              type="password" 
+              id="password" 
+              name="password" 
+              class="form-input" 
+              placeholder="••••••••" 
+              required 
+              autocomplete="current-password"
+            />
+          </div>
+
+          <button type="submit" id="submit-btn" class="btn btn-primary btn-full" style="margin-top: 1rem;">
+            <span id="btn-text">ورود به پنل</span>
+            <svg id="loading-spinner" class="spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none; width: 1rem; height: 1rem; animation: rotate 1.5s linear infinite;">
+              <circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle>
+              <path d="M4 12a8 8 0 0 1 8-8"></path>
+            </svg>
+          </button>
+        </form>
+      </div>
+
+      <div class="login-footer">
+        <a href="/" class="back-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="back-icon">
+            <line x1="19" y1="12" x2="5" y2="12" />
+            <polyline points="12 5 19 12 12 19" />
+          </svg>
+          <span>بازگشت به صفحه اصلی</span>
+        </a>
+      </div>
+    </div>
+  </main>
+</Layout>
+
+<script>
+  const form = document.getElementById('login-form') as HTMLFormElement;
+  const errorBanner = document.getElementById('error-banner') as HTMLDivElement;
+  const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
+  const btnText = document.getElementById('btn-text') as HTMLSpanElement;
+  const spinner = document.getElementById('loading-spinner') as SVGElement;
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    // Reset state
+    errorBanner.style.display = 'none';
+    errorBanner.textContent = '';
+    submitBtn.disabled = true;
+    btnText.textContent = 'در حال بررسی...';
+    spinner.style.display = 'inline-block';
+
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        // Redirect to admin landing
+        window.location.href = '/admin';
+      } else {
+        errorBanner.textContent = result.message || 'ورود ناموفق بود.';
+        errorBanner.style.display = 'block';
+        submitBtn.disabled = false;
+        btnText.textContent = 'ورود به پنل';
+        spinner.style.display = 'none';
+      }
+    } catch (err) {
+      errorBanner.textContent = 'خطا در ارتباط با سرور. لطفاً دوباره تلاش کنید.';
+      errorBanner.style.display = 'block';
+      submitBtn.disabled = false;
+      btnText.textContent = 'ورود به پنل';
+      spinner.style.display = 'none';
+    }
+  });
+</script>
+
+<style>
+  .login-wrapper {
+    background-color: #fafafa;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    direction: rtl;
+  }
+
+  .login-container {
+    max-width: 26rem;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+  }
+
+  .login-header {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .logo-circle {
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 50%;
+    background-color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #171717;
+    margin-bottom: 0.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    border: 1px solid #f0f0f0;
+  }
+
+  .login-logo-svg {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .login-title {
+    font-size: 1.375rem;
+    font-weight: 500;
+    color: #0a0a0a;
+  }
+
+  .login-subtitle {
+    font-size: 0.8125rem;
+    font-weight: 200;
+    color: #737373;
+  }
+
+  .login-footer {
+    text-align: center;
+  }
+
+  .back-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    color: #737373;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .back-link:hover {
+    color: #171717;
+  }
+
+  .back-icon {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+
+  @keyframes rotate {
+    100% { transform: rotate(360deg); }
+  }
+  
+  .spinner {
+    animation: rotate 1s linear infinite;
+  }
+</style>
