@@ -197,14 +197,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
               const sortedProducts = [...cat.products].sort((a: any, b: any) => (a.position || 0) - (b.position || 0));
 
               for (const prod of sortedProducts) {
-                // Determine price: divide by 1000 and round
-                let rawPrice = prod.price || 0;
-                if (rawPrice === 0 && prod.variants && prod.variants.length > 0) {
-                  rawPrice = prod.variants[0].price || 0;
-                }
-                const formattedPrice = Math.round(rawPrice / 1000).toString();
-
-                // Download Product Image
+                // Download Product Image (once per product to optimize performance)
                 let productImageUrl = null;
                 const prodImagePath = prod.imageFiles?.[0]?.origin || prod.imageFiles?.[0]?.md || prod.images?.[0];
                 if (prodImagePath) {
@@ -213,7 +206,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
                   if (downloadedProdImage) productImageUrl = downloadedProdImage;
                 }
 
-                // Map Subcategories and Variants as sections for premium detail view
+                // Map Subcategories
                 const sections: any[] = [];
                 if (prod.subcategories && prod.subcategories.length > 0) {
                   sections.push({
@@ -221,25 +214,65 @@ export const POST: APIRoute = async ({ request, cookies }) => {
                     chips: prod.subcategories.filter(Boolean),
                   });
                 }
-                if (prod.variants && prod.variants.length > 0) {
-                  sections.push({
-                    title: 'انواع و قیمت‌ها',
-                    chips: prod.variants.map((v: any) => `${v.title || 'ساده'}: ${Math.round((v.price || 0) / 1000)} هزار تومان`),
+
+                if (prod.variants && Array.isArray(prod.variants) && prod.variants.length > 0) {
+                  // If the base product has a price, insert it as a separate menu item (standard/default option)
+                  if (prod.price && prod.price > 0) {
+                    const formattedPrice = Math.round(prod.price / 1000).toString();
+                    await db.insert(menuItemsTable).values({
+                      categoryId: newCategory.id,
+                      name: prod.title || 'بدون نام',
+                      slug: prod.id || null,
+                      price: formattedPrice,
+                      image: productImageUrl,
+                      description: prod.description || null,
+                      span2: false,
+                      sections: sections,
+                      status: 'available',
+                    });
+                  }
+
+                  // If product has variants, insert each one as a separate menu item
+                  for (const v of prod.variants) {
+                    // Skip redundant variant if it is identical to the base product price and has a default/empty title
+                    const isRedundantVariant = 
+                      (v.title === 'ساده' || !v.title || v.title.trim() === '') && 
+                      prod.price && 
+                      v.price === prod.price;
+
+                    if (isRedundantVariant) continue;
+
+                    const variantName = `${prod.title || 'بدون نام'} (${v.title || 'ساده'})`;
+                    const variantPrice = Math.round((v.price || 0) / 1000).toString();
+                    const variantSlug = prod.id ? `${prod.id}-${v.id}` : null;
+
+                    await db.insert(menuItemsTable).values({
+                      categoryId: newCategory.id,
+                      name: variantName,
+                      slug: variantSlug,
+                      price: variantPrice,
+                      image: productImageUrl,
+                      description: prod.description || null,
+                      span2: false,
+                      sections: sections,
+                      status: 'available',
+                    });
+                  }
+                } else {
+                  // Standard product insert without variants
+                  const formattedPrice = Math.round((prod.price || 0) / 1000).toString();
+                  await db.insert(menuItemsTable).values({
+                    categoryId: newCategory.id,
+                    name: prod.title || 'بدون نام',
+                    slug: prod.id || null,
+                    price: formattedPrice,
+                    image: productImageUrl,
+                    description: prod.description || null,
+                    span2: false,
+                    sections: sections,
+                    status: 'available',
                   });
                 }
-
-                // Insert Product
-                await db.insert(menuItemsTable).values({
-                  categoryId: newCategory.id,
-                  name: prod.title || 'بدون نام',
-                  slug: prod.id || null,
-                  price: formattedPrice,
-                  image: productImageUrl,
-                  description: prod.description || null,
-                  span2: false,
-                  sections: sections,
-                  status: 'available',
-                });
               }
             }
           }
