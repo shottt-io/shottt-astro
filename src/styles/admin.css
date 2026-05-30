@@ -37,9 +37,23 @@ body {
   color: #171717; /* neutral-900 */
 }
 
+.logo-text-admin {
+  font-family: 'Outfit', sans-serif;
+  font-size: 26px;
+  fill: #171717;
+}
+
+.logo-symbol-circle-admin {
+  fill: #171717;
+}
+
+.logo-symbol-details-admin {
+  stroke: #ffffff;
+}
+
 .platform-logo-svg {
   height: 1.5rem; /* extremely minimal and sleek (24px) */
-  width: 4.78rem; /* aspect ratio width matching 102/32 */
+  width: 5.325rem; /* aspect ratio width matching 135/38 */
 }
 
 .sidenav-header {
