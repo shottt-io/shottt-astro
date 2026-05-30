@@ -25,7 +25,7 @@ const vendor = vendorList[0];
 const unifiedSlogan = vendor.slogan || vendor.description;
 ---
 
-<AdminLayout title="تنظیمات عمومی" activeTab="settings" vendorSlug={vendorSlug}>
+<AdminLayout title="اطلاعات پایه مجموعه" activeTab="settings" vendorSlug={vendorSlug}>
   <!-- Onboarding banner -->
   <div class="onboarding-banner">
     <div class="onboarding-icon-box">
@@ -42,7 +42,7 @@ const unifiedSlogan = vendor.slogan || vendor.description;
   </div>
 
   <div class="admin-page-actions">
-    <h1 class="page-title-bold">تنظیمات شناسنامه مجموعه</h1>
+    <h1 class="page-title-bold">اطلاعات پایه مجموعه</h1>
   </div>
 
   <div class="admin-card">
@@ -115,7 +115,7 @@ const unifiedSlogan = vendor.slogan || vendor.description;
       </div>
 
       <button type="submit" class="btn btn-primary btn-full" style="margin-top: 1.5rem; padding: 0.9rem;">
-        ذخیره تنظیمات عمومی
+        ذخیره اطلاعات پایه مجموعه
       </button>
     </form>
   </div>
@@ -263,7 +263,7 @@ const unifiedSlogan = vendor.slogan || vendor.description;
       });
 
       if (response.ok) {
-        alert('تنظیمات عمومی مجموعه با موفقیت ذخیره شد.');
+        alert('اطلاعات پایه مجموعه با موفقیت ذخیره شد.');
         window.location.reload();
       } else {
         alert('خطا در ذخیره‌سازی اطلاعات.');

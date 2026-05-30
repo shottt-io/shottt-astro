@@ -101,7 +101,6 @@ const dbCategories = await db
               <img src="" id="product-preview" class="image-preview-box" style="display: none;" />
               <div style="display: flex; flex-direction: column; gap: 0.375rem; align-items: flex-start;">
                 <button type="button" class="btn btn-secondary" id="btn-select-product-image">انتخاب تصویر محصول</button>
-                <span style="font-size: 0.6875rem; color: #737373;">ابعاد مربع (۱:۱)</span>
               </div>
             </div>
           </div>
@@ -114,10 +113,22 @@ const dbCategories = await db
               <span class="modal-title">برش و بهینه‌سازی تصویر محصول</span>
               <button type="button" class="modal-close" id="btn-close-cropper">✕</button>
             </div>
-            <div class="modal-body">
-              <div class="cropper-container">
-                <img id="cropper-image" src="" style="max-width: 100%; max-height: 350px; display: block;" />
+            <div class="modal-body" style="flex-direction: column; gap: 1rem; align-items: stretch; text-align: center;">
+              <!-- Aspect Ratio Selector -->
+              <div class="ratio-selector" style="display: flex; gap: 0.375rem; justify-content: center; width: 100%; flex-wrap: wrap;">
+                <button type="button" class="btn btn-secondary btn-sm ratio-btn active" data-ratio="1" style="font-size: 0.6875rem; padding: 0.4rem 0.75rem;">۱:۱ (مربع)</button>
+                <button type="button" class="btn btn-secondary btn-sm ratio-btn" data-ratio="1.3333" style="font-size: 0.6875rem; padding: 0.4rem 0.75rem;">۴:۳ (استاندارد)</button>
+                <button type="button" class="btn btn-secondary btn-sm ratio-btn" data-ratio="1.7777" style="font-size: 0.6875rem; padding: 0.4rem 0.75rem;">۱۶:۹ (عریض)</button>
+                <button type="button" class="btn btn-secondary btn-sm ratio-btn" data-ratio="NaN" style="font-size: 0.6875rem; padding: 0.4rem 0.75rem;">آزاد (کاستوم)</button>
               </div>
+
+              <div class="cropper-container">
+                <img id="cropper-image" src="" style="max-width: 100%; max-height: 320px; display: block;" />
+              </div>
+
+              <p style="font-size: 0.6875rem; color: #737373; line-height: 1.5; margin: 0; text-align: right; direction: rtl;">
+                توضیح: به دلیل استفاده از حالت پینترستی در نمایش منو، محدودیتی در نسبت ابعاد تصویر ندارید؛ اتفاقاً برای این نوع چیدمان، بهتر است عکس‌ها عمودی باشند تا زیباتر نمایش داده شوند. می‌توانید هر یک از نسبت‌های بالا یا کادر آزاد را برای محصول خود تنظیم کنید.
+              </p>
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-primary" id="btn-crop-save">برش و آپلود</button>
@@ -129,7 +140,7 @@ const dbCategories = await db
         <!-- Layout Option Column Span (Checkbox) -->
         <label class="checkbox-group">
           <input type="checkbox" name="span2" class="checkbox-input" />
-          <span class="form-label" style="margin-bottom: 0;">نمایش دو ستونه (بزرگتر در چیدمان کارت‌های ناهمگن)</span>
+          <span class="form-label" style="margin-bottom: 0;">نمایش دو ستونه (بزرگتر در چیدمان پینترستی)</span>
         </label>
 
         <!-- Toggle Special Discount -->
@@ -229,10 +240,29 @@ const dbCategories = await db
             viewMode: 1,
             autoCropArea: 1,
           });
+
+          // Reset ratio buttons to square (default)
+          const ratioButtons = document.querySelectorAll('.ratio-btn');
+          ratioButtons.forEach(b => b.classList.remove('active'));
+          ratioButtons[0]?.classList.add('active');
         }
       };
       reader.readAsDataURL(file);
     }
+  });
+
+  // Handle Aspect Ratio Presets
+  const ratioButtons = document.querySelectorAll('.ratio-btn');
+  ratioButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      ratioButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      
+      const ratio = parseFloat(btn.getAttribute('data-ratio') || 'NaN');
+      if (cropper) {
+        cropper.setAspectRatio(ratio);
+      }
+    });
   });
 
   function closeCropper() {

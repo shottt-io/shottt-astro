@@ -1,9 +1,23 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
-  <!-- Monogram s. -->
-  <g stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
-    <!-- s path -->
-    <path d="M 22 13 C 22 9, 10 9, 10 13 C 10 17, 22 17, 22 21 C 22 25, 10 25, 10 21" />
-  </g>
-  <!-- dot -->
-  <circle cx="27" cy="23" r="2.2" fill="currentColor" />
+  <style>
+    .symbol-circle {
+      fill: #171717;
+    }
+    @media (prefers-color-scheme: dark) {
+      .symbol-circle {
+        fill: #ffffff;
+      }
+      .symbol-details {
+        stroke: #171717 !important;
+      }
+    }
+  </style>
+  <!-- Solid circle background -->
+  <circle cx="16" cy="16" r="15" class="symbol-circle" />
+  
+  <!-- Lens reflection details -->
+  <circle cx="16" cy="16" r="7.5" stroke="#ffffff" stroke-width="1.8" fill="none" class="symbol-details" />
+  <circle cx="16" cy="16" r="3.5" stroke="#ffffff" stroke-width="1.2" fill="none" class="symbol-details" />
+  <line x1="10" y1="10" x2="13.5" y2="13.5" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" class="symbol-details" />
+  <line x1="18.5" y1="18.5" x2="22" y2="22" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" class="symbol-details" />
 </svg>

@@ -65,7 +65,7 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
       .set(updatedData)
       .where(eq(vendorsTable.id, vendor.id));
 
-    return new Response(JSON.stringify({ success: true, message: 'تنظیمات با موفقیت به‌روزرسانی شد' }), { status: 200 });
+    return new Response(JSON.stringify({ success: true, message: 'اطلاعات با موفقیت به‌روزرسانی شد' }), { status: 200 });
   } catch (error) {
     console.error(error);
     return new Response(JSON.stringify({ success: false, message: 'خطای سرور' }), { status: 500 });
