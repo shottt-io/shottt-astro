@@ -6,17 +6,24 @@ interface Props {
   description?: string;
   ogImage?: string;
   canonicalUrl?: string;
+  favicon?: string;
 }
 
-const { title, description = 'کاتالوگ دیجیتال مدرن مجموعه‌ها', ogImage, canonicalUrl } = Astro.props;
+const { title, description = 'کاتالوگ دیجیتال مدرن مجموعه‌ها', ogImage, canonicalUrl, favicon } = Astro.props;
 ---
 
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
   <head>
     <meta charset="utf-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" href="/favicon.ico" />
+    {favicon ? (
+      <link rel="icon" href={favicon} />
+    ) : (
+      <>
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="icon" href="/favicon.ico" />
+      </>
+    )}
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="generator" content={Astro.generator} />
     

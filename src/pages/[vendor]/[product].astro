@@ -100,6 +100,7 @@ const canonicalUrl = new URL(canonicalPath, Astro.url.origin).toString();
   description={product.description || `جزئیات محصول ${product.name} در کاتالوگ دیجیتال ${vendor.name}`}
   ogImage={product.image}
   canonicalUrl={canonicalUrl}
+  favicon={vendor.logo}
 >
   <main class="product-page-main">
     <div class="product-content-card">
@@ -197,7 +198,8 @@ const canonicalUrl = new URL(canonicalPath, Astro.url.origin).toString();
     <footer class="product-page-footer animate-fade-in" style="animation-delay: 0.15s;">
       <div class="footer-divider"></div>
       <a href="/" class="footer-platform-link">
-        توسعه پیدا کرده با <span>shottt</span>
+        توسعه پیدا کرده با
+        <img src="/logo.png" alt="shottt" class="footer-logo-img" />
       </a>
     </footer>
   </main>
@@ -394,7 +396,6 @@ const canonicalUrl = new URL(canonicalPath, Astro.url.origin).toString();
 
   /* Product Page Footer Styles */
   .product-page-footer {
-    margin-top: auto;
     padding: 3rem 0 1.5rem 0;
     text-align: center;
     display: flex;
@@ -403,7 +404,7 @@ const canonicalUrl = new URL(canonicalPath, Astro.url.origin).toString();
     gap: 1rem;
     width: 100%;
     max-width: 42rem;
-    margin: 0 auto;
+    margin: auto auto 0 auto;
     box-sizing: border-box;
   }
 
@@ -415,24 +416,30 @@ const canonicalUrl = new URL(canonicalPath, Astro.url.origin).toString();
   }
 
   .footer-platform-link {
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
     font-weight: 300;
     color: #a3a3a3;
     text-decoration: none;
     transition: color 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 1rem;
   }
 
-  .footer-platform-link span {
-    font-weight: 700;
-    font-family: 'Outfit', sans-serif;
-    color: #737373;
+  .footer-logo-img {
+    width: 3.25rem;
+    height: 3.25rem;
+    object-fit: contain;
+    border-radius: 0.75rem;
+    opacity: 0.8;
+    transition: opacity 0.2s ease;
   }
 
   .footer-platform-link:hover {
     color: #171717;
   }
-  
-  .footer-platform-link:hover span {
-    color: #171717;
+
+  .footer-platform-link:hover .footer-logo-img {
+    opacity: 1;
   }
 </style>
