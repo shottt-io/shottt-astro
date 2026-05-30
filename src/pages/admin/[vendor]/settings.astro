@@ -206,7 +206,7 @@ const unifiedSlogan = vendor.slogan || vendor.description;
       formData.append('file', blob, 'logo.webp');
 
       try {
-        const response = await fetch('/api/upload', {
+        const response = await fetch(`/api/upload?vendor=${getVendorSlug()}`, {
           method: 'POST',
           body: formData,
         });

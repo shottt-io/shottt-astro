@@ -7,7 +7,7 @@ import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
  * @param imageUrl The URL of the image to download
  * @returns The local path (/uploads/...) or S3 public URL of the saved image, or null if failed
  */
-export async function downloadAndSaveImage(imageUrl: string): Promise<string | null> {
+export async function downloadAndSaveImage(imageUrl: string, vendorSlug?: string): Promise<string | null> {
   if (!imageUrl) return null;
 
   try {
@@ -22,6 +22,7 @@ export async function downloadAndSaveImage(imageUrl: string): Promise<string | n
 
     // Generate unique name as WebP
     const filename = `upload-${Date.now()}-${Math.random().toString(36).substring(2, 9)}.webp`;
+    const objectKey = vendorSlug ? `${vendorSlug}/${filename}` : filename;
 
     // S3 configuration check (mirroring src/pages/api/upload.ts)
     const s3Endpoint = process.env.S3_ENDPOINT || import.meta.env.S3_ENDPOINT;
@@ -55,7 +56,7 @@ export async function downloadAndSaveImage(imageUrl: string): Promise<string | n
       await s3Client.send(
         new PutObjectCommand({
           Bucket: s3Bucket,
-          Key: filename,
+          Key: objectKey,
           Body: buffer,
           ContentType: 'image/webp',
           ACL: 'public-read',
@@ -63,18 +64,20 @@ export async function downloadAndSaveImage(imageUrl: string): Promise<string | n
       );
 
       const publicUrl = formattedPublicUrl
-        ? `${formattedPublicUrl.replace(/\/$/, '')}/${filename}`
-        : `${formattedEndpoint.replace(/\/$/, '')}/${s3Bucket}/${filename}`;
+        ? `${formattedPublicUrl.replace(/\/$/, '')}/${objectKey}`
+        : `${formattedEndpoint.replace(/\/$/, '')}/${s3Bucket}/${objectKey}`;
 
       return publicUrl;
     } else {
       // Local fallback
-      const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
+      const uploadsDir = vendorSlug
+        ? path.join(process.cwd(), 'public', 'uploads', vendorSlug)
+        : path.join(process.cwd(), 'public', 'uploads');
       await fs.mkdir(uploadsDir, { recursive: true });
       const filePath = path.join(uploadsDir, filename);
       await fs.writeFile(filePath, buffer);
 
-      return `/uploads/${filename}`;
+      return vendorSlug ? `/uploads/${vendorSlug}/${filename}` : `/uploads/${filename}`;
     }
   } catch (error) {
     console.error(`Error saving downloaded image from ${imageUrl}:`, error);

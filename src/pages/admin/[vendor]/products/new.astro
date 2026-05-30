@@ -348,7 +348,7 @@ const dbCategories = await db
       formData.append('file', blob, 'product.webp');
 
       try {
-        const response = await fetch('/api/upload', {
+        const response = await fetch(`/api/upload?vendor=${getVendorSlug()}`, {
           method: 'POST',
           body: formData,
         });

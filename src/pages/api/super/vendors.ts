@@ -156,7 +156,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       const logoPath = shopData.logoImage?.origin || shopData.logoImage?.md || shopData.logo;
       if (logoPath) {
         const remoteLogoUrl = logoPath.startsWith('http') ? logoPath : `https://file.menno.pro/${logoPath}`;
-        const downloadedLogo = await downloadAndSaveImage(remoteLogoUrl);
+        const downloadedLogo = await downloadAndSaveImage(remoteLogoUrl, slug);
         if (downloadedLogo) logoUrl = downloadedLogo;
       }
 
@@ -202,7 +202,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
                 const prodImagePath = prod.imageFiles?.[0]?.origin || prod.imageFiles?.[0]?.md || prod.images?.[0];
                 if (prodImagePath) {
                   const remoteProdImageUrl = prodImagePath.startsWith('http') ? prodImagePath : `https://file.menno.pro/${prodImagePath}`;
-                  const downloadedProdImage = await downloadAndSaveImage(remoteProdImageUrl);
+                  const downloadedProdImage = await downloadAndSaveImage(remoteProdImageUrl, slug);
                   if (downloadedProdImage) productImageUrl = downloadedProdImage;
                 }
 

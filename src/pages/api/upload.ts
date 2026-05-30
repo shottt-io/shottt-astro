@@ -11,6 +11,9 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     return new Response(JSON.stringify({ success: false, message: 'عدم احراز هویت' }), { status: 401 });
   }
 
+  const url = new URL(request.url);
+  const vendorSlug = url.searchParams.get('vendor') || '';
+
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File;
@@ -23,6 +26,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
     // Generate unique name as WebP
     const filename = `upload-${Date.now()}-${Math.random().toString(36).substring(2, 9)}.webp`;
+    const objectKey = vendorSlug ? `${vendorSlug}/${filename}` : filename;
 
     // S3 configuration check
     const s3Endpoint = process.env.S3_ENDPOINT || import.meta.env.S3_ENDPOINT;
@@ -58,7 +62,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       await s3Client.send(
         new PutObjectCommand({
           Bucket: s3Bucket,
-          Key: filename,
+          Key: objectKey,
           Body: buffer,
           ContentType: 'image/webp',
           ACL: 'public-read',
@@ -67,18 +71,21 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
       // Construct public URL
       const publicUrl = formattedPublicUrl
-        ? `${formattedPublicUrl.replace(/\/$/, '')}/${filename}`
-        : `${formattedEndpoint.replace(/\/$/, '')}/${s3Bucket}/${filename}`;
+        ? `${formattedPublicUrl.replace(/\/$/, '')}/${objectKey}`
+        : `${formattedEndpoint.replace(/\/$/, '')}/${s3Bucket}/${objectKey}`;
 
       return new Response(JSON.stringify({ success: true, url: publicUrl }), { status: 200 });
     } else {
       // Local fallback
-      const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
+      const uploadsDir = vendorSlug
+        ? path.join(process.cwd(), 'public', 'uploads', vendorSlug)
+        : path.join(process.cwd(), 'public', 'uploads');
       await fs.mkdir(uploadsDir, { recursive: true });
       const filePath = path.join(uploadsDir, filename);
       await fs.writeFile(filePath, buffer);
 
-      return new Response(JSON.stringify({ success: true, url: `/uploads/${filename}` }), { status: 200 });
+      const publicUrl = vendorSlug ? `/uploads/${vendorSlug}/${filename}` : `/uploads/${filename}`;
+      return new Response(JSON.stringify({ success: true, url: publicUrl }), { status: 200 });
     }
   } catch (error: any) {
     console.error('Upload error:', error);
