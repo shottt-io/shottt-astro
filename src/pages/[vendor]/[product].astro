@@ -204,6 +204,20 @@ const canonicalUrl = new URL(canonicalPath, Astro.url.origin).toString();
       </a>
     </footer>
   </main>
+
+  <script is:inline>
+    (function() {
+      const backBtn = document.querySelector('.back-nav-btn');
+      if (backBtn) {
+        backBtn.addEventListener('click', (e) => {
+          if (document.referrer && document.referrer.startsWith(window.location.origin)) {
+            e.preventDefault();
+            window.history.back();
+          }
+        });
+      }
+    })();
+  </script>
 </Layout>
 
 <style>
