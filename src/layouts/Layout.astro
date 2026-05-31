@@ -8,9 +8,33 @@ interface Props {
   canonicalUrl?: string;
   favicon?: string;
   theme?: string;
+  twitterCard?: 'summary' | 'summary_large_image';
 }
 
-const { title, description = 'کاتالوگ دیجیتال مدرن مجموعه‌ها', ogImage, canonicalUrl, favicon, theme = 'light' } = Astro.props;
+const { 
+  title, 
+  description = 'کاتالوگ دیجیتال مدرن مجموعه‌ها', 
+  ogImage, 
+  canonicalUrl, 
+  favicon, 
+  theme = 'light',
+  twitterCard = 'summary_large_image'
+} = Astro.props;
+
+// Helper to convert relative URLs to absolute URLs
+const makeAbsolute = (url?: string) => {
+  if (!url) return undefined;
+  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
+    return url;
+  }
+  const cleanUrl = url.startsWith('/') ? url : `/${url}`;
+  return `${Astro.url.origin}${cleanUrl}`;
+};
+
+// Fallback chain for Open Graph image: ogImage -> favicon -> default site logo
+const rawImage = ogImage || favicon || '/logo.png';
+const resolvedOgImage = makeAbsolute(rawImage);
+const resolvedCanonicalUrl = canonicalUrl || Astro.url.href;
 ---
 
 <!DOCTYPE html>
@@ -31,19 +55,22 @@ const { title, description = 'کاتالوگ دیجیتال مدرن مجموع�
     <!-- SEO Meta Tags -->
     <title>{title}</title>
     <meta name="description" content={description} />
-    {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
+    <link rel="canonical" href={resolvedCanonicalUrl} />
     
-    <!-- Open Graph / Facebook -->
+    <!-- Open Graph / Facebook / Telegram / Instagram / WhatsApp / Bale -->
     <meta property="og:type" content="website" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
-    {ogImage && <meta property="og:image" content={ogImage} />}
+    {resolvedOgImage && <meta property="og:image" content={resolvedOgImage} />}
+    <meta property="og:url" content={resolvedCanonicalUrl} />
+    <meta property="og:site_name" content="شات" />
+    <meta property="og:locale" content="fa_IR" />
 
     <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:card" content={twitterCard} />
     <meta property="twitter:title" content={title} />
     <meta property="twitter:description" content={description} />
-    {ogImage && <meta property="twitter:image" content={ogImage} />}
+    {resolvedOgImage && <meta property="twitter:image" content={resolvedOgImage} />}
   </head>
   <body class={theme === 'dark' ? 'theme-dark' : ''}>
     <div class="site-container animate-fade-in">

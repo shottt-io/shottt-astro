@@ -78,9 +78,10 @@ const categories = await Promise.all(
 <Layout 
   title={`${vendor.name} — کاتالوگ دیجیتال`} 
   description={`${vendor.type} ${vendor.name} - ${vendor.slogan}. ${vendor.description}`}
-  ogImage={vendor.coverImage}
+  ogImage={vendor.logo}
   favicon={vendor.logo}
   theme={vendor.theme}
+  twitterCard="summary"
 >
   <main class="menu-main-wrapper" id="page-main" data-vendor-slug={vendor.slug}>
     <!-- Brand Info Header -->

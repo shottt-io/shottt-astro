@@ -98,10 +98,11 @@ const canonicalUrl = new URL(canonicalPath, Astro.url.origin).toString();
 <Layout 
   title={`${product.name} — ${vendor.name}`} 
   description={product.description || `جزئیات محصول ${product.name} در کاتالوگ دیجیتال ${vendor.name}`}
-  ogImage={product.image}
+  ogImage={product.image || vendor.logo}
   canonicalUrl={canonicalUrl}
   favicon={vendor.logo}
   theme={vendor.theme}
+  twitterCard={product.image ? 'summary_large_image' : 'summary'}
 >
   <main class="product-page-main">
     <div class="product-content-card">
