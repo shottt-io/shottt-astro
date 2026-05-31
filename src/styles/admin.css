@@ -1112,3 +1112,145 @@ body {
   gap: 0.75rem;
 }
 
+/* Welcome Onboarding Modal overrides */
+.welcome-modal {
+  max-width: 800px;
+  width: 90%;
+  min-height: 520px;
+  display: flex;
+  flex-direction: column;
+}
+
+.welcome-modal-body {
+  padding: 2.5rem;
+  display: flex;
+  flex-direction: row-reverse; /* image left, text right on desktop */
+  gap: 2.5rem;
+  align-items: center;
+  flex-grow: 1;
+  min-height: 380px;
+}
+
+.welcome-text-side {
+  flex: 1.2;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  text-align: right;
+  direction: rtl;
+}
+
+.welcome-step-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #171717;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.welcome-step-desc {
+  font-size: 0.9375rem;
+  color: #525252;
+  line-height: 1.8;
+  margin: 0;
+}
+
+.welcome-image-side {
+  flex: 0.8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+}
+
+.welcome-img {
+  width: 100%;
+  max-width: 320px;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: contain;
+}
+
+.welcome-modal-footer {
+  padding: 1.25rem 2.5rem;
+  border-top: 1px solid #f0f0f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  direction: rtl;
+}
+
+.welcome-dots {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.welcome-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background-color: #e5e5e5;
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+
+.welcome-dot.active {
+  background-color: #171717;
+  width: 1.5rem;
+  border-radius: 9999px;
+}
+
+.welcome-buttons {
+  display: flex;
+  gap: 0.75rem;
+}
+
+/* Hide inactive slides */
+.welcome-slide {
+  display: none !important;
+}
+
+.welcome-slide.active {
+  display: flex !important;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .welcome-modal {
+    min-height: auto;
+    width: 95%;
+  }
+  
+  .welcome-modal-body {
+    flex-direction: column;
+    padding: 1.75rem;
+    gap: 1.5rem;
+    min-height: auto;
+  }
+  
+  .welcome-image-side {
+    order: -1; /* image on top */
+    flex: none;
+    width: 100%;
+  }
+  
+  .welcome-img {
+    max-width: 220px;
+  }
+  
+  .welcome-step-title {
+    font-size: 1.25rem;
+    text-align: center;
+  }
+  
+  .welcome-step-desc {
+    font-size: 0.875rem;
+    text-align: center;
+  }
+  
+  .welcome-modal-footer {
+    padding: 1rem 1.75rem;
+  }
+}
+
+

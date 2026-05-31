@@ -220,6 +220,68 @@ if (session) {
       <slot />
     </div>
   </div>
+
+  <!-- Welcome Onboarding Dialog -->
+  <div id="welcome-modal-overlay" class="modal-overlay" style="display: none;">
+    <div class="modal-content welcome-modal">
+      <div class="modal-header">
+        <span class="modal-title">خوش آمدید!</span>
+        <button type="button" class="modal-close" id="welcome-close-btn">✕</button>
+      </div>
+
+      <!-- Step 1: Layouts -->
+      <div class="welcome-modal-body welcome-slide active" data-step="0">
+        <div class="welcome-text-side">
+          <h3 class="welcome-step-title">دو مدل نمایش کاتالوگ</h3>
+          <p class="welcome-step-desc">کاتالوگ شما می‌تواند در دو قالب «پینترستی» و «ساده» نمایش داده شود. قالب پینترستی با اختلاف ارتفاع تصاویر برای نمایش‌های عکس‌محور و لوکس عالی است. قالب ساده نیز دسترسی سریع و کلاسیک به محصولات را ممکن می‌سازد.</p>
+        </div>
+        <div class="welcome-image-side">
+          <img src="/welcome-layouts.jpeg" alt="انتخاب قالب نمایش" class="welcome-img" />
+        </div>
+      </div>
+
+      <!-- Step 2: Speed -->
+      <div class="welcome-modal-body welcome-slide" data-step="1">
+        <div class="welcome-text-side">
+          <h3 class="welcome-step-title">سرعت بارگذاری بی‌نظیر</h3>
+          <p class="welcome-step-desc">تمام صفحات و محصولات کاتالوگ شما با استفاده از کدهای بهینه و سیستم توزیع محتوای هوشمند، در کسری از ثانیه لود می‌شوند. مشتریان شما هرگز منتظر بارگذاری صفحات نخواهند ماند.</p>
+        </div>
+        <div class="welcome-image-side">
+          <img src="/welcome-speed.jpeg" alt="سرعت لود کاتالوگ" class="welcome-img" />
+        </div>
+      </div>
+
+      <!-- Step 3: Analytics -->
+      <div class="welcome-modal-body welcome-slide" data-step="2">
+        <div class="welcome-text-side">
+          <h3 class="welcome-step-title">گزارش و آمار لحظه‌ای</h3>
+          <p class="welcome-step-desc">از تعداد بازدیدهای روزانه سایت، محصولات محبوب و رفتار مشتریان خود به صورت زنده و در قالب نمودارهای زیبا و خوانا باخبر شوید تا تصمیمات بهتری برای کسب‌وکار خود بگیرید.</p>
+        </div>
+        <div class="welcome-image-side">
+          <img src="/welcome-analytics.jpg" alt="آمار و نمودارها" class="welcome-img" />
+        </div>
+      </div>
+
+      <!-- Footer navigation -->
+      <div class="welcome-modal-footer">
+        <label class="checkbox-group" style="margin: 0; user-select: none; display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+          <input type="checkbox" id="welcome-dont-show-again" class="checkbox-input" style="width: 1.125rem; height: 1.125rem; cursor: pointer; margin: 0;" />
+          <span style="font-size: 0.8125rem; color: #525252;">دیگه این راهنما رو نشون نده</span>
+        </label>
+        
+        <div class="welcome-dots">
+          <span class="welcome-dot active" data-step="0"></span>
+          <span class="welcome-dot" data-step="1"></span>
+          <span class="welcome-dot" data-step="2"></span>
+        </div>
+
+        <div class="welcome-buttons">
+          <button type="button" class="btn btn-secondary" id="welcome-prev-btn" style="visibility: hidden;">قبلی</button>
+          <button type="button" class="btn btn-primary" id="welcome-next-btn">بعدی</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </Layout>
 )}
 
@@ -245,7 +307,93 @@ if (session) {
   mobileNavToggle?.addEventListener('click', openNav);
   mobileNavClose?.addEventListener('click', closeNav);
   backdrop?.addEventListener('click', closeNav);
+
+  // Welcome modal logic
+  const welcomeOverlay = document.getElementById('welcome-modal-overlay');
+  const welcomeClose = document.getElementById('welcome-close-btn');
+  const welcomePrev = document.getElementById('welcome-prev-btn') as HTMLButtonElement;
+  const welcomeNext = document.getElementById('welcome-next-btn') as HTMLButtonElement;
+  const welcomeSlides = document.querySelectorAll('.welcome-slide');
+  const welcomeDots = document.querySelectorAll('.welcome-dot');
+  
+  let currentStep = 0;
+  
+  function showStep(index: number) {
+    welcomeSlides.forEach((slide, i) => {
+      if (i === index) {
+        slide.classList.add('active');
+      } else {
+        slide.classList.remove('active');
+      }
+    });
+    
+    welcomeDots.forEach((dot, i) => {
+      if (i === index) {
+        dot.classList.add('active');
+      } else {
+        dot.classList.remove('active');
+      }
+    });
+    
+    currentStep = index;
+    
+    if (welcomePrev) {
+      if (currentStep === 0) {
+        welcomePrev.style.visibility = 'hidden';
+      } else {
+        welcomePrev.style.visibility = 'visible';
+      }
+    }
+    
+    if (welcomeNext) {
+      if (currentStep === welcomeSlides.length - 1) {
+        welcomeNext.textContent = 'شروع کار با پنل';
+      } else {
+        welcomeNext.textContent = 'بعدی';
+      }
+    }
+  }
+  
+  function dismissWelcome() {
+    const welcomeDontShowAgain = document.getElementById('welcome-dont-show-again') as HTMLInputElement;
+    if (welcomeDontShowAgain && welcomeDontShowAgain.checked) {
+      localStorage.setItem('shottt_welcome_seen', 'true');
+    }
+    if (welcomeOverlay) {
+      welcomeOverlay.style.display = 'none';
+      document.body.style.overflow = '';
+    }
+  }
+  
+  if (welcomeOverlay && !localStorage.getItem('shottt_welcome_seen')) {
+    welcomeOverlay.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    showStep(0);
+    
+    welcomeNext?.addEventListener('click', () => {
+      if (currentStep < welcomeSlides.length - 1) {
+        showStep(currentStep + 1);
+      } else {
+        dismissWelcome();
+      }
+    });
+    
+    welcomePrev?.addEventListener('click', () => {
+      if (currentStep > 0) {
+        showStep(currentStep - 1);
+      }
+    });
+    
+    welcomeDots.forEach((dot, index) => {
+      dot.addEventListener('click', () => {
+        showStep(index);
+      });
+    });
+    
+    welcomeClose?.addEventListener('click', dismissWelcome);
+  }
 </script>
+
 
 <style is:global>
   /* Global font fixes for all inputs and buttons in admin */
