@@ -54,8 +54,8 @@ while (marqueeItems.length > 0 && marqueeItems.length < 8) {
             </svg>
           </button>
 
-          <button id="terms-trigger" class="price-badge" aria-label="شرایط فروش و عضویت">
-            <span class="price-text">ثبت‌نام: از طریق معرف</span>
+          <button id="terms-trigger" class="price-badge" aria-label="شرایط ثبت‌نام">
+            <span class="price-text">ثبت‌نام: رایگان و آنلاین</span>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="info-icon">
               <circle cx="12" cy="12" r="10"></circle>
               <line x1="12" y1="16" x2="12" y2="12"></line>
@@ -64,7 +64,15 @@ while (marqueeItems.length > 0 && marqueeItems.length < 8) {
           </button>
         </div>
 
-        <a href="/admin" class="admin-link">ورود به پنل مدیریت</a>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 1rem; width: 100%; margin-top: 1.5rem;">
+          <a href="/admin/register" class="admin-link" style="background-color: #171717; color: #ffffff; padding: 0.75rem 2rem; font-weight: 500; display: flex; align-items: center; gap: 0.5rem; justify-content: center; font-size: 0.9375rem; border-radius: 9999px; text-decoration: none; width: 100%; max-width: 24rem; box-sizing: border-box;">
+            <span>ساخت فوری کاتالوگ دیجیتال ⚡</span>
+          </a>
+          
+          <div style="display: flex; gap: 0.75rem; width: 100%; justify-content: center; flex-wrap: wrap;">
+            <a href="/admin" class="admin-link admin-link-secondary" style="background-color: transparent; border: 1px solid #e4e4e7; color: #525252;">ورود به پنل مدیریت</a>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -95,7 +103,7 @@ while (marqueeItems.length > 0 && marqueeItems.length < 8) {
     <dialog id="terms-dialog" closedby="any" class="custom-dialog">
       <div class="dialog-wrapper">
         <header class="dialog-header">
-          <h2 class="dialog-title">شرایط ثبت‌نام و فروش</h2>
+          <h2 class="dialog-title">شرایط و نحوه ثبت‌نام</h2>
           <button id="close-terms-dialog" class="close-btn" aria-label="بستن">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -105,7 +113,7 @@ while (marqueeItems.length > 0 && marqueeItems.length < 8) {
         </header>
         <div class="dialog-body">
           <p class="dialog-text">
-            فروش مستقیم و ثبت‌نام عمومی در حال حاضر فعال نیست. عضویت مجموعه‌های جدید در پلتفرم تنها از طریق معرفی توسط مجموعه‌هایی که در حال حاضر با آن‌ها همکاری می‌کنیم امکان‌پذیر است.
+            عضویت و ایجاد کاتالوگ دیجیتال در شات کاملاً رایگان، آنلاین و آنی است. شما می‌توانید با زدن دکمه «ثبت‌نام مجموعه جدید»، نام مجموعه، آدرس اینترنتی دلخواه و اطلاعات ورود خود را مشخص کرده و بلافاصله مدیریت منوی خود را آغاز کنید. همچنین در صورت داشتن منوی دیجیتال دیگر، می‌توانید از کادر هوش مصنوعی در پایین همین صفحه استفاده کرده و کل محصولات خود را در کسری از ثانیه منتقل کنید.
           </p>
         </div>
       </div>
@@ -215,6 +223,232 @@ while (marqueeItems.length > 0 && marqueeItems.length < 8) {
 </Layout>
 
 <style>
+  /* AI Transfer Section */
+  .ai-transfer-section {
+    width: 100%;
+    max-width: 32rem;
+    margin-top: 1rem;
+    direction: rtl;
+  }
+
+  .ai-card {
+    background: #ffffff;
+    border: 1px solid #e4e4e7;
+    border-radius: 1.5rem;
+    padding: 2.25rem 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);
+    text-align: right;
+  }
+
+  .ai-badge {
+    align-self: flex-start;
+    background-color: #f4f4f5;
+    border: 1px solid #e4e4e7;
+    color: #18181b;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    padding: 0.35rem 0.75rem;
+    border-radius: 9999px;
+  }
+
+  .ai-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #09090b;
+  }
+
+  .ai-description {
+    font-size: 0.8125rem;
+    color: #71717a;
+    line-height: 1.7;
+  }
+
+  .ai-form {
+    width: 100%;
+  }
+
+  .ai-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+  }
+
+  .ai-input {
+    font-size: 0.875rem;
+    padding: 0.875rem 1.25rem;
+    border-radius: 9999px;
+    border: 1px solid #e4e4e7;
+    background-color: #fafafa;
+    color: #18181b;
+    outline: none;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    direction: ltr;
+    text-align: left;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .ai-input:focus {
+    border-color: #18181b;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 1px #18181b;
+  }
+
+  .ai-btn {
+    all: unset;
+    cursor: pointer;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #18181b;
+    color: #ffffff;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    padding: 0.875rem 2rem;
+    border-radius: 9999px;
+    text-align: center;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    width: 100%;
+  }
+
+  .ai-btn:hover {
+    background-color: #000000;
+  }
+
+  .ai-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  /* Progress and status */
+  .ai-progress-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+
+  .ai-progress-bar {
+    height: 6px;
+    background-color: #f4f4f5;
+    border-radius: 9999px;
+    overflow: hidden;
+    width: 100%;
+  }
+
+  .ai-progress-fill {
+    height: 100%;
+    background-color: #18181b;
+    transition: width 0.3s ease;
+    border-radius: 9999px;
+  }
+
+  .ai-progress-status {
+    font-size: 0.75rem;
+    color: #71717a;
+  }
+
+  /* Preview layout */
+  .ai-preview-area {
+    margin-top: 1rem;
+    border-top: 1px solid #e4e4e7;
+    padding-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .preview-header {
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: #09090b;
+  }
+
+  .preview-categories-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    max-height: 20rem;
+    overflow-y: auto;
+    padding-left: 0.5rem;
+  }
+
+  .preview-categories-list::-webkit-scrollbar {
+    width: 4px;
+  }
+  .preview-categories-list::-webkit-scrollbar-track {
+    background: #f4f4f5;
+    border-radius: 9999px;
+  }
+  .preview-categories-list::-webkit-scrollbar-thumb {
+    background: #d4d4d8;
+    border-radius: 9999px;
+  }
+
+  .preview-cat-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .preview-cat-title {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: #71717a;
+    border-bottom: 1px dashed #e4e4e7;
+    padding-bottom: 0.25rem;
+  }
+
+  .preview-item-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 0.375rem 0;
+  }
+
+  .preview-item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+  }
+
+  .preview-item-name {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #18181b;
+  }
+
+  .preview-item-desc {
+    font-size: 0.6875rem;
+    color: #a1a1aa;
+    line-height: 1.4;
+  }
+
+  .preview-item-price {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: #18181b;
+    white-space: nowrap;
+  }
+
+  .admin-link-secondary {
+    background-color: #ffffff !important;
+    color: #18181b !important;
+    border: 1px solid #e4e4e7 !important;
+    box-shadow: none !important;
+  }
+
+  .admin-link-secondary:hover {
+    background-color: #f4f4f5 !important;
+    border-color: #d4d4d8 !important;
+  }
+
   /* Base Container (Full-screen pure white canvas) */
   .marketing-container {
     width: 100%;

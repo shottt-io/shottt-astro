@@ -186,7 +186,279 @@ const items = await db
       })
     )}
   </div>
+
+  <!-- Onboarding Welcome Modal -->
+  <dialog id="onboarding-welcome-modal" class="custom-dialog">
+    <div class="dialog-wrapper onboarding-dialog-wrapper">
+      <header class="dialog-header">
+        <h2 class="dialog-title">به شات خوش آمدید! 🚀</h2>
+      </header>
+      
+      <!-- Step 1: Choice Screen -->
+      <div id="onboarding-step-1" class="onboarding-step">
+        <p class="dialog-text" style="margin-bottom: 1.5rem;">
+          مجموعه شما با موفقیت ثبت شد. برای شروع چطور تمایل دارید کاتالوگ شما آماده شود؟
+        </p>
+
+        <div class="onboarding-choices">
+          <button id="choice-seed-btn" class="choice-card" style="border: 2px solid #171717; background-color: #fafafa; padding: 1.25rem;">
+            <div class="choice-icon" style="background-color: #171717; color: #ffffff;">🌱</div>
+            <div class="choice-content">
+              <span class="choice-title" style="font-weight: 700; color: #171717;">پر کردن با داده‌های پیش‌فرض (پیشنهاد ما)</span>
+              <p class="choice-desc" style="color: #404040; font-weight: 500; line-height: 1.6; margin-top: 0.25rem;">پیشنهاد ما این است تا دقیق‌تر بتوانید امکانات و ظاهر کاتالوگ را بررسی کنید. بعداً خودتان می‌توانید این آیتم‌ها را پاک یا ویرایش کنید.</p>
+            </div>
+          </button>
+
+          <button id="choice-empty-btn" class="choice-card" style="padding: 1.25rem;">
+            <div class="choice-icon">✏️</div>
+            <div class="choice-content">
+              <span class="choice-title">شروع با کاتالوگ خالی</span>
+              <p class="choice-desc" style="margin-top: 0.25rem;">کاتالوگ شما خالی خواهد ماند و یک دسته‌بندی پیش‌فرض ایجاد می‌شود تا خودتان دسته‌بندی‌ها و محصولات را به صورت دستی اضافه کنید.</p>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 2: Progress Tracker -->
+      <div id="onboarding-step-progress" class="onboarding-step" style="display: none; padding: 1.5rem 0;">
+        <div class="ai-progress-bar" style="height: 8px; margin-bottom: 0.75rem; background-color: #f5f5f5; border-radius: 9999px; overflow: hidden; width: 100%;">
+          <div id="onboarding-progress-fill" class="ai-progress-fill" style="width: 0%; height: 100%; background-color: #171717; transition: width 0.3s ease; border-radius: 9999px;"></div>
+        </div>
+        <span id="onboarding-progress-status" style="font-size: 0.8125rem; color: #737373;">در حال شروع فرآیند...</span>
+      </div>
+
+      <div id="onboarding-error-banner" class="error-banner" style="margin-top: 1rem; display: none;"></div>
+    </div>
+  </dialog>
 </AdminLayout>
+
+<style>
+  .custom-dialog {
+    border: none;
+    padding: 0;
+    background: transparent;
+    max-width: 32rem;
+    width: calc(100% - 2rem);
+    margin: auto;
+    outline: none;
+  }
+
+  .custom-dialog::backdrop {
+    background-color: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .dialog-wrapper {
+    background: #ffffff;
+    border: 1px solid #e4e4e7;
+    border-radius: 1.5rem;
+    padding: 2.25rem 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    direction: rtl;
+    font-family: 'Estedad', system-ui, -apple-system, sans-serif;
+  }
+
+  .dialog-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .dialog-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #171717;
+  }
+
+  .dialog-text {
+    font-size: 0.875rem;
+    color: #404040;
+    line-height: 1.7;
+  }
+
+  .onboarding-dialog-wrapper {
+    max-width: 32rem !important;
+    width: calc(100% - 2rem) !important;
+  }
+
+  .onboarding-choices {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+  }
+
+  .choice-card {
+    all: unset;
+    cursor: pointer;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.25rem;
+    background-color: #ffffff;
+    border: 1px solid #e5e5e5;
+    border-radius: 1rem;
+    text-align: right;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .choice-card:hover {
+    border-color: #171717;
+    background-color: #fafafa;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+  }
+
+  .choice-icon {
+    font-size: 1.5rem;
+    background-color: #f5f5f5;
+    width: 3rem;
+    height: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+  }
+
+  .choice-card:hover .choice-icon {
+    background-color: #ffffff;
+  }
+
+  .choice-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .choice-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #171717;
+  }
+
+  .choice-desc {
+    font-size: 0.75rem;
+    color: #737373;
+    line-height: 1.5;
+  }
+</style>
+
+<script>
+  // Onboarding script
+  const welcomeModal = document.getElementById('onboarding-welcome-modal') as HTMLDialogElement;
+  const choiceSeedBtn = document.getElementById('choice-seed-btn');
+  const choiceEmptyBtn = document.getElementById('choice-empty-btn');
+  
+  const step1 = document.getElementById('onboarding-step-1');
+  const stepProgress = document.getElementById('onboarding-step-progress');
+  const onboardingError = document.getElementById('onboarding-error-banner');
+  
+  const progressFill = document.getElementById('onboarding-progress-fill');
+  const progressStatus = document.getElementById('onboarding-progress-status');
+
+  const vendorSlug = window.location.pathname.split('/')[2];
+
+  // 1. Show modal if catalog is empty
+  const hasCategories = document.querySelector('.category-products-group') !== null;
+  if (welcomeModal && !hasCategories) {
+    welcomeModal.showModal();
+  }
+
+  // Helper to show progress steps
+  function showProgress() {
+    if (step1) step1.style.display = 'none';
+    if (onboardingError) onboardingError.style.display = 'none';
+    if (stepProgress) stepProgress.style.display = 'block';
+  }
+
+  function updateProgressBar(percent: number, statusText: string) {
+    if (progressFill) progressFill.style.width = `${percent}%`;
+    if (progressStatus) progressStatus.textContent = statusText;
+  }
+
+  // 2. Start with Empty Catalog
+  choiceEmptyBtn?.addEventListener('click', async () => {
+    showProgress();
+    updateProgressBar(20, 'در حال ایجاد دسته‌بندی پیش‌فرض...');
+
+    try {
+      const response = await fetch('/api/categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'دسته‌بندی عمومی', vendorSlug })
+      });
+
+      if (response.ok) {
+        updateProgressBar(100, 'آماده شد!');
+        setTimeout(() => {
+          window.location.reload();
+        }, 800);
+      } else {
+        const result = await response.json();
+        throw new Error(result.message || 'خطا در ایجاد دسته‌بندی پیش‌فرض.');
+      }
+    } catch (err: any) {
+      console.error(err);
+      if (stepProgress) stepProgress.style.display = 'none';
+      if (step1) step1.style.display = 'block';
+      if (onboardingError) {
+        onboardingError.textContent = err.message || 'ارتباط با سرور برقرار نشد.';
+        onboardingError.style.display = 'block';
+      }
+    }
+  });
+
+  // 3. Seed Sample Data
+  choiceSeedBtn?.addEventListener('click', async () => {
+    showProgress();
+    updateProgressBar(10, 'در حال راه‌اندازی منو...');
+
+    let progress = 10;
+    const progressInterval = setInterval(() => {
+      if (progress < 95) {
+        progress += 5;
+        updateProgressBar(progress, 'در حال ساخت کاتالوگ نمونه...');
+      }
+    }, 100);
+
+    try {
+      const response = await fetch('/api/vendors/seed-default', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ vendorSlug })
+      });
+
+      clearInterval(progressInterval);
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        updateProgressBar(100, 'ساخت منوی نمونه به پایان رسید!');
+        setTimeout(() => {
+          window.location.reload();
+        }, 800);
+      } else {
+        throw new Error(result.message || 'خطا در ایجاد محصولات نمونه.');
+      }
+    } catch (err: any) {
+      clearInterval(progressInterval);
+      console.error(err);
+      if (stepProgress) stepProgress.style.display = 'none';
+      if (step1) step1.style.display = 'block';
+      if (onboardingError) {
+        onboardingError.textContent = err.message || 'ارتباط با سرور برقرار نشد.';
+        onboardingError.style.display = 'block';
+      }
+    }
+  });
+</script>
 
 <script>
   // Filter products by category

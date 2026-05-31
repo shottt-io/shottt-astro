@@ -1,0 +1,392 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import '../../styles/admin.css';
+---
+
+<Layout title="ثبت‌نام مجموعه جدید در شات" description="ایجاد کاتالوگ دیجیتال و منوی آنلاین اختصاصی به صورت رایگان">
+  <main class="login-wrapper" id="register-container">
+    <div class="login-container animate-slide-up">
+      <header class="login-header">
+        <div class="login-logo-container">
+          <img src="/logo.png" alt="shottt" class="login-logo-img" />
+        </div>
+        <h1 class="login-title">ثبت‌نام مجموعه جدید</h1>
+        <p class="login-subtitle">اطلاعات کاتالوگ و حساب کاربری خود را وارد کنید</p>
+      </header>
+
+      <div class="admin-card">
+        <div id="error-banner" class="error-banner"></div>
+        
+        <form id="register-form" class="login-form">
+          <div class="form-group">
+            <label for="name" class="form-label">نام مجموعه *</label>
+            <input 
+              type="text" 
+              id="name" 
+              name="name" 
+              class="form-input" 
+              placeholder="مثال: کافه لومیر" 
+              required 
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="slug" class="form-label">آدرس اینترنتی مجموعه (شناسه انگلیسی) *</label>
+            <div style="position: relative; display: flex; align-items: center; width: 100%;">
+              <span class="slug-prefix" style="direction: ltr; display: inline-block; text-align: left; position: absolute; left: 1rem; font-size: 0.875rem; color: #a3a3a3; user-select: none;">shottt.io/</span>
+              <input 
+                type="text" 
+                id="slug" 
+                name="slug" 
+                class="form-input" 
+                placeholder="lumiere" 
+                required 
+                style="direction: ltr; padding-left: 5.5rem; text-align: left; width: 100%;"
+              />
+            </div>
+            <span style="font-size: 0.75rem; color: #737373; margin-top: 0.5rem; line-height: 1.6; display: block; text-align: justify;">
+              آدرس کاتالوگ شما در بستر شات خواهد بود. به عنوان مثال اگر عبارت <strong style="color: #171717; font-weight: 600;">lumiere</strong> را وارد کنید، آدرس کاتالوگ شما <strong style="direction: ltr; display: inline-block; color: #171717; font-weight: 600;">shottt.io/lumiere</strong> خواهد شد. (فقط حروف انگلیسی کوچک، اعداد و خط تیره -)
+            </span>
+          </div>
+
+          <div class="form-group">
+            <label for="type" class="form-label">نوع فعالیت مجموعه *</label>
+            <select name="type" id="type" class="form-select" required>
+              <option value="" disabled selected>انتخاب کنید...</option>
+              <option value="کافه">کافه</option>
+              <option value="رستوران">رستوران</option>
+              <option value="کافه رستوران">کافه رستوران</option>
+              <option value="نان و شیرینی">نان و شیرینی (قنادی)</option>
+              <option value="پوشاک و اکسسوری">پوشاک و اکسسوری</option>
+              <option value="گالری و آثار هنری">گالری و آثار هنری</option>
+              <option value="فروشگاه دیجیتال">فروشگاه دیجیتال (موبایل و لپ‌تاپ)</option>
+              <option value="آرایشی و بهداشتی">آرایشی و بهداشتی</option>
+              <option value="آبمیوه بستنی">آبمیوه بستنی</option>
+              <option value="سایر">سایر موارد</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="city" class="form-label">شهر فعالیت مجموعه *</label>
+            <input 
+              type="text" 
+              id="city" 
+              name="city" 
+              class="form-input" 
+              placeholder="مثال: تهران" 
+              required 
+            />
+          </div>
+
+          <div class="form-group" style="margin-top: 1.5rem; border-top: 1px solid #f5f5f5; padding-top: 1.25rem;">
+            <label for="userName" class="form-label">نام و نام خانوادگی مدیر *</label>
+            <input 
+              type="text" 
+              id="userName" 
+              name="userName" 
+              class="form-input" 
+              placeholder="مثال: مهدی کتابدار" 
+              required 
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="phone" class="form-label">تلفن همراه *</label>
+            <input 
+              type="tel" 
+              id="phone" 
+              name="phone" 
+              class="form-input" 
+              placeholder="09123456789" 
+              required 
+              style="direction: ltr; text-align: left;"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="username" class="form-label">نام کاربری مدیر (برای ورود) *</label>
+            <input 
+              type="text" 
+              id="username" 
+              name="username" 
+              class="form-input" 
+              placeholder="admin" 
+              required 
+              style="direction: ltr; text-align: left;"
+              autocomplete="username"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="password" class="form-label">رمز عبور *</label>
+            <div style="position: relative; display: flex; align-items: center; width: 100%;">
+              <input 
+                type="password" 
+                id="password" 
+                name="password" 
+                class="form-input" 
+                placeholder="••••••••" 
+                required 
+                style="direction: ltr; padding-right: 3.5rem; text-align: left; width: 100%;"
+                autocomplete="new-password"
+              />
+              <button type="button" class="toggle-password-btn" data-target="password" style="position: absolute; right: 0.75rem; background: none; border: none; cursor: pointer; color: #737373; font-size: 0.75rem; font-weight: 500; user-select: none;">
+                نمایش
+              </button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="passwordConfirm" class="form-label">تکرار رمز عبور *</label>
+            <div style="position: relative; display: flex; align-items: center; width: 100%;">
+              <input 
+                type="password" 
+                id="passwordConfirm" 
+                name="passwordConfirm" 
+                class="form-input" 
+                placeholder="••••••••" 
+                required 
+                style="direction: ltr; padding-right: 3.5rem; text-align: left; width: 100%;"
+                autocomplete="new-password"
+              />
+              <button type="button" class="toggle-password-btn" data-target="passwordConfirm" style="position: absolute; right: 0.75rem; background: none; border: none; cursor: pointer; color: #737373; font-size: 0.75rem; font-weight: 500; user-select: none;">
+                نمایش
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" id="submit-btn" class="btn btn-primary btn-full" style="margin-top: 1rem;">
+            <span id="btn-text">ایجاد مجموعه و ورود</span>
+            <svg id="loading-spinner" class="spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none; width: 1rem; height: 1rem; animation: rotate 1.5s linear infinite;">
+              <circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle>
+              <path d="M4 12a8 8 0 0 1 8-8"></path>
+            </svg>
+          </button>
+        </form>
+      </div>
+
+      <div class="login-footer">
+        <a href="/admin/login" class="back-link">
+          <span>قبلاً ثبت‌نام کرده‌اید؟ ورود به مدیریت</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="back-icon" style="transform: scaleX(-1);">
+            <line x1="19" y1="12" x2="5" y2="12" />
+            <polyline points="12 5 19 12 12 19" />
+          </svg>
+        </a>
+      </div>
+    </div>
+  </main>
+</Layout>
+
+<script>
+  const form = document.getElementById('register-form') as HTMLFormElement;
+  const errorBanner = document.getElementById('error-banner') as HTMLDivElement;
+  const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
+  const btnText = document.getElementById('btn-text') as HTMLSpanElement;
+  const spinner = document.getElementById('loading-spinner') as SVGElement;
+  const slugInput = document.getElementById('slug') as HTMLInputElement;
+
+  // Restrict slug input keys to valid slug format
+  slugInput?.addEventListener('input', () => {
+    const startVal = slugInput.value;
+    const cleanVal = startVal.toLowerCase()
+      .replace(/[^a-z0-9-]/g, '') // remove invalid chars
+      .replace(/-+/g, '-'); // prevent multiple hyphens
+    
+    if (slugInput.value !== cleanVal) {
+      slugInput.value = cleanVal;
+    }
+  });
+
+  // Password visibility toggle logic
+  document.querySelectorAll('.toggle-password-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetId = btn.getAttribute('data-target');
+      if (!targetId) return;
+      const input = document.getElementById(targetId) as HTMLInputElement;
+      if (!input) return;
+
+      if (input.type === 'password') {
+        input.type = 'text';
+        btn.textContent = 'مخفی‌سازی';
+      } else {
+        input.type = 'password';
+        btn.textContent = 'نمایش';
+      }
+    });
+  });
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    // Reset state
+    errorBanner.style.display = 'none';
+    errorBanner.textContent = '';
+    submitBtn.disabled = true;
+    btnText.textContent = 'در حال ثبت‌نام...';
+    spinner.style.display = 'inline-block';
+
+    const formData = new FormData(form);
+    const payload = Object.fromEntries(formData.entries());
+
+    // Front-end reserved keywords check
+    const RESERVED_KEYWORDS = [
+      'admin', 'api', 'dashboard', 'auth', 'login', 'register', 
+      'static', 'assets', 'super', 'vendors', 'products', 'tickets', 
+      'categories', 'menu', 'preview', 'shottt', 'root', 'administrator', 
+      'manager', 'user', 'settings', 'config', 'profile', 'logout',
+      'help', 'support', 'billing', 'db', 'database', 'system'
+    ];
+
+    const slug = (document.getElementById('slug') as HTMLInputElement).value.trim().toLowerCase();
+    const username = (document.getElementById('username') as HTMLInputElement).value.trim().toLowerCase();
+
+    if (RESERVED_KEYWORDS.includes(slug)) {
+      errorBanner.textContent = 'این آدرس اینترنتی (شناسه) مجاز نیست و جزو کلمات رزرو شده سیستم است.';
+      errorBanner.style.display = 'block';
+      submitBtn.disabled = false;
+      btnText.textContent = 'ایجاد مجموعه و ورود';
+      spinner.style.display = 'none';
+      return;
+    }
+
+    if (RESERVED_KEYWORDS.includes(username)) {
+      errorBanner.textContent = 'این نام کاربری مجاز نیست و جزو کلمات رزرو شده سیستم است.';
+      errorBanner.style.display = 'block';
+      submitBtn.disabled = false;
+      btnText.textContent = 'ایجاد مجموعه و ورود';
+      spinner.style.display = 'none';
+      return;
+    }
+
+    // Front-end password check
+    const password = (document.getElementById('password') as HTMLInputElement).value;
+    const passwordConfirm = (document.getElementById('passwordConfirm') as HTMLInputElement).value;
+
+    if (password !== passwordConfirm) {
+      errorBanner.textContent = 'رمز عبور و تکرار آن با یکدیگر مطابقت ندارند.';
+      errorBanner.style.display = 'block';
+      submitBtn.disabled = false;
+      btnText.textContent = 'ایجاد مجموعه و ورود';
+      spinner.style.display = 'none';
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        // Redirect to admin landing
+        window.location.href = '/admin';
+      } else {
+        errorBanner.textContent = result.message || 'ثبت‌نام ناموفق بود.';
+        errorBanner.style.display = 'block';
+        submitBtn.disabled = false;
+        btnText.textContent = 'ایجاد مجموعه و ورود';
+        spinner.style.display = 'none';
+      }
+    } catch (err) {
+      errorBanner.textContent = 'خطا در ارتباط با سرور. لطفاً دوباره تلاش کنید.';
+      errorBanner.style.display = 'block';
+      submitBtn.disabled = false;
+      btnText.textContent = 'ایجاد مجموعه و ورود';
+      spinner.style.display = 'none';
+    }
+  });
+</script>
+
+<style>
+  .login-wrapper {
+    background-color: #ffffff;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    direction: rtl;
+  }
+
+  .login-container {
+    max-width: 26rem;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .login-header {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .login-logo-container {
+    height: 3.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #171717;
+    margin-bottom: 0.5rem;
+  }
+
+  .login-logo-img {
+    height: 2.5rem;
+    width: auto;
+  }
+
+  .login-title {
+    font-size: 1.375rem;
+    font-weight: 500;
+    color: #0a0a0a;
+  }
+
+  .login-subtitle {
+    font-size: 0.8125rem;
+    font-weight: 200;
+    color: #737373;
+  }
+
+  .slug-prefix {
+    pointer-events: none;
+  }
+
+  .login-footer {
+    text-align: center;
+    margin-top: 0.5rem;
+  }
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    color: #737373;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .back-link:hover {
+    color: #171717;
+  }
+
+  .back-icon {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+
+  @keyframes rotate {
+    100% { transform: rotate(360deg); }
+  }
+  
+  .spinner {
+    animation: rotate 1s linear infinite;
+  }
+</style>

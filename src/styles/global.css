@@ -98,6 +98,11 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* Global Font Reset for Forms and Interactive Elements */
+button, input, select, textarea, .confirm-btn, .btn {
+  font-family: 'Estedad', system-ui, -apple-system, sans-serif !important;
+}
+
 /* Typography Utility Classes */
 h1, h2, h3, h4, h5, h6 {
   font-weight: 500;
