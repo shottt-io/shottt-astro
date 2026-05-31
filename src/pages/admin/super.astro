@@ -338,6 +338,17 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
             <input type="text" name="mennoVendor" class="form-input" placeholder="مثال: maghzook" style="direction: ltr; text-align: left;" />
             <span style="font-size: 0.65rem; color: #737373;">سرور به طور خودکار اطلاعات را دریافت و عکس‌ها را بر روی سرور خودمان ذخیره می‌کند.</span>
           </div>
+
+          <!-- Progress Bar Container -->
+          <div class="form-group" id="group-vendor-progress" style="display: none; margin-top: 1rem; padding: 1rem; background: #fafafa; border: 1px solid #e5e5e5; border-radius: 0.75rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; font-size: 0.8125rem;">
+              <span id="txt-vendor-progress-step" style="font-weight: 500; color: #171717;">در حال برقراری ارتباط با سرور...</span>
+              <span id="txt-vendor-progress-percent" style="color: #737373; font-weight: 600;">0%</span>
+            </div>
+            <div style="width: 100%; height: 6px; background-color: #e5e5e5; border-radius: 9999px; overflow: hidden;">
+              <div id="bar-vendor-progress" style="width: 0%; height: 100%; background-color: #0284c7; border-radius: 9999px; transition: width 0.3s ease;"></div>
+            </div>
+          </div>
         </div>
         <div class="modal-footer" style="padding-top: 1rem;">
           <button type="submit" class="btn btn-primary" id="btn-submit-vendor" style="min-width: 8rem;">
@@ -498,15 +509,30 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
     modalNewVendor.style.display = 'none';
   }));
 
+  // Progress DOM References
+  const groupVendorProgress = document.getElementById('group-vendor-progress') as HTMLDivElement;
+  const txtVendorProgressStep = document.getElementById('txt-vendor-progress-step') as HTMLSpanElement;
+  const txtVendorProgressPercent = document.getElementById('txt-vendor-progress-percent') as HTMLSpanElement;
+  const barVendorProgress = document.getElementById('bar-vendor-progress') as HTMLDivElement;
+
   // Create Vendor Submit Handler
   formNewVendor?.addEventListener('submit', async (e) => {
     e.preventDefault();
     errorVendorForm.style.display = 'none';
 
-    // Show loading spinner
+    // Show loading spinner and disable submit buttons
     btnSubmitVendor.disabled = true;
-    txtSubmitVendor.textContent = 'در حال ایجاد و بارگذاری...';
+    txtSubmitVendor.textContent = 'در حال ایجاد...';
     spinnerSubmitVendor.style.display = 'inline-block';
+
+    // Initialize progress bar
+    if (groupVendorProgress) groupVendorProgress.style.display = 'block';
+    if (txtVendorProgressStep) txtVendorProgressStep.textContent = 'در حال برقراری ارتباط با سرور...';
+    if (txtVendorProgressPercent) txtVendorProgressPercent.textContent = '0%';
+    if (barVendorProgress) {
+      barVendorProgress.style.width = '0%';
+      barVendorProgress.style.backgroundColor = '#0284c7';
+    }
 
     const formData = new FormData(formNewVendor);
     const slug = (formData.get('slug') as string).toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').trim();
@@ -527,17 +553,59 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
         body: JSON.stringify(payload),
       });
 
-      const result = await response.json();
-      if (response.ok && result.success) {
-        alert('مجموعه جدید با موفقیت ثبت شد.');
-        window.location.reload();
-      } else {
-        errorVendorForm.textContent = result.message || 'خطا در ثبت مجموعه';
-        errorVendorForm.style.display = 'block';
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.message || 'خطا در ارتباط با سرور');
       }
-    } catch {
-      errorVendorForm.textContent = 'خطا در برقراری ارتباط با سرور. لطفاً دوباره تلاش کنید.';
+
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error('سیستم جریان داده توسط مرورگر پشتیبانی نمی‌شود.');
+      }
+
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          
+          try {
+            const data = JSON.parse(line);
+            
+            if (data.status === 'progress') {
+              if (txtVendorProgressStep) txtVendorProgressStep.textContent = data.message;
+              if (txtVendorProgressPercent) txtVendorProgressPercent.textContent = `${data.progress}%`;
+              if (barVendorProgress) barVendorProgress.style.width = `${data.progress}%`;
+            } else if (data.status === 'error') {
+              throw new Error(data.message);
+            } else if (data.status === 'success') {
+              if (txtVendorProgressStep) txtVendorProgressStep.textContent = data.message;
+              if (txtVendorProgressPercent) txtVendorProgressPercent.textContent = '۱۰۰٪';
+              if (barVendorProgress) {
+                barVendorProgress.style.width = '100%';
+                barVendorProgress.style.backgroundColor = '#16a34a'; // Green color for success
+              }
+              alert('مجموعه جدید با موفقیت ثبت شد.');
+              window.location.reload();
+              return;
+            }
+          } catch (err: any) {
+            throw new Error(err.message || 'خطا در پردازش اطلاعات دریافتی');
+          }
+        }
+      }
+    } catch (err: any) {
+      errorVendorForm.textContent = err.message || 'خطا در برقراری ارتباط با سرور. لطفاً دوباره تلاش کنید.';
       errorVendorForm.style.display = 'block';
+      if (groupVendorProgress) groupVendorProgress.style.display = 'none';
     } finally {
       btnSubmitVendor.disabled = false;
       txtSubmitVendor.textContent = 'ایجاد مجموعه';
