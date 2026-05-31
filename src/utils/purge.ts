@@ -73,7 +73,6 @@ async function purgeUrls(urls: string[]): Promise<void> {
 
 /**
  * Purges the customer-facing catalog page for a given vendor slug.
- * Homepage (/) is NOT purged here — it only changes on new code deployments.
  */
 export async function purgeVendorCache(vendorSlug: string): Promise<void> {
   const { domain } = getArvanConfig();
@@ -81,3 +80,22 @@ export async function purgeVendorCache(vendorSlug: string): Promise<void> {
   const base = `https://${activeDomain}`;
   await purgeUrls([`${base}/${vendorSlug}`]);
 }
+
+/**
+ * Purges the homepage (/) from ArvanCloud CDN cache.
+ */
+export async function purgeHomepageCache(): Promise<void> {
+  const { domain } = getArvanConfig();
+  const activeDomain = domain || 'shottt.io';
+  const base = `https://${activeDomain}`;
+  await purgeUrls([`${base}/`]);
+}
+
+// On server startup (when this file is first loaded in production), trigger homepage purge
+if (typeof process !== 'undefined' && process.env.NODE_ENV === 'production') {
+  console.log('[ArvanPurge] Server starting up, purging homepage cache...');
+  purgeHomepageCache().catch((err) => {
+    console.error('[ArvanPurge] Failed to purge homepage cache on startup:', err);
+  });
+}
+

@@ -22,6 +22,7 @@ export const vendors = pgTable('vendors', {
   defaultLayout: varchar('default_layout', { length: 50 }).default('pinterest').notNull(),
   logoIcon: varchar('logo_icon', { length: 50 }).notNull(),
   logo: varchar('logo', { length: 2048 }).notNull(),
+  city: varchar('city', { length: 255 }),
 });
 
 // 2. Categories Table
@@ -55,6 +56,7 @@ export const users = pgTable('users', {
   username: varchar('username', { length: 255 }).notNull().unique(),
   password: varchar('password', { length: 255 }).notNull(), // SHA-256 hash
   name: varchar('name', { length: 255 }),
+  phone: varchar('phone', { length: 50 }),
 });
 
 // 5. Vendor Users Table (Join Table)

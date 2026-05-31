@@ -28,6 +28,7 @@ const usersList = await db
     id: usersTable.id,
     name: usersTable.name,
     username: usersTable.username,
+    phone: usersTable.phone,
   })
   .from(usersTable)
   .orderBy(usersTable.id);
@@ -226,6 +227,7 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
                     </div>
                     <span class="item-desc-sub">
                       نام کاربری: <code>{u.username}</code> 
+                      {u.phone && ` • تلفن: ${u.phone}`}
                       {userVendorsText ? ` • دسترسی‌ها: ${userVendorsText}` : ' • فاقد دسترسی به مجموعه‌ها'}
                     </span>
                   </div>
@@ -237,6 +239,7 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
                     data-id={u.id} 
                     data-name={u.name} 
                     data-username={u.username} 
+                    data-phone={u.phone || ''}
                     data-vendors={JSON.stringify(u.vendorIds)}
                     style="font-size: 0.75rem; padding: 0.4rem 0.8rem;"
                   >
@@ -296,6 +299,11 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
               <option value="فروشگاه دیجیتال">فروشگاه دیجیتال</option>
               <option value="سایر">سایر موارد</option>
             </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">شهر (اختیاری)</label>
+            <input type="text" name="city" class="form-input" placeholder="مثال: تهران" />
           </div>
 
           <div class="form-group">
@@ -359,6 +367,11 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
             <label class="form-label">نام کاربری *</label>
             <input type="text" name="username" id="input-user-username" class="form-input" placeholder="مثال: ahmadi" required style="direction: ltr; text-align: left;" />
             <span style="font-size: 0.65rem; color: #737373;">حروف انگلیسی، عدد و کاراکترهای مجاز</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">شماره تلفن (اختیاری)</label>
+            <input type="text" name="phone" id="input-user-phone" class="form-input" placeholder="مثال: ۰۹۱۲۳۴۵۶۷۸۹" style="direction: ltr; text-align: left;" />
           </div>
 
           <div class="form-group">
@@ -497,6 +510,7 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
       mode: formData.get('mode'),
       packageType: formData.get('packageType'),
       mennoVendor: formData.get('mennoVendor'),
+      city: formData.get('city'),
     };
 
     try {
@@ -558,6 +572,7 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
   const inputUserId = document.getElementById('input-user-id') as HTMLInputElement;
   const inputUserName = document.getElementById('input-user-name') as HTMLInputElement;
   const inputUserUsername = document.getElementById('input-user-username') as HTMLInputElement;
+  const inputUserPhone = document.getElementById('input-user-phone') as HTMLInputElement;
   const inputUserPassword = document.getElementById('input-user-password') as HTMLInputElement;
   const labelUserPassword = document.getElementById('label-user-password') as HTMLLabelElement;
   const tipUserPassword = document.getElementById('tip-user-password') as HTMLSpanElement;
@@ -565,6 +580,7 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
   btnOpenNewUser?.addEventListener('click', () => {
     formUser.reset();
     inputUserId.value = '';
+    if (inputUserPhone) inputUserPhone.value = '';
     txtUserModalTitle.textContent = 'ایجاد کاربر جدید';
     labelUserPassword.textContent = 'رمز عبور *';
     inputUserPassword.required = true;
@@ -594,11 +610,13 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
       const id = btn.getAttribute('data-id') || '';
       const name = btn.getAttribute('data-name') || '';
       const username = btn.getAttribute('data-username') || '';
+      const phone = btn.getAttribute('data-phone') || '';
       const vendorIds = JSON.parse(btn.getAttribute('data-vendors') || '[]');
 
       inputUserId.value = id;
       inputUserName.value = name;
       inputUserUsername.value = username;
+      if (inputUserPhone) inputUserPhone.value = phone;
       
       txtUserModalTitle.textContent = 'ویرایش کاربر';
       labelUserPassword.textContent = 'رمز عبور جدید (اختیاری)';
@@ -636,6 +654,7 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
       name: formData.get('name'),
       username: formData.get('username'),
       password: formData.get('password'),
+      phone: formData.get('phone'),
       vendorIds,
     };
 

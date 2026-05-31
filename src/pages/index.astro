@@ -1,5 +1,23 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { db } from '../db/db';
+import { vendors as vendorsTable } from '../db/schema';
+import { sql } from 'drizzle-orm';
+
+const randomVendors = await db
+  .select({
+    name: vendorsTable.name,
+    slug: vendorsTable.slug,
+    logo: vendorsTable.logo,
+  })
+  .from(vendorsTable)
+  .orderBy(sql`random()`)
+  .limit(10);
+
+let marqueeItems = [...randomVendors];
+while (marqueeItems.length > 0 && marqueeItems.length < 8) {
+  marqueeItems = [...marqueeItems, ...randomVendors];
+}
 ---
 
 <Layout title="شات | پلتفرم کاتالوگ دیجیتال و منوی آنلاین" description="پلتفرم مستقل، رایگان و متمرکز بر سرعت برای ساخت کاتالوگ و منوی دیجیتال مجموعه‌های ایرانی">
@@ -87,6 +105,34 @@ import Layout from '../layouts/Layout.astro';
         </div>
       </div>
     </dialog>
+
+    <!-- Random Collections Section -->
+    {randomVendors.length > 0 && (
+      <section class="collections-section animate-slide-up" style="animation-delay: 0.2s;">
+        <h2 class="collections-title">برخی از مجموعه‌ها</h2>
+        <div class="marquee-container">
+          <div class="marquee-track">
+            <div class="marquee-group">
+              {marqueeItems.map((vendor) => (
+                <a href={`/${vendor.slug}`} class="collection-card">
+                  <img src={vendor.logo} alt={vendor.name} class="collection-logo" loading="lazy" />
+                  <span class="collection-name">{vendor.name}</span>
+                </a>
+              ))}
+            </div>
+            {/* Duplicate group for seamless infinite looping */}
+            <div class="marquee-group" aria-hidden="true">
+              {marqueeItems.map((vendor) => (
+                <a href={`/${vendor.slug}`} class="collection-card">
+                  <img src={vendor.logo} alt={vendor.name} class="collection-logo" loading="lazy" />
+                  <span class="collection-name">{vendor.name}</span>
+                </a>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+    )}
   </main>
 
   <script>
@@ -166,16 +212,19 @@ import Layout from '../layouts/Layout.astro';
 <style>
   /* Base Container (Full-screen pure white canvas) */
   .marketing-container {
-    width: 100vw;
+    width: 100%;
     min-height: 100vh;
     background-color: #ffffff;
     color: #18181b;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 2rem 1.5rem;
+    padding: 3rem 1.5rem;
     direction: rtl;
     font-family: 'Estedad', system-ui, -apple-system, sans-serif;
+    gap: 3.5rem;
+    overflow-x: hidden;
   }
 
   /* Centered content block directly on white screen */
@@ -414,6 +463,136 @@ import Layout from '../layouts/Layout.astro';
     }
     .brand-logo-img {
       height: 4.5rem;
+    }
+  }
+
+  /* Collections Section */
+  .collections-section {
+    width: 100%;
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    margin-top: 1rem;
+  }
+
+  .collections-title {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: #71717a; /* neutral-500 */
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .collections-title::before,
+  .collections-title::after {
+    content: '';
+    display: block;
+    width: 2rem;
+    height: 1px;
+    background-color: #e4e4e7;
+  }
+
+  /* Marquee Container */
+  .marquee-container {
+    overflow: hidden;
+    width: 100%;
+    max-width: 32rem; /* Centered content width matching the main card */
+    position: relative;
+    padding: 0.5rem 0;
+    margin: 0 auto;
+    direction: ltr; /* Force LTR for standard marquee scrolling math */
+  }
+
+  /* Left and Right White Fade Overlays */
+  .marquee-container::before,
+  .marquee-container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 4rem;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  .marquee-container::before {
+    left: 0;
+    background: linear-gradient(to right, #ffffff 25%, rgba(255, 255, 255, 0));
+  }
+
+  .marquee-container::after {
+    right: 0;
+    background: linear-gradient(to left, #ffffff 25%, rgba(255, 255, 255, 0));
+  }
+
+  .marquee-track {
+    display: flex;
+    width: max-content;
+    gap: 0;
+    animation: scroll-left 30s linear infinite;
+    direction: ltr; /* Force LTR for standard marquee scrolling math */
+  }
+
+  .marquee-track:hover {
+    animation-play-state: paused;
+  }
+
+  .marquee-group {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding-right: 1.5rem; /* Gap between the two groups */
+    flex-shrink: 0;
+  }
+
+  /* Collection Card Pill */
+  .collection-card {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    background-color: #f4f4f5; /* neutral-100 */
+    border: 1px solid #e4e4e7; /* neutral-200 */
+    border-radius: 9999px;
+    padding: 0.5rem 1.05rem 0.5rem 1.25rem;
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    flex-shrink: 0;
+    direction: rtl; /* Ensure Persian text flows RTL inside the pill */
+  }
+
+  .collection-card:hover {
+    background-color: #e4e4e7;
+    border-color: #d4d4d8;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
+
+  .collection-logo {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid #e4e4e7;
+    background-color: #ffffff;
+  }
+
+  .collection-name {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #18181b;
+    white-space: nowrap;
+  }
+
+  @keyframes scroll-left {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
     }
   }
 </style>

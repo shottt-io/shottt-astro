@@ -27,6 +27,7 @@ export const GET: APIRoute = async ({ cookies }) => {
           id: user.id,
           name: user.name,
           username: user.username,
+          phone: user.phone,
           vendorIds: links.map((l) => l.vendorId),
         };
       })
@@ -48,7 +49,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
   try {
     const body = await request.json();
-    const { name, username, password, vendorIds } = body;
+    const { name, username, password, vendorIds, phone } = body;
 
     if (!name || !username || !password) {
       return new Response(JSON.stringify({ success: false, message: 'پر کردن فیلدهای ستاره‌دار الزامی است' }), { status: 400 });
@@ -71,6 +72,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       name,
       username: username.toLowerCase().trim(),
       password: hashedPassword,
+      phone: phone || null,
     }).returning({ id: usersTable.id });
 
     // Link user to selected vendors
@@ -99,7 +101,7 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
 
   try {
     const body = await request.json();
-    const { id, name, username, password, vendorIds } = body;
+    const { id, name, username, password, vendorIds, phone } = body;
 
     if (!id || !name || !username) {
       return new Response(JSON.stringify({ success: false, message: 'شناسه، نام و نام کاربری الزامی هستند' }), { status: 400 });
@@ -125,6 +127,7 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
     const updateFields: any = {
       name,
       username: username.toLowerCase().trim(),
+      phone: phone || null,
     };
 
     if (password && password.trim().length > 0) {

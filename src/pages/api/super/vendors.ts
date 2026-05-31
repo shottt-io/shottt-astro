@@ -10,6 +10,7 @@ import { getSession } from '../../../utils/auth';
 import { eq, and } from 'drizzle-orm';
 import { vendors as mockVendors } from '../../../data/vendors';
 import { downloadAndSaveImage } from '../../../utils/download';
+import { purgeHomepageCache } from '../../../utils/purge';
 
 // Helper to determine logo icon from type
 function getLogoIconFromType(type: string): string {
@@ -55,7 +56,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
   try {
     const body = await request.json();
-    const { name, slug, type, mode, packageType, mennoVendor } = body;
+    const { name, slug, type, mode, packageType, mennoVendor, city } = body;
 
     if (!name || !slug || !type || !mode) {
       return new Response(JSON.stringify({ success: false, message: 'پر کردن فیلدهای ستاره‌دار الزامی است' }), { status: 400 });
@@ -85,6 +86,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         defaultLayout: 'pinterest',
         logoIcon: getLogoIconFromType(type),
         logo: 'https://images.unsplash.com/photo-1498804103079-a6351b050096?q=80&w=1200&auto=format&fit=crop',
+        city: city || null,
       }).returning({ id: vendorsTable.id });
       
       createdVendorId = newVendor.id;
@@ -106,6 +108,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         defaultLayout: mockVendor.defaultLayout,
         logoIcon: getLogoIconFromType(type),
         logo: mockVendor.logo,
+        city: city || null,
       }).returning({ id: vendorsTable.id });
 
       createdVendorId = newVendor.id;
@@ -172,6 +175,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         defaultLayout: 'pinterest',
         logoIcon: getLogoIconFromType(type),
         logo: logoUrl,
+        city: city || null,
       }).returning({ id: vendorsTable.id });
 
       createdVendorId = newVendor.id;
@@ -293,6 +297,9 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       vendorId: createdVendorId,
       userId: session.userId,
     });
+
+    // Purge the homepage cache from ArvanCloud so the new collection shows up on the homepage
+    purgeHomepageCache().catch(() => {});
 
     return new Response(JSON.stringify({ success: true, message: 'مجموعه جدید با موفقیت ایجاد شد', vendorId: createdVendorId }), { status: 201 });
   } catch (error: any) {
