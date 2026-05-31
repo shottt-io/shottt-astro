@@ -109,12 +109,14 @@ const items = await db
               {catItems.map((item, idx) => (
                 <div class="admin-list-item product-item-row" data-category-id={item.categoryId}>
                   <div class="item-right-details">
-                    <img 
-                      src={item.image || 'https://images.unsplash.com/photo-1498804103079-a6351b050096?q=80&w=200'} 
-                      alt={item.name} 
-                      class="item-thumb" 
-                      loading="lazy"
-                    />
+                    {item.image && (
+                      <img 
+                        src={item.image} 
+                        alt={item.name} 
+                        class="item-thumb" 
+                        loading="lazy"
+                      />
+                    )}
                     <div class="item-title-desc">
                       <div style="display: flex; gap: 0.5rem; align-items: center;">
                         <span class="item-name-bold">{item.name}</span>
