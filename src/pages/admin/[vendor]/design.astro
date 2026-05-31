@@ -58,17 +58,17 @@ const vendor = vendorList[0];
               class="layout-radio-input" 
               checked={vendor.defaultLayout === 'pinterest'} 
             />
-            <div class="layout-card-info">
-              <span class="layout-card-title">حالت پینترستی</span>
-              <p class="layout-card-desc">اگر تمایل به نمایش عکس‌محور و گالری کاتالوگ خود دارید. مناسب برای فروشگاه‌های خاص، گالری‌ها و مجموعه‌های لوکس که کیفیت تصویر برایشان کلیدی است. در این حالت عکس‌های عمودی زیباتر دیده می‌شوند.</p>
-            </div>
-            <!-- Graphic Mockup -->
-            <div class="layout-preview-mockup">
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; width: 85%; height: 80%;">
-                <div style="border: 1px dashed #d4d4d4; border-radius: 4px; height: 1.5rem; background: #fdfdfd;"></div>
-                <div style="border: 1px dashed #d4d4d4; border-radius: 4px; height: 2.2rem; background: #fdfdfd;"></div>
-                <div style="border: 1px dashed #d4d4d4; border-radius: 4px; height: 2.1rem; background: #fdfdfd; transform: translateY(-0.6rem);"></div>
-                <div style="border: 1px dashed #d4d4d4; border-radius: 4px; height: 1.4rem; background: #fdfdfd;"></div>
+            <span class="layout-card-title">کاتالوگ عکس‌محور (ماسونری)</span>
+            <div class="layout-card-body-row">
+              <p class="layout-card-desc">اگر عکاسی و تصاویر باکیفیت برای شما اهمیت بالایی دارد و مایلید عکس‌های محصولات کاتالوگ شما بیشترین میزان خودنمایی را داشته باشند.</p>
+              <!-- Graphic Mockup -->
+              <div class="layout-preview-mockup">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 85%; height: 90%;">
+                  <div style="border: 1px dashed #d4d4d4; border-radius: 6px; height: 2.5rem; background: #fdfdfd;"></div>
+                  <div style="border: 1px dashed #d4d4d4; border-radius: 6px; height: 3.5rem; background: #fdfdfd;"></div>
+                  <div style="border: 1px dashed #d4d4d4; border-radius: 6px; height: 3rem; background: #fdfdfd; transform: translateY(-0.8rem);"></div>
+                  <div style="border: 1px dashed #d4d4d4; border-radius: 6px; height: 2.2rem; background: #fdfdfd;"></div>
+                </div>
               </div>
             </div>
           </div>
@@ -81,16 +81,131 @@ const vendor = vendorList[0];
               class="layout-radio-input" 
               checked={vendor.defaultLayout === 'simple'} 
             />
-            <div class="layout-card-info">
-              <span class="layout-card-title">حالت ساده</span>
-              <p class="layout-card-desc">نمایش منظم و جمع‌وجور محصولات، با تمرکز بیشتر روی متن و دسترسی آسان. مناسب برای فروشگاه‌های زنجیره‌ای، ارائه‌دهندگان خدمات و کاتالوگ‌هایی با تنوع اقلام بالا.</p>
+            <span class="layout-card-title">ساده و متنی (کامپکت)</span>
+            <div class="layout-card-body-row">
+              <p class="layout-card-desc">نمایش منظم، متنی و جمع‌وجور؛ مناسب برای کاتالوگ‌های شلوغ یا زمانی که دسترسی سریع مشتری به نام و قیمت محصولات اولویت اول است.</p>
+              <!-- Graphic Mockup -->
+              <div class="layout-preview-mockup">
+                <div style="display: flex; flex-direction: column; gap: 8px; width: 85%; height: 90%; justify-content: center;">
+                  <div style="border: 1px dashed #d4d4d4; border-radius: 6px; height: 1.4rem; background: #fdfdfd; display: flex; align-items: center; justify-content: space-between; padding: 0 6px;"><div style="display: flex; align-items: center; gap: 4px;"><div style="width: 0.8rem; height: 0.8rem; border-radius: 3px; background: #e5e5e5;"></div><div style="width: 2.5rem; height: 4px; background: #e5e5e5; border-radius: 2px;"></div></div><div style="width: 1.2rem; height: 4px; background: #e5e5e5; border-radius: 2px;"></div></div>
+                  <div style="border: 1px dashed #d4d4d4; border-radius: 6px; height: 1.4rem; background: #fdfdfd; display: flex; align-items: center; justify-content: space-between; padding: 0 6px;"><div style="display: flex; align-items: center; gap: 4px;"><div style="width: 0.8rem; height: 0.8rem; border-radius: 3px; background: #e5e5e5;"></div><div style="width: 3rem; height: 4px; background: #e5e5e5; border-radius: 2px;"></div></div><div style="width: 1rem; height: 4px; background: #e5e5e5; border-radius: 2px;"></div></div>
+                  <div style="border: 1px dashed #d4d4d4; border-radius: 6px; height: 1.4rem; background: #fdfdfd; display: flex; align-items: center; justify-content: space-between; padding: 0 6px;"><div style="display: flex; align-items: center; gap: 4px;"><div style="width: 0.8rem; height: 0.8rem; border-radius: 3px; background: #e5e5e5;"></div><div style="width: 2.2rem; height: 4px; background: #e5e5e5; border-radius: 2px;"></div></div><div style="width: 1.4rem; height: 4px; background: #e5e5e5; border-radius: 2px;"></div></div>
+                </div>
+              </div>
             </div>
-            <!-- Graphic Mockup -->
-            <div class="layout-preview-mockup">
-              <div style="display: flex; flex-direction: column; gap: 5px; width: 85%; height: 80%; justify-content: center;">
-                <div style="border: 1px dashed #d4d4d4; border-radius: 4px; height: 0.8rem; background: #fdfdfd; display: flex; align-items: center; padding: 0 4px;"><div style="width: 0.5rem; height: 0.5rem; border-radius: 2px; background: #e5e5e5;"></div></div>
-                <div style="border: 1px dashed #d4d4d4; border-radius: 4px; height: 0.8rem; background: #fdfdfd; display: flex; align-items: center; padding: 0 4px;"><div style="width: 0.5rem; height: 0.5rem; border-radius: 2px; background: #e5e5e5;"></div></div>
-                <div style="border: 1px dashed #d4d4d4; border-radius: 4px; height: 0.8rem; background: #fdfdfd; display: flex; align-items: center; padding: 0 4px;"><div style="width: 0.5rem; height: 0.5rem; border-radius: 2px; background: #e5e5e5;"></div></div>
+          </div>
+
+          <!-- Option C: Card Layout -->
+          <div class={`layout-radio-card ${vendor.defaultLayout === 'card' ? 'active' : ''}`} data-layout="card">
+            <input 
+              type="radio" 
+              name="layout-opt" 
+              class="layout-radio-input" 
+              checked={vendor.defaultLayout === 'card'} 
+            />
+            <span class="layout-card-title">نمایش کارتی</span>
+            <div class="layout-card-body-row">
+              <p class="layout-card-desc">نمایش کامل جزئیات در دید اول؛ در این حالت تصاویر محصولات کمی بزرگ‌تر بوده و عنوان، قیمت و توضیحات متنی محصول به صورت یکجا نمایش داده می‌شوند.</p>
+              <!-- Graphic Mockup -->
+              <div class="layout-preview-mockup">
+                <div style="display: flex; flex-direction: column; gap: 8px; width: 85%; height: 90%; justify-content: center;">
+                  <div style="border: 1px dashed #d4d4d4; border-radius: 6px; height: 2.1rem; background: #fdfdfd; display: flex; align-items: center; padding: 0 6px; gap: 6px;">
+                    <div style="width: 1.5rem; height: 1.5rem; border-radius: 4px; background: #e5e5e5; flex-shrink: 0;"></div>
+                    <div style="display: flex; flex-direction: column; gap: 4px; width: 100%;">
+                      <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        <div style="width: 2.5rem; height: 4px; background: #d4d4d4; border-radius: 2px;"></div>
+                        <div style="width: 1rem; height: 4px; background: #d4d4d4; border-radius: 2px;"></div>
+                      </div>
+                      <div style="width: 80%; height: 3px; background: #e5e5e5; border-radius: 1px;"></div>
+                    </div>
+                  </div>
+                  <div style="border: 1px dashed #d4d4d4; border-radius: 6px; height: 2.1rem; background: #fdfdfd; display: flex; align-items: center; padding: 0 6px; gap: 6px;">
+                    <div style="width: 1.5rem; height: 1.5rem; border-radius: 4px; background: #e5e5e5; flex-shrink: 0;"></div>
+                    <div style="display: flex; flex-direction: column; gap: 4px; width: 100%;">
+                      <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        <div style="width: 3rem; height: 4px; background: #d4d4d4; border-radius: 2px;"></div>
+                        <div style="width: 0.8rem; height: 4px; background: #d4d4d4; border-radius: 2px;"></div>
+                      </div>
+                      <div style="width: 70%; height: 3px; background: #e5e5e5; border-radius: 1px;"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Theme Selection Group -->
+      <div class="form-group" style="margin-top: 1rem; border-top: 1px solid #f5f5f5; padding-top: 1.5rem;">
+        <label class="form-label">تم رنگی کاتالوگ را انتخاب کنید:</label>
+        <input type="hidden" id="selected-theme" name="theme" value={vendor.theme} />
+        
+        <div class="theme-radio-group">
+          <!-- Light Theme Option -->
+          <div class={`theme-radio-card ${vendor.theme === 'light' ? 'active' : ''}`} data-theme="light">
+            <input 
+              type="radio" 
+              name="theme-opt" 
+              class="theme-radio-input" 
+              checked={vendor.theme === 'light'} 
+            />
+            <span class="theme-card-title">تم روشن (Light)</span>
+            <div class="theme-card-body-row">
+              <p class="theme-card-desc">طراحی کلاسیک، روشن و تمیز با پس‌زمینه سفید. گزینه‌ای عالی برای خوانایی حداکثری در محیط‌های پرنور.</p>
+              <!-- Theme Preview Mockup -->
+              <div class="theme-preview-mockup">
+                <div class="phone-frame-mockup light-preview-theme">
+                  <div class="phone-notch"></div>
+                  <div class="phone-header">
+                    <div class="phone-logo"></div>
+                    <div class="phone-text"></div>
+                  </div>
+                  <div class="phone-nav">
+                    <div class="phone-nav-item active"></div>
+                    <div class="phone-nav-item"></div>
+                    <div class="phone-nav-item"></div>
+                  </div>
+                  <div class="phone-body">
+                    <div class="phone-card"></div>
+                    <div class="phone-card"></div>
+                    <div class="phone-card"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dark Theme Option -->
+          <div class={`theme-radio-card ${vendor.theme === 'dark' ? 'active' : ''}`} data-theme="dark">
+            <input 
+              type="radio" 
+              name="theme-opt" 
+              class="theme-radio-input" 
+              checked={vendor.theme === 'dark'} 
+            />
+            <span class="theme-card-title">تم تاریک (Dark)</span>
+            <div class="theme-card-body-row">
+              <p class="theme-card-desc">طراحی تیره، مدرن و لوکس با رنگ زمینه مشکی. فوق‌العاده برای فضاهای مدرن، نمایش در شب و کاهش خستگی چشم خریداران.</p>
+              <!-- Theme Preview Mockup -->
+              <div class="theme-preview-mockup">
+                <div class="phone-frame-mockup dark-preview-theme">
+                  <div class="phone-notch"></div>
+                  <div class="phone-header">
+                    <div class="phone-logo"></div>
+                    <div class="phone-text"></div>
+                  </div>
+                  <div class="phone-nav">
+                    <div class="phone-nav-item active"></div>
+                    <div class="phone-nav-item"></div>
+                    <div class="phone-nav-item"></div>
+                  </div>
+                  <div class="phone-body">
+                    <div class="phone-card"></div>
+                    <div class="phone-card"></div>
+                    <div class="phone-card"></div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -105,14 +220,14 @@ const vendor = vendorList[0];
 </AdminLayout>
 
 <script>
-  // UI interaction for radio cards
-  const cards = document.querySelectorAll('.layout-radio-card');
-  const inputHidden = document.getElementById('selected-layout') as HTMLInputElement;
+  // UI interaction for layout radio cards
+  const layoutCards = document.querySelectorAll('.layout-radio-card');
+  const layoutInputHidden = document.getElementById('selected-layout') as HTMLInputElement;
 
-  cards.forEach(card => {
+  layoutCards.forEach(card => {
     card.addEventListener('click', () => {
       // Clear previous active
-      cards.forEach(c => {
+      layoutCards.forEach(c => {
         c.classList.remove('active');
         const radio = c.querySelector('.layout-radio-input') as HTMLInputElement;
         if (radio) radio.checked = false;
@@ -124,7 +239,30 @@ const vendor = vendorList[0];
       if (radio) radio.checked = true;
 
       const layoutVal = card.getAttribute('data-layout') || 'pinterest';
-      inputHidden.value = layoutVal;
+      layoutInputHidden.value = layoutVal;
+    });
+  });
+
+  // UI interaction for theme radio cards
+  const themeCards = document.querySelectorAll('.theme-radio-card');
+  const themeInputHidden = document.getElementById('selected-theme') as HTMLInputElement;
+
+  themeCards.forEach(card => {
+    card.addEventListener('click', () => {
+      // Clear previous active
+      themeCards.forEach(c => {
+        c.classList.remove('active');
+        const radio = c.querySelector('.theme-radio-input') as HTMLInputElement;
+        if (radio) radio.checked = false;
+      });
+
+      // Select current
+      card.classList.add('active');
+      const radio = card.querySelector('.theme-radio-input') as HTMLInputElement;
+      if (radio) radio.checked = true;
+
+      const themeVal = card.getAttribute('data-theme') || 'light';
+      themeInputHidden.value = themeVal;
     });
   });
 
@@ -132,13 +270,14 @@ const vendor = vendorList[0];
   const form = document.getElementById('design-settings-form') as HTMLFormElement;
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const layout = inputHidden.value;
+    const layout = layoutInputHidden.value;
+    const theme = themeInputHidden.value;
 
     try {
       const response = await fetch('/api/vendors', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slug: getVendorSlug(), defaultLayout: layout })
+        body: JSON.stringify({ slug: getVendorSlug(), defaultLayout: layout, theme: theme })
       });
 
       if (response.ok) {
@@ -157,3 +296,367 @@ const vendor = vendorList[0];
     return parts[2]; // /admin/[vendorSlug]/design
   }
 </script>
+
+<style>
+  .layout-radio-group, .theme-radio-group {
+    display: grid !important;
+    grid-template-columns: 1fr !important; /* Stacked under each other on small mobile screens */
+    gap: 1rem !important;
+    margin-top: 0.5rem !important;
+    direction: rtl !important;
+    width: 100% !important;
+  }
+
+  /* Medium screens (tablets) - side-by-side layouts & themes */
+  @media (min-width: 768px) {
+    .layout-radio-group {
+      grid-template-columns: repeat(2, 1fr) !important;
+    }
+    .theme-radio-group {
+      grid-template-columns: repeat(2, 1fr) !important;
+    }
+  }
+
+  /* Large screens (desktop) - layouts side-by-side in 3 cols, themes in 2 cols */
+  @media (min-width: 1024px) {
+    .layout-radio-group {
+      grid-template-columns: repeat(3, 1fr) !important;
+    }
+    .theme-radio-group {
+      grid-template-columns: repeat(2, 1fr) !important;
+    }
+  }
+
+  .layout-radio-card, .theme-radio-card {
+    display: flex !important;
+    flex-direction: column !important; /* Stack title and body row vertically */
+    align-items: stretch !important;
+    gap: 0.75rem !important;
+    padding: 1.25rem !important;
+    border: 1px solid #e5e5e5 !important;
+    border-radius: 1rem !important;
+    cursor: pointer !important;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    background: #ffffff !important;
+    position: relative !important;
+    text-align: right !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .layout-radio-card:hover, .theme-radio-card:hover {
+    border-color: #a3a3a3 !important;
+  }
+
+  .layout-radio-card.active, .theme-radio-card.active {
+    border-color: #171717 !important;
+    background-color: #fafafa !important;
+    box-shadow: 0 0 0 1px #171717 !important;
+  }
+
+  .layout-radio-input, .theme-radio-input {
+    position: absolute !important;
+    top: 1.25rem !important;
+    right: 1.25rem !important; /* Move radio dot to top-right */
+    left: auto !important;
+    margin: 0 !important;
+  }
+
+  .layout-card-title, .theme-card-title {
+    font-size: 0.875rem !important;
+    font-weight: 600 !important;
+    color: #171717 !important;
+    padding-right: 1.75rem !important; /* Space for radio dot */
+    display: block !important;
+    width: 100% !important;
+  }
+
+  .layout-card-body-row, .theme-card-body-row {
+    display: flex !important;
+    flex-direction: row !important; /* Horizontal row (description right, mockup left) */
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 1.5rem !important;
+    width: 100% !important;
+  }
+
+  .layout-card-desc, .theme-card-desc {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    font-size: 0.75rem !important;
+    color: #737373 !important;
+    line-height: 1.6 !important;
+    margin: 0 !important;
+  }
+
+  /* Preview Mockup Adjustments */
+  .layout-preview-mockup, .theme-preview-mockup {
+    width: 8rem !important; /* Compact fixed width on the left to fit alongside text in columns */
+    height: 7.5rem !important;
+    flex-shrink: 0 !important;
+    background-color: #fafafa !important;
+    border-radius: 0.75rem !important;
+    border: 1px dashed #e5e5e5 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: hidden !important;
+  }
+
+  .layout-radio-card.active .layout-preview-mockup,
+  .theme-radio-card.active .theme-preview-mockup {
+    border-color: #a3a3a3 !important;
+    background-color: #ffffff !important;
+  }
+
+  .theme-preview-mockup {
+    height: 8rem !important; /* Specific theme mockup height */
+    padding: 0 !important;
+    border-style: solid !important;
+    background-color: #f5f5f5 !important;
+  }
+
+  .theme-radio-card.active .theme-preview-mockup {
+    border-color: #171717 !important;
+  }
+
+  /* Vector phone mockup */
+  .phone-frame-mockup {
+    width: 6rem;
+    margin: 0.5rem auto 0 auto;
+    border: 3px solid #171717;
+    border-bottom: none;
+    border-top-left-radius: 0.75rem;
+    border-top-right-radius: 0.75rem;
+    background-color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    align-self: flex-end;
+  }
+
+  .dark-preview-theme {
+    border-color: #262626;
+    background-color: #0A0A0A;
+  }
+
+  .phone-notch {
+    width: 2.5rem;
+    height: 0.35rem;
+    background-color: #171717;
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+    margin: 0 auto;
+    z-index: 10;
+  }
+
+  .dark-preview-theme .phone-notch {
+    background-color: #262626;
+  }
+
+  .phone-header {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0.35rem 0.35rem 0.25rem 0.35rem;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .dark-preview-theme .phone-header {
+    border-bottom-color: #1f1f1f;
+  }
+
+  .phone-logo {
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 2px;
+    background-color: #171717;
+  }
+
+  .dark-preview-theme .phone-logo {
+    background-color: #ffffff;
+  }
+
+  .phone-text {
+    width: 1.8rem;
+    height: 3px;
+    background-color: #d4d4d4;
+    border-radius: 1px;
+  }
+
+  .dark-preview-theme .phone-text {
+    background-color: #525252;
+  }
+
+  .phone-nav {
+    display: flex;
+    gap: 3px;
+    padding: 0.25rem;
+    border-bottom: 1px solid #f0f0f0;
+    overflow: hidden;
+  }
+
+  .dark-preview-theme .phone-nav {
+    border-bottom-color: #1f1f1f;
+  }
+
+  .phone-nav-item {
+    width: 1.2rem;
+    height: 0.4rem;
+    border-radius: 999px;
+    background-color: #e5e5e5;
+  }
+
+  .phone-nav-item.active {
+    background-color: #171717;
+    width: 1.5rem;
+  }
+
+  .dark-preview-theme .phone-nav-item {
+    background-color: #262626;
+  }
+
+  .dark-preview-theme .phone-nav-item.active {
+    background-color: #ffffff;
+  }
+
+  .phone-body {
+    padding: 0.35rem;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex-grow: 1;
+  }
+
+  .light-preview-theme .phone-body {
+    background-color: #ffffff;
+  }
+
+  .dark-preview-theme .phone-body {
+    background-color: #0A0A0A;
+  }
+
+  .phone-card {
+    height: 0.9rem;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    padding: 0 3px;
+    gap: 3px;
+  }
+
+  .light-preview-theme .phone-card {
+    background-color: #ffffff;
+    border: 1px solid #f0f0f0;
+  }
+
+  .phone-card::before {
+    content: '';
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 1px;
+    background-color: #e5e5e5;
+    flex-shrink: 0;
+  }
+
+  .phone-card::after {
+    content: '';
+    width: 2.2rem;
+    height: 2px;
+    background-color: #e5e5e5;
+    border-radius: 1px;
+  }
+
+  .dark-preview-theme .phone-card {
+    background-color: #121212;
+    border: 1px solid #1f1f1f;
+  }
+
+  .dark-preview-theme .phone-card::before,
+  .dark-preview-theme .phone-card::after {
+    background-color: #262626;
+  }
+
+  /* Responsive Stacking & scaling for mobile screens */
+  @media (max-width: 639px) {
+    .layout-radio-card, .theme-radio-card {
+      padding: 1rem !important;
+      gap: 0.5rem !important;
+    }
+
+    .layout-card-body-row, .theme-card-body-row {
+      gap: 1rem !important;
+    }
+
+    .layout-preview-mockup, .theme-preview-mockup {
+      width: 6.5rem !important; /* Scale mockup container down on mobile to preserve layout integrity */
+      height: 5.5rem !important;
+    }
+
+    .theme-preview-mockup {
+      height: 6rem !important;
+    }
+
+    .phone-frame-mockup {
+      width: 4.5rem !important;
+      margin: 0.25rem auto 0 auto !important;
+      border-width: 2px !important;
+    }
+    
+    .phone-notch {
+      width: 1.8rem !important;
+      height: 0.25rem !important;
+    }
+    
+    .phone-header {
+      padding: 0.2rem 0.2rem 0.15rem 0.2rem !important;
+    }
+    
+    .phone-logo {
+      width: 0.5rem !important;
+      height: 0.5rem !important;
+    }
+    
+    .phone-text {
+      width: 1.2rem !important;
+      height: 2px !important;
+    }
+    
+    .phone-nav {
+      padding: 0.15rem !important;
+      gap: 2px !important;
+    }
+    
+    .phone-nav-item {
+      width: 0.8rem !important;
+      height: 0.25rem !important;
+    }
+    
+    .phone-nav-item.active {
+      width: 1rem !important;
+    }
+    
+    .phone-body {
+      padding: 0.2rem !important;
+      gap: 3px !important;
+    }
+    
+    .phone-card {
+      height: 0.6rem !important;
+      padding: 0 2px !important;
+      gap: 2px !important;
+    }
+    
+    .phone-card::before {
+      width: 0.35rem !important;
+      height: 0.35rem !important;
+    }
+    
+    .phone-card::after {
+      width: 1.5rem !important;
+      height: 1.5px !important;
+    }
+  }
+</style>

@@ -7,9 +7,10 @@ interface Props {
   ogImage?: string;
   canonicalUrl?: string;
   favicon?: string;
+  theme?: string;
 }
 
-const { title, description = 'کاتالوگ دیجیتال مدرن مجموعه‌ها', ogImage, canonicalUrl, favicon } = Astro.props;
+const { title, description = 'کاتالوگ دیجیتال مدرن مجموعه‌ها', ogImage, canonicalUrl, favicon, theme = 'light' } = Astro.props;
 ---
 
 <!DOCTYPE html>
@@ -44,7 +45,7 @@ const { title, description = 'کاتالوگ دیجیتال مدرن مجموع�
     <meta property="twitter:description" content={description} />
     {ogImage && <meta property="twitter:image" content={ogImage} />}
   </head>
-  <body>
+  <body class={theme === 'dark' ? 'theme-dark' : ''}>
     <div class="site-container animate-fade-in">
       <slot />
     </div>

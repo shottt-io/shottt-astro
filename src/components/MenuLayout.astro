@@ -4,7 +4,7 @@ import SectionDivider from './SectionDivider.astro';
 
 interface Props {
   categories: Category[];
-  layoutMode: 'pinterest' | 'simple';
+  layoutMode: 'pinterest' | 'simple' | 'card';
   vendorSlug: string;
 }
 
@@ -264,6 +264,79 @@ function getImageAspectRatio(imageUrl: string | undefined): string {
               }
             })}
           </div>
+        ) : layoutMode === 'card' ? (
+          /* Mode C: Card View */
+          <div class="card-list">
+            {category.items.map((item) => (
+              <a
+                href={`/${vendorSlug}/${item.slug || item.id}`}
+                class={`card-row animate-slide-up ${item.status === 'unavailable' ? 'is-unavailable' : ''}`}
+                data-item-id={item.id}
+              >
+                {item.image ? (
+                  <div class="card-thumb-wrapper">
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      class="card-thumb"
+                      loading="lazy"
+                      onload="this.classList.add('loaded')"
+                      onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                    />
+                    <div class="fallback-placeholder card-fallback" style="display: none;">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" class="fallback-icon">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                        <circle cx="8.5" cy="8.5" r="1.5" />
+                        <polyline points="21 15 16 10 5 21" />
+                      </svg>
+                    </div>
+                    {item.status === 'unavailable' ? (
+                      <div class="status-badge-out-of-stock">
+                        ناموجود
+                      </div>
+                    ) : item.discount && (
+                      <div class="discount-badge">
+                        {item.discount.discountText}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div class="card-thumb-placeholder">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" class="card-placeholder-icon">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                      <circle cx="8.5" cy="8.5" r="1.5" />
+                      <polyline points="21 15 16 10 5 21" />
+                    </svg>
+                  </div>
+                )}
+                
+                <div class="card-info">
+                  <div class="card-title-row">
+                    <div class="card-title-wrapper">
+                      <h3 class="card-title">{item.name}</h3>
+                      {item.status === 'unavailable' && (
+                        <span class="compact-unavailable-badge">ناموجود</span>
+                      )}
+                    </div>
+                    
+                    <div class="card-price-container">
+                      {item.discount ? (
+                        <>
+                          <span class="price-tag price-old">{item.discount.originalPrice}</span>
+                          <span class="price-tag price-new">{item.price}</span>
+                        </>
+                      ) : (
+                        <span class="price-tag">{item.price}</span>
+                      )}
+                    </div>
+                  </div>
+                  {item.description && (
+                    <p class="card-description">{item.description}</p>
+                  )}
+                </div>
+              </a>
+            ))}
+          </div>
         ) : (
           /* Mode B: Ultra-Compact List View */
           <div class="compact-list">
@@ -364,8 +437,8 @@ function getImageAspectRatio(imageUrl: string | undefined): string {
   }
 
   .compact-unavailable-badge {
-    background-color: #f5f5f5;
-    color: #737373;
+    background-color: var(--bg-secondary, #f5f5f5);
+    color: var(--text-secondary, #737373);
     font-size: 0.625rem;
     padding: 0.1rem 0.35rem;
     border-radius: 4px;
@@ -404,7 +477,7 @@ function getImageAspectRatio(imageUrl: string | undefined): string {
   }
 
   .product-card-full {
-    background-color: #FFFFFF;
+    background-color: var(--bg-card, #FFFFFF);
     border-radius: 0;
     display: flex;
     flex-direction: column;
@@ -420,8 +493,8 @@ function getImageAspectRatio(imageUrl: string | undefined): string {
     height: 15rem; /* Bold, taller featured image height */
     border-radius: 2rem; /* rounded-3xl equivalent */
     overflow: hidden;
-    background: #f5f5f5;
-    background-image: linear-gradient(90deg, #f5f5f5 0px, #fbfbfb 40px, #f5f5f5 80px);
+    background: var(--bg-secondary, #f5f5f5);
+    background-image: linear-gradient(90deg, var(--bg-secondary, #f5f5f5) 0px, var(--bg-primary, #ffffff) 40px, var(--bg-secondary, #f5f5f5) 80px);
     background-size: 200% 100%;
     animation: shimmer-pulse 1.6s infinite ease-in-out;
     display: flex;
@@ -447,16 +520,16 @@ function getImageAspectRatio(imageUrl: string | undefined): string {
   .no-image-wrapper-full {
     width: 100%;
     height: 12rem;
-    background-color: #f5f5f5;
+    background-color: var(--bg-secondary, #f5f5f5);
     border-radius: 2rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #a3a3a3;
+    color: var(--text-secondary, #a3a3a3);
   }
 
   .product-card {
-    background-color: #FFFFFF;
+    background-color: var(--bg-card, #FFFFFF);
     border-radius: 0;
     display: flex;
     flex-direction: column;
@@ -471,8 +544,8 @@ function getImageAspectRatio(imageUrl: string | undefined): string {
     width: 100%;
     border-radius: 1.5rem;
     overflow: hidden;
-    background: #f5f5f5;
-    background-image: linear-gradient(90deg, #f5f5f5 0px, #fbfbfb 40px, #f5f5f5 80px);
+    background: var(--bg-secondary, #f5f5f5);
+    background-image: linear-gradient(90deg, var(--bg-secondary, #f5f5f5) 0px, var(--bg-primary, #ffffff) 40px, var(--bg-secondary, #f5f5f5) 80px);
     background-size: 200% 100%;
     animation: shimmer-pulse 1.6s infinite ease-in-out;
     display: flex;
@@ -505,11 +578,11 @@ function getImageAspectRatio(imageUrl: string | undefined): string {
     width: 100%;
     height: 100%;
     min-height: 8rem;
-    background-color: #fafafa;
+    background-color: var(--bg-secondary, #fafafa);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #d4d4d4;
+    color: var(--text-secondary, #d4d4d4);
   }
 
   .fallback-icon {
@@ -520,12 +593,12 @@ function getImageAspectRatio(imageUrl: string | undefined): string {
   .no-image-wrapper {
     width: 100%;
     height: 8rem;
-    background-color: #f5f5f5;
+    background-color: var(--bg-secondary, #f5f5f5);
     border-radius: 1.5rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #a3a3a3;
+    color: var(--text-secondary, #a3a3a3);
   }
 
   .no-image-icon {
@@ -537,12 +610,12 @@ function getImageAspectRatio(imageUrl: string | undefined): string {
     position: absolute;
     top: 0.75rem;
     right: 0.75rem;
-    background-color: rgba(255, 255, 255, 0.95);
+    background-color: var(--bg-card, rgba(255, 255, 255, 0.95));
     color: #9f1239;
     font-size: 0.5rem;
     padding: 0.25rem 0.5rem;
     border-radius: 9999px;
-    border: 1px solid rgba(254, 226, 226, 0.4);
+    border: 1px solid var(--border-dark, rgba(254, 226, 226, 0.4));
     font-weight: 400;
   }
 
@@ -564,7 +637,7 @@ function getImageAspectRatio(imageUrl: string | undefined): string {
   .product-title {
     font-size: 0.75rem; /* Slightly smaller as requested */
     font-weight: 300;
-    color: #171717;
+    color: var(--text-primary, #171717);
     line-height: 1.4;
     white-space: nowrap;
     overflow: hidden;
@@ -589,7 +662,7 @@ function getImageAspectRatio(imageUrl: string | undefined): string {
   .price-tag {
     font-size: 0.75rem;
     font-weight: 400;
-    color: #262626;
+    color: var(--text-primary, #262626);
   }
 
   .text-left {
@@ -608,7 +681,7 @@ function getImageAspectRatio(imageUrl: string | undefined): string {
     justify-content: space-between;
     align-items: center;
     padding: 0.625rem 0;
-    border-bottom: 1px solid #f5f5f5;
+    border-bottom: 1px solid var(--border-color, #f5f5f5);
     text-decoration: none;
     color: inherit;
   }
@@ -631,8 +704,8 @@ function getImageAspectRatio(imageUrl: string | undefined): string {
     height: 2.75rem;
     border-radius: 0.75rem;
     overflow: hidden;
-    background: #f5f5f5;
-    background-image: linear-gradient(90deg, #f5f5f5 0px, #fbfbfb 20px, #f5f5f5 40px);
+    background: var(--bg-secondary, #f5f5f5);
+    background-image: linear-gradient(90deg, var(--bg-secondary, #f5f5f5) 0px, var(--bg-primary, #ffffff) 20px, var(--bg-secondary, #f5f5f5) 40px);
     background-size: 200% 100%;
     animation: shimmer-pulse 1.6s infinite ease-in-out;
     flex-shrink: 0;
@@ -665,11 +738,11 @@ function getImageAspectRatio(imageUrl: string | undefined): string {
     width: 2.75rem;
     height: 2.75rem;
     border-radius: 0.75rem;
-    background-color: #f5f5f5;
+    background-color: var(--bg-secondary, #f5f5f5);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #a3a3a3;
+    color: var(--text-secondary, #a3a3a3);
     flex-shrink: 0;
   }
 
@@ -677,6 +750,7 @@ function getImageAspectRatio(imageUrl: string | undefined): string {
     .mini-thumb-placeholder {
       width: 3.25rem;
       height: 3.25rem;
+      border-radius: 0.75rem;
     }
   }
 
@@ -697,7 +771,7 @@ function getImageAspectRatio(imageUrl: string | undefined): string {
   .list-title {
     font-size: 0.8125rem;
     font-weight: 300;
-    color: #171717;
+    color: var(--text-primary, #171717);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -715,6 +789,143 @@ function getImageAspectRatio(imageUrl: string | undefined): string {
 
   .list-left {
     flex-shrink: 0;
+  }
+
+  /* --- MODE C: CARD LAYOUT (FULL-WIDTH) --- */
+  .card-list {
+    display: flex;
+    flex-direction: column;
+    padding: 0 1.25rem;
+  }
+
+  .card-row {
+    display: flex;
+    align-items: stretch;
+    padding: 1.25rem 0;
+    border-bottom: 1px solid var(--border-color, #f5f5f5);
+    text-decoration: none;
+    color: inherit;
+    gap: 1.25rem;
+  }
+
+  .card-row:last-child {
+    border-bottom: none;
+  }
+
+  .card-thumb-wrapper {
+    position: relative;
+    width: 5.5rem;
+    height: 5.5rem;
+    border-radius: 1rem;
+    overflow: hidden;
+    background: var(--bg-secondary, #f5f5f5);
+    background-image: linear-gradient(90deg, var(--bg-secondary, #f5f5f5) 0px, var(--bg-primary, #ffffff) 20px, var(--bg-secondary, #f5f5f5) 40px);
+    background-size: 200% 100%;
+    animation: shimmer-pulse 1.6s infinite ease-in-out;
+    flex-shrink: 0;
+  }
+
+  @media (min-width: 640px) {
+    .card-thumb-wrapper {
+      width: 6.5rem;
+      height: 6.5rem;
+      border-radius: 1.25rem;
+    }
+  }
+
+  .card-thumb {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .card-thumb.loaded {
+    opacity: 1;
+  }
+
+  .card-fallback {
+    min-height: 100%;
+  }
+
+  .card-thumb-placeholder {
+    width: 5.5rem;
+    height: 5.5rem;
+    border-radius: 1rem;
+    background-color: var(--bg-secondary, #f5f5f5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary, #a3a3a3);
+    flex-shrink: 0;
+  }
+
+  @media (min-width: 640px) {
+    .card-thumb-placeholder {
+      width: 6.5rem;
+      height: 6.5rem;
+      border-radius: 1.25rem;
+    }
+  }
+
+  .card-placeholder-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .card-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    min-width: 0;
+    flex: 1 1 auto;
+    align-self: center;
+  }
+
+  .card-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  .card-title-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .card-title {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--title-color, #0a0a0a);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .card-price-container {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-shrink: 0;
+    margin-right: auto;
+  }
+
+  .card-description {
+    font-size: 0.75rem;
+    font-weight: 300;
+    color: var(--text-secondary, #525252);
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 </style>
 

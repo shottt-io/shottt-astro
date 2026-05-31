@@ -20,6 +20,7 @@ export const vendors = pgTable('vendors', {
   slogan: varchar('slogan', { length: 255 }).notNull(),
   description: text('description').notNull(),
   defaultLayout: varchar('default_layout', { length: 50 }).default('pinterest').notNull(),
+  theme: varchar('theme', { length: 50 }).default('light').notNull(),
   logoIcon: varchar('logo_icon', { length: 50 }).notNull(),
   logo: varchar('logo', { length: 2048 }).notNull(),
   city: varchar('city', { length: 255 }),

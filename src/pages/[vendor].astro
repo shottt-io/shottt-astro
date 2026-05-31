@@ -80,6 +80,7 @@ const categories = await Promise.all(
   description={`${vendor.type} ${vendor.name} - ${vendor.slogan}. ${vendor.description}`}
   ogImage={vendor.coverImage}
   favicon={vendor.logo}
+  theme={vendor.theme}
 >
   <main class="menu-main-wrapper" id="page-main" data-vendor-slug={vendor.slug}>
     <!-- Brand Info Header -->
@@ -94,10 +95,10 @@ const categories = await Promise.all(
     <!-- Frosted Glass Categories Sticky Bar -->
     <CategoryNav categories={categories} />
 
-    <!-- Core Menu Items List (Pinterest Masonry or Compact List layout) -->
+    <!-- Core Menu Items List (Pinterest Masonry, Compact List, or Card layout) -->
     <MenuLayout 
       categories={categories}
-      layoutMode={vendor.defaultLayout as 'pinterest' | 'simple'}
+      layoutMode={vendor.defaultLayout as 'pinterest' | 'simple' | 'card'}
       vendorSlug={vendor.slug}
     />
 
@@ -288,10 +289,11 @@ const categories = await Promise.all(
 
 <style>
   .menu-main-wrapper {
-    background-color: #FFFFFF;
+    background-color: var(--bg-primary, #FFFFFF);
     flex-grow: 1;
     display: flex;
     flex-direction: column;
+    transition: background-color 0.3s ease;
   }
 
   /* Product Page Footer Styles */
@@ -311,14 +313,14 @@ const categories = await Promise.all(
   .footer-divider {
     width: 100%;
     height: 1px;
-    background-color: #f5f5f5;
+    background-color: var(--border-color, #f5f5f5);
     margin-bottom: 0.5rem;
   }
 
   .footer-platform-link {
     font-size: 0.8125rem;
     font-weight: 300;
-    color: #a3a3a3;
+    color: var(--text-secondary, #a3a3a3);
     text-decoration: none;
     transition: color 0.2s ease;
     display: inline-flex;
@@ -336,7 +338,7 @@ const categories = await Promise.all(
   }
 
   .footer-platform-link:hover {
-    color: #171717;
+    color: var(--text-primary, #171717);
   }
 
   .footer-platform-link:hover .footer-logo-img {

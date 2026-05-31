@@ -24,7 +24,7 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
 
   try {
     const data = await request.json();
-    const { slug, name, type, slogan, description, defaultLayout, logoIcon, logo } = data;
+    const { slug, name, type, slogan, description, defaultLayout, logoIcon, logo, theme } = data;
 
     if (!slug) {
       return new Response(JSON.stringify({ success: false, message: 'شناسه مجموعه (Slug) الزامی است' }), { status: 400 });
@@ -58,6 +58,7 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
       defaultLayout: defaultLayout !== undefined ? defaultLayout : vendor.defaultLayout,
       logoIcon: logoIcon !== undefined ? logoIcon : vendor.logoIcon,
       logo: logo !== undefined ? logo : vendor.logo,
+      theme: theme !== undefined ? theme : vendor.theme,
     };
 
     // Perform update
