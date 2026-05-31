@@ -1,0 +1,1264 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { db } from '../../../db/db';
+import { vendors as vendorsTable, tickets as ticketsTable } from '../../../db/schema';
+import { eq, desc } from 'drizzle-orm';
+import { getSession } from '../../../utils/auth';
+
+const session = getSession(Astro.cookies);
+if (session && session.username === 'super') {
+  return Astro.redirect('/admin/super/tickets');
+}
+
+const vendorSlug = Astro.params.vendor;
+if (!vendorSlug) {
+  return Astro.redirect('/admin');
+}
+
+// Fetch vendor details
+const vendorList = await db
+  .select()
+  .from(vendorsTable)
+  .where(eq(vendorsTable.slug, vendorSlug))
+  .limit(1);
+
+if (vendorList.length === 0) {
+  return new Response("مجموعه یافت نشد.", { status: 404 });
+}
+const vendor = vendorList[0];
+
+// Fetch tickets for this vendor
+const dbTickets = await db
+  .select()
+  .from(ticketsTable)
+  .where(eq(ticketsTable.vendorId, vendor.id))
+  .orderBy(desc(ticketsTable.updatedAt));
+---
+
+<AdminLayout title="تیکت‌های پشتیبانی" activeTab="tickets" vendorSlug={vendorSlug}>
+  <!-- Top Onboarding Banner -->
+  <div class="onboarding-banner">
+    <div class="onboarding-icon-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width: 1.125rem; height: 1.125rem;">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+      </svg>
+    </div>
+    <div class="onboarding-text-box">
+      <span class="onboarding-title">تیکت‌های پشتیبانی و مشاوره</span>
+      <p class="onboarding-desc">توجه داشته باشید که تیکت‌ها معمولاً به صورت روزانه بررسی می‌شوند و در لحظه پاسخ داده نمی‌شوند؛ بنابراین لطفاً درخواست خود را به صورت کامل و یک‌جا در یک پیام ارسال کنید. همچنین می‌توانید برای توضیح بهتر، تصویر پیوست نمایید.</p>
+    </div>
+  </div>
+
+  <div class="tickets-workspace-container" id="tickets-workspace">
+    <!-- Left Pane: Tickets list -->
+    <div class="tickets-list-pane">
+      <div class="pane-header-actions">
+        <h2 class="pane-title">تیکت‌های شما</h2>
+        <button class="btn btn-primary btn-sm" id="btn-new-ticket">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 0.875rem; height: 0.875rem;">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          <span>ایجاد تیکت جدید</span>
+        </button>
+      </div>
+
+      <div class="tickets-list-scroll">
+        {dbTickets.length === 0 ? (
+          <div class="empty-tickets-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="empty-icon">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+            <span>تاکنون تیکت پشتیبانی ثبت نکرده‌اید.</span>
+          </div>
+        ) : (
+          dbTickets.map((t) => {
+            const formattedDate = new Date(t.updatedAt).toLocaleDateString('fa-IR', {
+              hour: '2-digit',
+              minute: '2-digit',
+              month: 'short',
+              day: 'numeric'
+            });
+
+            let statusText = 'باز';
+            let statusClass = 'status-open';
+            if (t.status === 'answered') {
+              statusText = 'پاسخ داده شده';
+              statusClass = 'status-answered';
+            } else if (t.status === 'closed') {
+              statusText = 'بسته شده';
+              statusClass = 'status-closed';
+            }
+
+            return (
+              <div class="ticket-list-item" data-id={t.id} data-ticket={JSON.stringify(t)}>
+                <div class="ticket-item-top">
+                  <span class="ticket-item-title">{t.title}</span>
+                  <span class={`status-badge ${statusClass}`}>{statusText}</span>
+                </div>
+                <div class="ticket-item-bottom">
+                  <span class="ticket-item-date">{formattedDate}</span>
+                  <span class="ticket-item-preview">
+                    {t.messages[t.messages.length - 1]?.message || ''}
+                  </span>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+
+    <!-- Right Pane: Thread View -->
+    <div class="tickets-chat-pane empty" id="chat-pane">
+      <!-- Empty Chat State -->
+      <div class="chat-placeholder">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="chat-placeholder-icon">
+          <circle cx="12" cy="12" r="10" />
+          <path d="M12 8v4M12 16h.01" />
+        </svg>
+        <span>برای مشاهده مکاتبات، یکی از تیکت‌ها را از لیست انتخاب کنید.</span>
+      </div>
+
+      <!-- Active Chat View (hidden by default) -->
+      <div class="active-chat-container" style="display: none;" id="chat-container">
+        <!-- Chat Header -->
+        <div class="chat-header">
+          <div class="chat-header-right">
+            <button class="btn-icon mobile-back-btn" id="btn-chat-back" title="بازگشت به لیست">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 1.25rem; height: 1.25rem;">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </button>
+            <div class="chat-title-info">
+              <h3 class="chat-title" id="active-ticket-title">-</h3>
+              <div class="chat-subtitle">
+                <span>شناسه تیکت: </span><code id="active-ticket-id">#</code>
+                <span class="dot-separator">•</span>
+                <span class="status-badge" id="active-ticket-status">-</span>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-secondary btn-sm" id="btn-close-ticket">
+            <span>بستن تیکت</span>
+          </button>
+        </div>
+
+        <!-- Scrollable Messages Area -->
+        <div class="chat-messages-body" id="chat-messages-box">
+          <!-- Messages will be injected here -->
+        </div>
+
+        <!-- Chat Input Form -->
+        <form class="chat-input-footer" id="form-chat-reply">
+          <div class="attachment-preview-bar" id="attachment-preview" style="display: none;">
+            <div class="preview-img-wrapper">
+              <img id="img-preview-src" src="" alt="پیوست" />
+              <button type="button" class="btn-remove-preview" id="btn-clear-attachment" title="حذف فایل">✕</button>
+            </div>
+          </div>
+
+          <div class="chat-input-wrapper">
+            <label class="btn-icon btn-attach" title="افزودن تصویر پیوست">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width: 1.25rem; height: 1.25rem;">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                <circle cx="8.5" cy="8.5" r="1.5" />
+                <polyline points="21 15 16 10 5 21" />
+              </svg>
+              <input type="file" id="input-reply-file" accept="image/*" class="visually-hidden" />
+            </label>
+            
+            <textarea 
+              id="textarea-reply-message" 
+              placeholder="پاسخ خود را اینجا بنویسید..." 
+              required 
+              rows="1"
+            ></textarea>
+            
+            <button type="submit" class="btn btn-primary btn-chat-send" id="btn-send-reply">
+              <span>ارسال</span>
+              <svg class="spinner" id="reply-spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none; width: 0.875rem; height: 0.875rem; animation: rotate 1.5s linear infinite; margin-right: 0.25rem;">
+                <circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle>
+                <path d="M4 12a8 8 0 0 1 8-8"></path>
+              </svg>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: NEW TICKET -->
+  <div id="modal-new-ticket" class="modal-overlay" style="display: none;">
+    <div class="modal-content" style="max-width: 32rem;">
+      <div class="modal-header">
+        <span class="modal-title">ثبت تیکت پشتیبانی جدید</span>
+        <button type="button" class="modal-close btn-close-modal">✕</button>
+      </div>
+      <form id="form-new-ticket-submit">
+        <div class="modal-body">
+          <div id="error-ticket-form" class="error-banner"></div>
+
+          <div class="form-group">
+            <label class="form-label">موضوع تیکت *</label>
+            <input type="text" name="title" class="form-input" placeholder="مثال: عدم لود تصویر در قالب پینترستی" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">متن پیام *</label>
+            <textarea name="message" class="form-input" rows="5" placeholder="شرح کامل و یک‌جای درخواست خود را بنویسید (تیکت‌ها به صورت روزانه بررسی می‌شوند)..." required style="resize: vertical; min-height: 80px;"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">تصویر پیوست (اختیاری)</label>
+            <div class="ticket-uploader-box">
+              <input type="file" id="input-new-ticket-file" accept="image/*" style="display: none;" />
+              <button type="button" class="btn btn-secondary" id="btn-trigger-upload">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width: 1rem; height: 1rem;">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+                <span>انتخاب تصویر</span>
+              </button>
+              <span id="txt-upload-filename" style="font-size: 0.75rem; color: #737373;">عکسی انتخاب نشده است.</span>
+            </div>
+            
+            <div id="modal-upload-preview-box" style="display: none; margin-top: 0.5rem; position: relative; width: max-content;">
+              <img id="modal-img-preview" src="" alt="پیش‌نمایش" style="max-height: 120px; border-radius: 0.75rem; border: 1px solid #e5e5e5; object-fit: cover;" />
+              <button type="button" id="btn-modal-clear-file" style="position: absolute; top: -0.5rem; left: -0.5rem; width: 1.5rem; height: 1.5rem; border-radius: 50%; border: none; background-color: #171717; color: #FFFFFF; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">✕</button>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer" style="padding-top: 1rem;">
+          <button type="submit" class="btn btn-primary" id="btn-submit-ticket" style="min-width: 8rem;">
+            <span id="txt-submit-ticket">ارسال تیکت</span>
+            <svg id="spinner-submit-ticket" class="spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none; width: 0.875rem; height: 0.875rem; animation: rotate 1.5s linear infinite; margin-right: 0.25rem;">
+              <circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle>
+              <path d="M4 12a8 8 0 0 1 8-8"></path>
+            </svg>
+          </button>
+          <button type="button" class="btn btn-secondary btn-close-modal">انصراف</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- LIGHTBOX: FULL IMAGE PREVIEW -->
+  <div id="image-lightbox" class="lightbox-overlay" style="display: none;">
+    <button type="button" class="lightbox-close" id="btn-close-lightbox">✕</button>
+    <img id="lightbox-img" src="" alt="پیوست بزرگ شده" />
+  </div>
+
+  <input type="hidden" id="input-vendor-id-val" value={vendor.id} />
+</AdminLayout>
+
+<style is:global>
+  /* Local stylesheet for Ticketing Workspace */
+  .tickets-workspace-container {
+    display: grid;
+    grid-template-columns: 20rem 1fr;
+    gap: 0;
+    height: 70vh;
+    min-height: 520px;
+    background: #ffffff;
+    border: 1px solid #f0f0f0;
+    border-radius: 1.5rem;
+    overflow: hidden;
+    direction: rtl;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.01);
+  }
+
+  /* Left Pane: Ticket History */
+  .tickets-list-pane {
+    border-left: 1px solid #f0f0f0;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background-color: #ffffff;
+  }
+
+  .pane-header-actions {
+    padding: 1.25rem;
+    border-bottom: 1px solid #f5f5f5;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .pane-title {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: #171717;
+  }
+
+  .btn-sm {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.75rem;
+    border-radius: 0.5rem;
+  }
+
+  .tickets-list-scroll {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .empty-tickets-state {
+    padding: 3rem 1rem;
+    text-align: center;
+    color: #a3a3a3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    font-size: 0.8125rem;
+  }
+
+  .empty-icon {
+    width: 2.25rem;
+    height: 2.25rem;
+    color: #cbd5e1;
+  }
+
+  .ticket-list-item {
+    padding: 1rem;
+    border: 1px solid #f0f0f0;
+    border-radius: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: right;
+  }
+
+  .ticket-list-item:hover {
+    border-color: #d4d4d4;
+    background-color: #fafafa;
+  }
+
+  .ticket-list-item.active {
+    border-color: #171717;
+    background-color: #fafafa;
+    box-shadow: 0 0 0 1px #171717;
+  }
+
+  .ticket-item-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .ticket-item-title {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #171717;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .status-badge {
+    font-size: 0.625rem;
+    font-weight: 600;
+    padding: 0.15rem 0.4rem;
+    border-radius: 9999px;
+    white-space: nowrap;
+  }
+
+  .status-open {
+    background-color: #fef3c7;
+    color: #b45309;
+  }
+
+  .status-answered {
+    background-color: #dbeafe;
+    color: #1d4ed8;
+  }
+
+  .status-closed {
+    background-color: #f3f4f6;
+    color: #4b5563;
+  }
+
+  .ticket-item-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.6875rem;
+    color: #737373;
+    gap: 1rem;
+  }
+
+  .ticket-item-date {
+    flex-shrink: 0;
+  }
+
+  .ticket-item-preview {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 400;
+  }
+
+  /* Right Pane: Chat Window */
+  .tickets-chat-pane {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    position: relative;
+    background-color: #fafafa;
+  }
+
+  .tickets-chat-pane.empty {
+    justify-content: center;
+    align-items: center;
+  }
+
+  .tickets-chat-pane:not(.empty) .chat-placeholder {
+    display: none;
+  }
+
+  .chat-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    color: #a3a3a3;
+    font-size: 0.8125rem;
+  }
+
+  .chat-placeholder-icon {
+    width: 3rem;
+    height: 3rem;
+    color: #cbd5e1;
+  }
+
+  .active-chat-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    background-color: #fafafa;
+  }
+
+  /* Chat Header */
+  .chat-header {
+    background-color: #ffffff;
+    border-bottom: 1px solid #f0f0f0;
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .chat-header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .mobile-back-btn {
+    display: none;
+  }
+
+  .chat-title-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    text-align: right;
+  }
+
+  .chat-title {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: #171717;
+  }
+
+  .chat-subtitle {
+    font-size: 0.6875rem;
+    color: #737373;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .dot-separator {
+    color: #cbd5e1;
+  }
+
+  /* Chat Messages Box */
+  .chat-messages-body {
+    flex-grow: 1;
+    overflow-y: auto;
+    min-height: 0; /* Constraints flex items to enable scrollbar */
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    scroll-behavior: smooth;
+  }
+
+  .chat-msg-row {
+    display: flex;
+    width: 100%;
+  }
+
+  .chat-msg-row.sent {
+    justify-content: flex-start; /* Right side in RTL */
+  }
+
+  .chat-msg-row.received {
+    justify-content: flex-end; /* Left side in RTL */
+  }
+
+  .chat-msg-bubble {
+    max-width: 70%;
+    padding: 0.875rem 1rem;
+    border-radius: 1.125rem;
+    position: relative;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    text-align: right;
+  }
+
+  .sent .chat-msg-bubble {
+    background-color: #171717;
+    color: #ffffff;
+    border-top-right-radius: 0.25rem;
+  }
+
+  .received .chat-msg-bubble {
+    background-color: #ffffff;
+    color: #171717;
+    border-top-left-radius: 0.25rem;
+    border: 1px solid #f0f0f0;
+  }
+
+  .chat-msg-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.125rem;
+  }
+
+  .chat-msg-sender {
+    font-size: 0.6875rem;
+    font-weight: 600;
+  }
+
+  .sent .chat-msg-sender {
+    color: #a3a3a3;
+  }
+
+  .received .chat-msg-sender {
+    color: #171717;
+  }
+
+  .support-badge {
+    background-color: #ffe4e6;
+    color: #9f1239;
+    font-size: 0.5625rem;
+    font-weight: 600;
+    padding: 0.05rem 0.3rem;
+    border-radius: 9999px;
+    margin-right: 0.25rem;
+  }
+
+  .chat-msg-time {
+    font-size: 0.625rem;
+  }
+
+  .sent .chat-msg-time {
+    color: #737373;
+  }
+
+  .received .chat-msg-time {
+    color: #a3a3a3;
+  }
+
+  .chat-msg-text {
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .chat-msg-attachment {
+    margin-top: 0.375rem;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    cursor: pointer;
+    background-color: #fafafa;
+    display: inline-block;
+    max-width: 120px;
+  }
+
+  .chat-msg-attachment img {
+    width: 120px;
+    height: 90px;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.2s ease;
+  }
+
+  .chat-msg-attachment img:hover {
+    transform: scale(1.02);
+  }
+
+  /* Chat Reply Footer */
+  .chat-input-footer {
+    background-color: #ffffff;
+    border-top: 1px solid #f0f0f0;
+    padding: 0.75rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .attachment-preview-bar {
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #f5f5f5;
+  }
+
+  .preview-img-wrapper {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    border: 1px solid #e5e5e5;
+  }
+
+  .preview-img-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .btn-remove-preview {
+    position: absolute;
+    top: 0.15rem;
+    left: 0.15rem;
+    width: 1.125rem;
+    height: 1.125rem;
+    border-radius: 50%;
+    border: none;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: #ffffff;
+    font-size: 0.625rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .chat-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .btn-attach {
+    cursor: pointer;
+    background-color: #f5f5f5;
+    color: #737373;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .btn-attach:hover {
+    background-color: #e5e5e5;
+    color: #171717;
+  }
+
+  .chat-input-wrapper textarea {
+    flex-grow: 1;
+    border: 1px solid #e5e5e5;
+    border-radius: 0.75rem;
+    background-color: #fafafa;
+    padding: 0.625rem 0.875rem;
+    font-size: 0.8125rem;
+    outline: none;
+    resize: none;
+    max-height: 80px;
+    min-height: 38px;
+    font-family: inherit;
+    line-height: 1.5;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .chat-input-wrapper textarea:focus {
+    border-color: #171717;
+    background-color: #ffffff;
+  }
+
+  .btn-chat-send {
+    padding: 0.625rem 1.25rem;
+    height: 38px;
+    flex-shrink: 0;
+  }
+
+  /* Uploader styling inside modal */
+  .ticket-uploader-box {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    border: 1px dashed #e5e5e5;
+    border-radius: 0.75rem;
+    padding: 0.75rem 1rem;
+    background-color: #fafafa;
+  }
+
+  /* Lightbox */
+  .lightbox-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(5px);
+    z-index: 150;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .lightbox-img {
+    max-width: 95vw;
+    max-height: 90vh;
+    border-radius: 0.5rem;
+    object-fit: contain;
+    animation: zoomInLightbox 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes zoomInLightbox {
+    from { transform: scale(0.95); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  .lightbox-close {
+    position: absolute;
+    top: 1.5rem;
+    left: 1.5rem;
+    background: rgba(255,255,255,0.1);
+    border: none;
+    color: #ffffff;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    font-size: 1.25rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease;
+  }
+
+  .lightbox-close:hover {
+    background: rgba(255,255,255,0.25);
+  }
+
+  /* Animation for Spinner */
+  @keyframes rotate {
+    100% { transform: rotate(360deg); }
+  }
+
+  /* Mobile responsive styling for chat split */
+  @media (max-width: 768px) {
+    .tickets-workspace-container {
+      grid-template-columns: 1fr;
+      height: 75vh;
+    }
+
+    .tickets-list-pane {
+      display: flex;
+    }
+
+    .tickets-chat-pane {
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 10;
+      height: 100%;
+    }
+
+    /* Active toggle state on mobile */
+    .tickets-workspace-container.chat-active .tickets-list-pane {
+      display: none;
+    }
+
+    .tickets-workspace-container.chat-active .tickets-chat-pane {
+      display: flex;
+    }
+
+    .mobile-back-btn {
+      display: flex;
+      margin-left: 0.5rem;
+    }
+  }
+</style>
+
+<script>
+  // Script handles dynamic chat interaction and page actions
+  const workspace = document.getElementById('tickets-workspace');
+  const chatPane = document.getElementById('chat-pane');
+  const chatContainer = document.getElementById('chat-container');
+  const listItems = document.querySelectorAll('.ticket-list-item');
+  
+  // Active Ticket state
+  let activeTicketId: number | null = null;
+  let activeTicketData: any = null;
+
+  // Attachment elements inside Footer Reply
+  const replyFileInput = document.getElementById('input-reply-file') as HTMLInputElement;
+  const replyPreviewBar = document.getElementById('attachment-preview') as HTMLDivElement;
+  const replyPreviewImg = document.getElementById('img-preview-src') as HTMLImageElement;
+  const replyClearBtn = document.getElementById('btn-clear-attachment');
+  let replyAttachmentUrl: string | null = null;
+
+  // Ticket detail header fields
+  const activeTicketTitle = document.getElementById('active-ticket-title') as HTMLHeadingElement;
+  const activeTicketIdCode = document.getElementById('active-ticket-id') as HTMLElement;
+  const activeTicketStatus = document.getElementById('active-ticket-status') as HTMLElement;
+  const btnCloseTicket = document.getElementById('btn-close-ticket') as HTMLButtonElement;
+  const chatMessagesBox = document.getElementById('chat-messages-box') as HTMLDivElement;
+  const replyForm = document.getElementById('form-chat-reply') as HTMLFormElement;
+  const btnSendReply = document.getElementById('btn-send-reply') as HTMLButtonElement;
+  const replySpinner = document.getElementById('reply-spinner') as HTMLElement;
+  const textareaReply = document.getElementById('textarea-reply-message') as HTMLTextAreaElement;
+
+  // New ticket modal elements
+  const btnNewTicket = document.getElementById('btn-new-ticket');
+  const modalNewTicket = document.getElementById('modal-new-ticket') as HTMLDivElement;
+  const btnCloseModals = document.querySelectorAll('.btn-close-modal');
+  const formNewTicket = document.getElementById('form-new-ticket-submit') as HTMLFormElement;
+  const inputNewTicketFile = document.getElementById('input-new-ticket-file') as HTMLInputElement;
+  const btnTriggerUpload = document.getElementById('btn-trigger-upload');
+  const txtUploadFilename = document.getElementById('txt-upload-filename') as HTMLSpanElement;
+  const modalUploadPreviewBox = document.getElementById('modal-upload-preview-box') as HTMLDivElement;
+  const modalImgPreview = document.getElementById('modal-img-preview') as HTMLImageElement;
+  const btnModalClearFile = document.getElementById('btn-modal-clear-file');
+  const errorTicketForm = document.getElementById('error-ticket-form') as HTMLDivElement;
+  
+  const btnSubmitTicket = document.getElementById('btn-submit-ticket') as HTMLButtonElement;
+  const txtSubmitTicket = document.getElementById('txt-submit-ticket') as HTMLSpanElement;
+  const spinnerSubmitTicket = document.getElementById('spinner-submit-ticket') as HTMLElement;
+
+  let newTicketAttachmentUrl: string | null = null;
+
+  // Lightbox elements
+  const imageLightbox = document.getElementById('image-lightbox') as HTMLDivElement;
+  const lightboxImg = document.getElementById('lightbox-img') as HTMLImageElement;
+  const btnCloseLightbox = document.getElementById('btn-close-lightbox');
+
+  // Handle active session data
+  const currentUserId = parseInt(document.getElementById('input-vendor-id-val')?.getAttribute('value') || '0', 10);
+
+  // Auto-resize reply textarea
+  textareaReply?.addEventListener('input', () => {
+    textareaReply.style.height = 'auto';
+    textareaReply.style.height = `${Math.min(textareaReply.scrollHeight, 80)}px`;
+  });
+
+  // Attach click listener to ticket items
+  listItems.forEach(item => {
+    item.addEventListener('click', () => {
+      listItems.forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+
+      const ticketData = JSON.parse(item.getAttribute('data-ticket') || '{}');
+      openTicketChat(ticketData);
+    });
+  });
+
+  function openTicketChat(ticket: any) {
+    activeTicketId = ticket.id;
+    activeTicketData = ticket;
+
+    // Toggle container classes
+    workspace?.classList.add('chat-active');
+    chatPane?.classList.remove('empty');
+    if (chatContainer) chatContainer.style.display = 'flex';
+
+    // Set Header details
+    if (activeTicketTitle) activeTicketTitle.textContent = ticket.title;
+    if (activeTicketIdCode) activeTicketIdCode.textContent = `#${ticket.id}`;
+    
+    // Status Badge
+    if (activeTicketStatus) {
+      let statusText = 'باز';
+      activeTicketStatus.className = 'status-badge';
+      if (ticket.status === 'answered') {
+        statusText = 'پاسخ داده شده';
+        activeTicketStatus.classList.add('status-answered');
+      } else if (ticket.status === 'closed') {
+        statusText = 'بسته شده';
+        activeTicketStatus.classList.add('status-closed');
+      } else {
+        activeTicketStatus.classList.add('status-open');
+      }
+      activeTicketStatus.textContent = statusText;
+    }
+
+    // Toggle input visibility and actions depending on status
+    if (ticket.status === 'closed') {
+      if (replyForm) replyForm.style.display = 'none';
+      if (btnCloseTicket) btnCloseTicket.style.display = 'none';
+    } else {
+      if (replyForm) replyForm.style.display = 'block';
+      if (btnCloseTicket) btnCloseTicket.style.display = 'inline-flex';
+    }
+
+    renderMessages(ticket.messages);
+    clearReplyAttachment();
+  }
+
+  function renderMessages(messages: any[]) {
+    if (!chatMessagesBox) return;
+    chatMessagesBox.innerHTML = '';
+
+    messages.forEach((msg: any) => {
+      const dateText = new Date(msg.createdAt).toLocaleDateString('fa-IR', {
+        hour: '2-digit',
+        minute: '2-digit',
+        month: 'short',
+        day: 'numeric'
+      });
+
+      // Determine sender styling (Super user username is 'super')
+      const isSuper = msg.senderUsername === 'super';
+      
+      // Bubble direction: sent (right) or received (left) from vendor's perspective
+      // Sent means sent by this vendor admin (so not super). Received means sent by super support.
+      const rowClass = isSuper ? 'received' : 'sent';
+      const senderLabel = msg.senderName || msg.senderUsername;
+      const supportBadgeHtml = isSuper ? '<span class="support-badge">پشتیبان سیستم</span>' : '';
+
+      let attachmentHtml = '';
+      if (msg.attachmentUrl) {
+        attachmentHtml = `
+          <div class="chat-msg-attachment" data-url="${msg.attachmentUrl}">
+            <img src="${msg.attachmentUrl}" alt="تصویر پیوست" loading="lazy" />
+          </div>
+        `;
+      }
+
+      const msgHtml = `
+        <div class="chat-msg-row ${rowClass}">
+          <div class="chat-msg-bubble">
+            <div class="chat-msg-header">
+              <span class="chat-msg-sender">${senderLabel} ${supportBadgeHtml}</span>
+              <span class="chat-msg-time">${dateText}</span>
+            </div>
+            <div class="chat-msg-text">${escapeHtml(msg.message)}</div>
+            ${attachmentHtml}
+          </div>
+        </div>
+      `;
+      chatMessagesBox.insertAdjacentHTML('beforeend', msgHtml);
+    });
+
+    // Attach click zoom to attachments
+    chatMessagesBox.querySelectorAll('.chat-msg-attachment').forEach(box => {
+      box.addEventListener('click', () => {
+        const url = box.getAttribute('data-url');
+        if (url && imageLightbox && lightboxImg) {
+          lightboxImg.src = url;
+          imageLightbox.style.display = 'flex';
+        }
+      });
+    });
+
+    // Scroll to bottom
+    chatMessagesBox.scrollTop = chatMessagesBox.scrollHeight;
+  }
+
+  function escapeHtml(str: string) {
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  // Back to list on mobile
+  document.getElementById('btn-chat-back')?.addEventListener('click', () => {
+    workspace?.classList.remove('chat-active');
+  });
+
+  // Reply Image attachment handlers
+  replyFileInput?.addEventListener('change', async () => {
+    const file = replyFileInput.files?.[0];
+    if (!file) return;
+
+    // Show instant local preview & bar
+    replyPreviewImg.src = URL.createObjectURL(file);
+    if (replyPreviewBar) replyPreviewBar.style.display = 'block';
+
+    // Instantly upload file to tickets storage namespace
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      if (btnSendReply) btnSendReply.disabled = true;
+      const res = await fetch('/api/tickets/upload', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        replyAttachmentUrl = data.url;
+      } else {
+        await window.showAlertDialog(data.message || 'خطا در آپلود تصویر', { type: 'error' });
+        clearReplyAttachment();
+      }
+    } catch {
+      await window.showAlertDialog('خطا در برقراری ارتباط با سرور جهت آپلود فایل.', { type: 'error' });
+      clearReplyAttachment();
+    } finally {
+      if (btnSendReply) btnSendReply.disabled = false;
+    }
+  });
+
+  replyClearBtn?.addEventListener('click', clearReplyAttachment);
+
+  function clearReplyAttachment() {
+    replyAttachmentUrl = null;
+    if (replyFileInput) replyFileInput.value = '';
+    if (replyPreviewBar) replyPreviewBar.style.display = 'none';
+  }
+
+  // Send Reply Action
+  replyForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const textVal = textareaReply.value.trim();
+    if (!textVal || !activeTicketId) return;
+
+    // Lock elements
+    if (btnSendReply) btnSendReply.disabled = true;
+    if (replySpinner) replySpinner.style.display = 'inline-block';
+
+    try {
+      const response = await fetch('/api/tickets/reply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ticketId: activeTicketId,
+          message: textVal,
+          attachmentUrl: replyAttachmentUrl || undefined
+        })
+      });
+
+      const data = await response.json();
+      if (response.ok && data.success) {
+        textareaReply.value = '';
+        textareaReply.style.height = 'auto';
+        
+        // Re-render local state
+        activeTicketData.messages = data.messages;
+        activeTicketData.status = data.status;
+        
+        // Update item in list
+        const listItem = document.querySelector(`.ticket-list-item[data-id="${activeTicketId}"]`);
+        if (listItem) {
+          listItem.setAttribute('data-ticket', JSON.stringify(activeTicketData));
+          const preview = listItem.querySelector('.ticket-item-preview');
+          if (preview) preview.textContent = textVal;
+
+          const badge = listItem.querySelector('.status-badge');
+          if (badge) {
+            badge.className = 'status-badge';
+            // Since it's sent by vendor, it reverts status to Open (unless closed)
+            badge.textContent = 'باز';
+          }
+        }
+
+        renderMessages(data.messages);
+        clearReplyAttachment();
+      } else {
+        await window.showAlertDialog(data.message || 'خطا در ارسال پاسخ', { type: 'error' });
+      }
+    } catch {
+      await window.showAlertDialog('خطا در ارتباط با سرور.', { type: 'error' });
+    } finally {
+      if (btnSendReply) btnSendReply.disabled = false;
+      if (replySpinner) replySpinner.style.display = 'none';
+    }
+  });
+
+  // Close Ticket Action
+  btnCloseTicket?.addEventListener('click', async () => {
+    if (!activeTicketId) return;
+    
+    const confirmed = await window.showConfirmDialog(
+      'آیا از بستن این تیکت مطمئن هستید؟ پس از بستن امکان ارسال پیام جدید وجود ندارد.',
+      { okText: 'بله، بسته شود', cancelText: 'انصراف', okClass: 'confirm-btn-danger' }
+    );
+    if (!confirmed) return;
+
+    try {
+      const response = await fetch('/api/status', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ticketId: activeTicketId,
+          status: 'closed'
+        })
+      });
+
+      // Handle fallback endpoint since API is /api/tickets/status
+      const finalRes = response.ok ? response : await fetch('/api/tickets/status', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ticketId: activeTicketId,
+          status: 'closed'
+        })
+      });
+
+      const data = await finalRes.json();
+      if (finalRes.ok && data.success) {
+        await window.showAlertDialog('تیکت با موفقیت بسته شد.', { type: 'success' });
+        window.location.reload();
+      } else {
+        await window.showAlertDialog(data.message || 'خطا در بستن تیکت', { type: 'error' });
+      }
+    } catch {
+      await window.showAlertDialog('خطا در ارتباط با سرور.', { type: 'error' });
+    }
+  });
+
+  // Modal Open/Close handlers
+  btnNewTicket?.addEventListener('click', () => {
+    formNewTicket.reset();
+    clearNewTicketAttachment();
+    if (errorTicketForm) errorTicketForm.style.display = 'none';
+    if (modalNewTicket) modalNewTicket.style.display = 'flex';
+  });
+
+  btnCloseModals.forEach(b => b.addEventListener('click', () => {
+    if (modalNewTicket) modalNewTicket.style.display = 'none';
+  }));
+
+  // New ticket attachment triggers
+  btnTriggerUpload?.addEventListener('click', () => {
+    inputNewTicketFile.click();
+  });
+
+  inputNewTicketFile?.addEventListener('change', async () => {
+    const file = inputNewTicketFile.files?.[0];
+    if (!file) return;
+
+    if (txtUploadFilename) txtUploadFilename.textContent = file.name;
+    modalImgPreview.src = URL.createObjectURL(file);
+    if (modalUploadPreviewBox) modalUploadPreviewBox.style.display = 'block';
+
+    // Auto-upload
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      if (btnSubmitTicket) btnSubmitTicket.disabled = true;
+      const res = await fetch('/api/tickets/upload', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        newTicketAttachmentUrl = data.url;
+      } else {
+        await window.showAlertDialog(data.message || 'خطا در آپلود فایل', { type: 'error' });
+        clearNewTicketAttachment();
+      }
+    } catch {
+      await window.showAlertDialog('خطا در ارتباط با سرور.', { type: 'error' });
+      clearNewTicketAttachment();
+    } finally {
+      if (btnSubmitTicket) btnSubmitTicket.disabled = false;
+    }
+  });
+
+  btnModalClearFile?.addEventListener('click', clearNewTicketAttachment);
+
+  function clearNewTicketAttachment() {
+    newTicketAttachmentUrl = null;
+    if (inputNewTicketFile) inputNewTicketFile.value = '';
+    if (txtUploadFilename) txtUploadFilename.textContent = 'عکسی انتخاب نشده است.';
+    if (modalUploadPreviewBox) modalUploadPreviewBox.style.display = 'none';
+  }
+
+  // Create Ticket Form Submission
+  formNewTicket?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (errorTicketForm) errorTicketForm.style.display = 'none';
+
+    if (btnSubmitTicket) btnSubmitTicket.disabled = true;
+    if (txtSubmitTicket) txtSubmitTicket.textContent = 'در حال ارسال...';
+    if (spinnerSubmitTicket) spinnerSubmitTicket.style.display = 'inline-block';
+
+    const formData = new FormData(formNewTicket);
+    const payload = {
+      vendorId: parseInt(document.getElementById('input-vendor-id-val')?.getAttribute('value') || '0', 10),
+      title: formData.get('title'),
+      message: formData.get('message'),
+      attachmentUrl: newTicketAttachmentUrl || undefined
+    };
+
+    try {
+      const response = await fetch('/api/tickets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const result = await response.json();
+      if (response.ok && result.success) {
+        await window.showAlertDialog('تیکت شما با موفقیت ثبت شد.', { type: 'success' });
+        window.location.reload();
+      } else {
+        if (errorTicketForm) {
+          errorTicketForm.textContent = result.message || 'خطا در ثبت تیکت';
+          errorTicketForm.style.display = 'block';
+        }
+      }
+    } catch {
+      if (errorTicketForm) {
+        errorTicketForm.textContent = 'خطا در ارتباط با سرور. لطفاً مجدداً تلاش کنید.';
+        errorTicketForm.style.display = 'block';
+      }
+    } finally {
+      if (btnSubmitTicket) btnSubmitTicket.disabled = false;
+      if (txtSubmitTicket) txtSubmitTicket.textContent = 'ارسال تیکت';
+      if (spinnerSubmitTicket) spinnerSubmitTicket.style.display = 'none';
+    }
+  });
+
+  // Lightbox Close
+  btnCloseLightbox?.addEventListener('click', () => {
+    if (imageLightbox) imageLightbox.style.display = 'none';
+  });
+  imageLightbox?.addEventListener('click', (e) => {
+    if (e.target === imageLightbox) {
+      imageLightbox.style.display = 'none';
+    }
+  });
+</script>

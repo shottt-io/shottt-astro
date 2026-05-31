@@ -229,7 +229,12 @@ const dbCategories = await db
     btn.addEventListener('click', async () => {
       const id = btn.getAttribute('data-id');
       const name = btn.getAttribute('data-name');
-      if (!confirm(`آیا از حذف دسته‌بندی «${name}» و تمام محصولات موجود در آن مطمئن هستید؟ این عمل غیرقابل بازگشت است.`)) return;
+      
+      const confirmed = await window.showConfirmDialog(
+        `آیا از حذف دسته‌بندی «${name}» و تمام محصولات موجود در آن مطمئن هستید؟ این عمل غیرقابل بازگشت است.`,
+        { okText: 'حذف شود', cancelText: 'انصراف', okClass: 'confirm-btn-danger' }
+      );
+      if (!confirmed) return;
 
       try {
         const response = await fetch('/api/categories', {

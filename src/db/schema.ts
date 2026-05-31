@@ -1,4 +1,4 @@
-import { pgTable, serial, varchar, text, boolean, integer, jsonb, date, primaryKey } from 'drizzle-orm/pg-core';
+import { pgTable, serial, varchar, text, boolean, integer, jsonb, date, primaryKey, timestamp } from 'drizzle-orm/pg-core';
 
 export interface DBProductSection {
   title?: string;
@@ -85,5 +85,27 @@ export const analyticsDailyItems = pgTable('analytics_daily_items', {
 }, (table) => [
   primaryKey({ columns: [table.vendorId, table.itemId, table.date] }),
 ]);
+
+// 8. DB Ticket Message structure inside JSONB
+export interface DBTicketMessage {
+  senderId: number;
+  senderName: string;
+  senderUsername: string;
+  message: string;
+  attachmentUrl?: string;
+  createdAt: string; // ISO String
+}
+
+// 9. Tickets Table
+export const tickets = pgTable('tickets', {
+  id: serial('id').primaryKey(),
+  vendorId: integer('vendor_id').references(() => vendors.id, { onDelete: 'cascade' }).notNull(),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  title: varchar('title', { length: 255 }).notNull(),
+  status: varchar('status', { length: 50 }).default('open').notNull(), // 'open', 'answered', 'closed'
+  messages: jsonb('messages').$type<DBTicketMessage[]>().default([]).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+});
 
 

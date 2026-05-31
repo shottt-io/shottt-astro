@@ -77,19 +77,27 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
     if (mode === 'empty') {
       // 1. Create Empty Vendor
-      const [newVendor] = await db.insert(vendorsTable).values({
-        slug,
-        name,
-        type,
-        slogan: 'کاتالوگ دیجیتال ما',
-        description: 'به کاتالوگ دیجیتال ما خوش آمدید.',
-        defaultLayout: 'pinterest',
-        logoIcon: getLogoIconFromType(type),
-        logo: 'https://images.unsplash.com/photo-1498804103079-a6351b050096?q=80&w=1200&auto=format&fit=crop',
-        city: city || null,
-      }).returning({ id: vendorsTable.id });
-      
-      createdVendorId = newVendor.id;
+      await db.transaction(async (tx) => {
+        const [newVendor] = await tx.insert(vendorsTable).values({
+          slug,
+          name,
+          type,
+          slogan: 'کاتالوگ دیجیتال ما',
+          description: 'به کاتالوگ دیجیتال ما خوش آمدید.',
+          defaultLayout: 'pinterest',
+          logoIcon: getLogoIconFromType(type),
+          logo: 'https://images.unsplash.com/photo-1498804103079-a6351b050096?q=80&w=1200&auto=format&fit=crop',
+          city: city || null,
+        }).returning({ id: vendorsTable.id });
+        
+        createdVendorId = newVendor.id;
+
+        // Link the current super-admin user to the created vendor
+        await tx.insert(vendorUsersTable).values({
+          vendorId: createdVendorId,
+          userId: session.userId,
+        });
+      });
     } else if (mode === 'package') {
       // 2. Create Pre-filled Package Vendor
       const targetMockSlug = packageType === 'cafe' ? 'cafe-lumiere' : packageType === 'restaurant' ? 'bistro-dada' : 'pastry-atelier';
@@ -99,50 +107,58 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         return new Response(JSON.stringify({ success: false, message: 'پکیج انتخابی یافت نشد' }), { status: 400 });
       }
 
-      const [newVendor] = await db.insert(vendorsTable).values({
-        slug,
-        name,
-        type,
-        slogan: mockVendor.slogan,
-        description: mockVendor.description,
-        defaultLayout: mockVendor.defaultLayout,
-        logoIcon: getLogoIconFromType(type),
-        logo: mockVendor.logo,
-        city: city || null,
-      }).returning({ id: vendorsTable.id });
+      await db.transaction(async (tx) => {
+        const [newVendor] = await tx.insert(vendorsTable).values({
+          slug,
+          name,
+          type,
+          slogan: mockVendor.slogan,
+          description: mockVendor.description,
+          defaultLayout: mockVendor.defaultLayout,
+          logoIcon: getLogoIconFromType(type),
+          logo: mockVendor.logo,
+          city: city || null,
+        }).returning({ id: vendorsTable.id });
 
-      createdVendorId = newVendor.id;
+        createdVendorId = newVendor.id;
 
-      // Copy categories & products from template
-      let sortOrder = 0;
-      for (const category of mockVendor.categories) {
-        const [newCategory] = await db.insert(categoriesTable).values({
-          vendorId: createdVendorId,
-          name: category.name,
-          sortOrder: sortOrder++,
-          status: 'available',
-        }).returning({ id: categoriesTable.id });
-
-        let itemSortOrder = 0;
-        for (const item of category.items) {
-          await db.insert(menuItemsTable).values({
-            categoryId: newCategory.id,
-            name: item.name,
-            slug: item.id,
-            price: item.price,
-            image: item.image || null,
-            description: item.description || null,
-            discount: item.discount ? {
-              originalPrice: item.discount.originalPrice,
-              discountText: item.discount.discountText,
-            } : null,
-            span2: item.span2 || false,
-            sections: item.sections || [],
+        // Copy categories & products from template
+        let sortOrder = 0;
+        for (const category of mockVendor.categories) {
+          const [newCategory] = await tx.insert(categoriesTable).values({
+            vendorId: createdVendorId,
+            name: category.name,
+            sortOrder: sortOrder++,
             status: 'available',
-            sortOrder: itemSortOrder++,
-          });
+          }).returning({ id: categoriesTable.id });
+
+          let itemSortOrder = 0;
+          for (const item of category.items) {
+            await tx.insert(menuItemsTable).values({
+              categoryId: newCategory.id,
+              name: item.name,
+              slug: item.id,
+              price: item.price,
+              image: item.image || null,
+              description: item.description || null,
+              discount: item.discount ? {
+                originalPrice: item.discount.originalPrice,
+                discountText: item.discount.discountText,
+              } : null,
+              span2: item.span2 || false,
+              sections: item.sections || [],
+              status: 'available',
+              sortOrder: itemSortOrder++,
+            });
+          }
         }
-      }
+
+        // Link the current super-admin user to the created vendor
+        await tx.insert(vendorUsersTable).values({
+          vendorId: createdVendorId,
+          userId: session.userId,
+        });
+      });
     } else if (mode === 'menno') {
       // 3. Sync from menno.pro
       if (!mennoVendor) {
@@ -165,138 +181,164 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         if (downloadedLogo) logoUrl = downloadedLogo;
       }
 
-      // Insert Vendor
-      const [newVendor] = await db.insert(vendorsTable).values({
-        slug,
-        name,
-        type,
-        slogan: shopData.description || 'کاتالوگ دیجیتال ما',
-        description: shopData.seo?.description || shopData.description || 'به کاتالوگ دیجیتال ما خوش آمدید.',
-        defaultLayout: 'pinterest',
-        logoIcon: getLogoIconFromType(type),
-        logo: logoUrl,
-        city: city || null,
-      }).returning({ id: vendorsTable.id });
-
-      createdVendorId = newVendor.id;
-
       // Fetch Menu Info
       const menuRes = await fetch(`https://api.menno.pro/menus/${mennoVendor}`);
+      let menuCategories: any[] = [];
       if (menuRes.ok) {
         const menuData = await menuRes.json();
         if (menuData.categories && Array.isArray(menuData.categories)) {
-          // Sort categories by their position ascending
-          const sortedCategories = [...menuData.categories].sort((a: any, b: any) => (a.position || 0) - (b.position || 0));
+          menuCategories = menuData.categories;
+        }
+      }
+
+      // Pre-download all images and structure the data outside the DB transaction
+      const preparedCategories = [];
+      const sortedCategories = [...menuCategories].sort((a: any, b: any) => (a.position || 0) - (b.position || 0));
+
+      for (const cat of sortedCategories) {
+        const preparedProducts = [];
+        if (cat.products && Array.isArray(cat.products)) {
+          const sortedProducts = [...cat.products].sort((a: any, b: any) => (a.position || 0) - (b.position || 0));
           
-          let catSort = 0;
-          for (const cat of sortedCategories) {
-            // Insert Category
-            const [newCategory] = await db.insert(categoriesTable).values({
-              vendorId: createdVendorId,
-              name: cat.title || 'بدون نام',
-              sortOrder: catSort++,
-              status: 'available',
-            }).returning({ id: categoriesTable.id });
+          for (const prod of sortedProducts) {
+            // Download Product Image (once per product to optimize performance)
+            let productImageUrl = null;
+            const prodImagePath = prod.imageFiles?.[0]?.origin || prod.imageFiles?.[0]?.md || prod.images?.[0];
+            if (prodImagePath) {
+              const remoteProdImageUrl = prodImagePath.startsWith('http') ? prodImagePath : `https://file.menno.pro/${prodImagePath}`;
+              const downloadedProdImage = await downloadAndSaveImage(remoteProdImageUrl, slug);
+              if (downloadedProdImage) productImageUrl = downloadedProdImage;
+            }
 
-            if (cat.products && Array.isArray(cat.products)) {
-              // Sort products by their position ascending
-              const sortedProducts = [...cat.products].sort((a: any, b: any) => (a.position || 0) - (b.position || 0));
+            // Map Subcategories
+            const sections: any[] = [];
+            if (prod.subcategories && prod.subcategories.length > 0) {
+              sections.push({
+                title: 'دسته‌بندی‌های فرعی',
+                chips: prod.subcategories.filter(Boolean),
+              });
+            }
 
-              let itemSortOrder = 0;
-              for (const prod of sortedProducts) {
-                // Download Product Image (once per product to optimize performance)
-                let productImageUrl = null;
-                const prodImagePath = prod.imageFiles?.[0]?.origin || prod.imageFiles?.[0]?.md || prod.images?.[0];
-                if (prodImagePath) {
-                  const remoteProdImageUrl = prodImagePath.startsWith('http') ? prodImagePath : `https://file.menno.pro/${prodImagePath}`;
-                  const downloadedProdImage = await downloadAndSaveImage(remoteProdImageUrl, slug);
-                  if (downloadedProdImage) productImageUrl = downloadedProdImage;
-                }
+            preparedProducts.push({
+              title: prod.title || 'بدون نام',
+              id: prod.id || null,
+              price: prod.price,
+              image: productImageUrl,
+              description: prod.description || null,
+              sections: sections,
+              variants: prod.variants || null,
+            });
+          }
+        }
 
-                // Map Subcategories
-                const sections: any[] = [];
-                if (prod.subcategories && prod.subcategories.length > 0) {
-                  sections.push({
-                    title: 'دسته‌بندی‌های فرعی',
-                    chips: prod.subcategories.filter(Boolean),
-                  });
-                }
+        preparedCategories.push({
+          title: cat.title || 'بدون نام',
+          products: preparedProducts,
+        });
+      }
 
-                if (prod.variants && Array.isArray(prod.variants) && prod.variants.length > 0) {
-                  // If the base product has a price, insert it as a separate menu item (standard/default option)
-                  if (prod.price && prod.price > 0) {
-                    const formattedPrice = Math.round(prod.price / 1000).toString();
-                    await db.insert(menuItemsTable).values({
-                      categoryId: newCategory.id,
-                      name: prod.title || 'بدون نام',
-                      slug: prod.id || null,
-                      price: formattedPrice,
-                      image: productImageUrl,
-                      description: prod.description || null,
-                      span2: false,
-                      sections: sections,
-                      status: 'available',
-                      sortOrder: itemSortOrder++,
-                    });
-                  }
+      // Execute all database writes in a single transaction
+      await db.transaction(async (tx) => {
+        // Insert Vendor
+        const [newVendor] = await tx.insert(vendorsTable).values({
+          slug,
+          name,
+          type,
+          slogan: shopData.description || 'کاتالوگ دیجیتال ما',
+          description: shopData.seo?.description || shopData.description || 'به کاتالوگ دیجیتال ما خوش آمدید.',
+          defaultLayout: 'pinterest',
+          logoIcon: getLogoIconFromType(type),
+          logo: logoUrl,
+          city: city || null,
+        }).returning({ id: vendorsTable.id });
 
-                  // If product has variants, insert each one as a separate menu item
-                  for (const v of prod.variants) {
-                    // Skip redundant variant if it is identical to the base product price and has a default/empty title
-                    const isRedundantVariant = 
-                      (v.title === 'ساده' || !v.title || v.title.trim() === '') && 
-                      prod.price && 
-                      v.price === prod.price;
+        createdVendorId = newVendor.id;
 
-                    if (isRedundantVariant) continue;
+        let catSort = 0;
+        for (const preparedCat of preparedCategories) {
+          // Insert Category
+          const [newCategory] = await tx.insert(categoriesTable).values({
+            vendorId: createdVendorId,
+            name: preparedCat.title,
+            sortOrder: catSort++,
+            status: 'available',
+          }).returning({ id: categoriesTable.id });
 
-                    const variantName = `${prod.title || 'بدون نام'} (${v.title || 'ساده'})`;
-                    const variantPrice = Math.round((v.price || 0) / 1000).toString();
-                    const variantSlug = prod.id ? `${prod.id}-${v.id}` : null;
-
-                    await db.insert(menuItemsTable).values({
-                      categoryId: newCategory.id,
-                      name: variantName,
-                      slug: variantSlug,
-                      price: variantPrice,
-                      image: productImageUrl,
-                      description: prod.description || null,
-                      span2: false,
-                      sections: sections,
-                      status: 'available',
-                      sortOrder: itemSortOrder++,
-                    });
-                  }
-                } else {
-                  // Standard product insert without variants
-                  const formattedPrice = Math.round((prod.price || 0) / 1000).toString();
-                  await db.insert(menuItemsTable).values({
-                    categoryId: newCategory.id,
-                    name: prod.title || 'بدون نام',
-                    slug: prod.id || null,
-                    price: formattedPrice,
-                    image: productImageUrl,
-                    description: prod.description || null,
-                    span2: false,
-                    sections: sections,
-                    status: 'available',
-                    sortOrder: itemSortOrder++,
-                  });
-                }
+          let itemSortOrder = 0;
+          for (const prod of preparedCat.products) {
+            if (prod.variants && Array.isArray(prod.variants) && prod.variants.length > 0) {
+              // If the base product has a price, insert it as a separate menu item (standard/default option)
+              if (prod.price && prod.price > 0) {
+                const formattedPrice = Math.round(prod.price / 1000).toString();
+                await tx.insert(menuItemsTable).values({
+                  categoryId: newCategory.id,
+                  name: prod.title,
+                  slug: prod.id,
+                  price: formattedPrice,
+                  image: prod.image,
+                  description: prod.description,
+                  span2: false,
+                  sections: prod.sections,
+                  status: 'available',
+                  sortOrder: itemSortOrder++,
+                });
               }
+
+              // If product has variants, insert each one as a separate menu item
+              for (const v of prod.variants) {
+                // Skip redundant variant if it is identical to the base product price and has a default/empty title
+                const isRedundantVariant = 
+                  (v.title === 'ساده' || !v.title || v.title.trim() === '') && 
+                  prod.price && 
+                  v.price === prod.price;
+
+                if (isRedundantVariant) continue;
+
+                const variantName = `${prod.title} (${v.title || 'ساده'})`;
+                const variantPrice = Math.round((v.price || 0) / 1000).toString();
+                const variantSlug = prod.id ? `${prod.id}-${v.id}` : null;
+
+                await tx.insert(menuItemsTable).values({
+                  categoryId: newCategory.id,
+                  name: variantName,
+                  slug: variantSlug,
+                  price: variantPrice,
+                  image: prod.image,
+                  description: prod.description,
+                  span2: false,
+                  sections: prod.sections,
+                  status: 'available',
+                  sortOrder: itemSortOrder++,
+                });
+              }
+            } else {
+              // Standard product insert without variants
+              const formattedPrice = Math.round((prod.price || 0) / 1000).toString();
+              await tx.insert(menuItemsTable).values({
+                categoryId: newCategory.id,
+                name: prod.title,
+                slug: prod.id,
+                price: formattedPrice,
+                image: prod.image,
+                description: prod.description,
+                span2: false,
+                sections: prod.sections,
+                status: 'available',
+                sortOrder: itemSortOrder++,
+              });
             }
           }
         }
-      }
+
+        // Link the current super-admin user to the created vendor
+        await tx.insert(vendorUsersTable).values({
+          vendorId: createdVendorId,
+          userId: session.userId,
+        });
+      });
     } else {
       return new Response(JSON.stringify({ success: false, message: 'حالت پر کردن نامعتبر است' }), { status: 400 });
     }
-
-    // Link the current super-admin user to the created vendor
-    await db.insert(vendorUsersTable).values({
-      vendorId: createdVendorId,
-      userId: session.userId,
-    });
 
     // Purge the homepage cache from ArvanCloud so the new collection shows up on the homepage
     purgeHomepageCache().catch(() => {});

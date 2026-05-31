@@ -48,6 +48,124 @@ const { title, description = 'کاتالوگ دیجیتال مدرن مجموع�
     <div class="site-container animate-fade-in">
       <slot />
     </div>
+
+    <!-- Global Custom Confirm Dialog -->
+    <dialog id="global-confirm-dialog" class="custom-confirm-dialog" style="direction: rtl;">
+      <div class="confirm-dialog-wrapper">
+        <div class="confirm-dialog-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+        </div>
+        <div class="confirm-dialog-content">
+          <p id="global-confirm-message" class="confirm-dialog-message"></p>
+        </div>
+        <div class="confirm-dialog-actions">
+          <button id="global-confirm-cancel-btn" class="confirm-btn confirm-btn-secondary">انصراف</button>
+          <button id="global-confirm-ok-btn" class="confirm-btn confirm-btn-danger">تایید</button>
+        </div>
+      </div>
+    </dialog>
+
+    <script is:inline>
+      window.showConfirmDialog = function(message, options = {}) {
+        const dialog = document.getElementById('global-confirm-dialog');
+        const messageEl = document.getElementById('global-confirm-message');
+        const cancelBtn = document.getElementById('global-confirm-cancel-btn');
+        const okBtn = document.getElementById('global-confirm-ok-btn');
+        const iconContainer = dialog?.querySelector('.confirm-dialog-icon');
+        
+        if (!dialog || !messageEl || !cancelBtn || !okBtn || !iconContainer) {
+          if (options.isAlert) {
+            window.alert(message);
+            return Promise.resolve(true);
+          }
+          return Promise.resolve(window.confirm(message));
+        }
+        
+        messageEl.textContent = message;
+        okBtn.textContent = options.okText || 'تایید';
+        cancelBtn.textContent = options.cancelText || 'انصراف';
+        
+        // Handle Dialog Type (success, error, warning, info)
+        const type = options.type || (options.isAlert ? 'info' : 'warning');
+        
+        // Reset and set classes
+        iconContainer.className = 'confirm-dialog-icon';
+        iconContainer.classList.add(`type-${type}`);
+        
+        // Dynamic Icon Markup
+        let iconHtml = '';
+        if (type === 'success') {
+          iconHtml = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+        } else if (type === 'error') {
+          iconHtml = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`;
+        } else if (type === 'info') {
+          iconHtml = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`;
+        } else { // warning
+          iconHtml = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`;
+        }
+        iconContainer.innerHTML = iconHtml;
+
+        // OK Button styles based on type
+        if (options.okClass) {
+          okBtn.className = `confirm-btn ${options.okClass}`;
+        } else {
+          if (type === 'success' || type === 'error' || type === 'info') {
+            okBtn.className = 'confirm-btn confirm-btn-primary';
+          } else {
+            okBtn.className = 'confirm-btn confirm-btn-danger';
+          }
+        }
+
+        // Toggle Cancel Button
+        if (options.isAlert) {
+          cancelBtn.style.display = 'none';
+        } else {
+          cancelBtn.style.display = 'inline-flex';
+        }
+
+        return new Promise((resolve) => {
+          const handleCancel = () => {
+            cleanup();
+            resolve(false);
+          };
+          
+          const handleOk = () => {
+            cleanup();
+            resolve(true);
+          };
+          
+          const handleClose = () => {
+            cleanup();
+            resolve(false);
+          };
+          
+          const cleanup = () => {
+            cancelBtn.removeEventListener('click', handleCancel);
+            okBtn.removeEventListener('click', handleOk);
+            dialog.removeEventListener('close', handleClose);
+            dialog.close();
+          };
+          
+          cancelBtn.addEventListener('click', handleCancel);
+          okBtn.addEventListener('click', handleOk);
+          dialog.addEventListener('close', handleClose);
+          
+          dialog.showModal();
+        });
+      };
+
+      window.showAlertDialog = function(message, options = {}) {
+        return window.showConfirmDialog(message, {
+          ...options,
+          isAlert: true,
+          okText: options.okText || 'متوجه شدم'
+        });
+      };
+    </script>
   </body>
 </html>
 

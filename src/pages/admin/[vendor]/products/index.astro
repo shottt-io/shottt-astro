@@ -232,7 +232,12 @@ const items = await db
     btn.addEventListener('click', async () => {
       const id = btn.getAttribute('data-id');
       const name = btn.getAttribute('data-name');
-      if (!confirm(`آیا از حذف محصول «${name}» مطمئن هستید؟`)) return;
+      
+      const confirmed = await window.showConfirmDialog(
+        `آیا از حذف محصول «${name}» مطمئن هستید؟`,
+        { okText: 'حذف شود', cancelText: 'انصراف', okClass: 'confirm-btn-danger' }
+      );
+      if (!confirmed) return;
 
       try {
         const response = await fetch('/api/menu-items', {
