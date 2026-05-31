@@ -74,6 +74,7 @@ function getImageAspectRatio(imageUrl: string | undefined): string {
                     <a
                       href={`/${vendorSlug}/${item.slug || item.id}`}
                       class={`product-card-full animate-slide-up ${item.status === 'unavailable' ? 'is-unavailable' : ''}`}
+                      data-item-id={item.id}
                     >
                       {item.image ? (
                         <div class="image-wrapper-full image-zoom-container">
@@ -140,6 +141,7 @@ function getImageAspectRatio(imageUrl: string | undefined): string {
                           href={`/${vendorSlug}/${item.slug || item.id}`}
                           class={`product-card animate-slide-up ${item.status === 'unavailable' ? 'is-unavailable' : ''}`}
                           data-sort-order={index * 2}
+                          data-item-id={item.id}
                         >
                           {item.image ? (
                             <div class="image-wrapper image-zoom-container" style={`aspect-ratio: ${getImageAspectRatio(item.image)};`}>
@@ -202,6 +204,7 @@ function getImageAspectRatio(imageUrl: string | undefined): string {
                           href={`/${vendorSlug}/${item.slug || item.id}`}
                           class={`product-card animate-slide-up ${item.status === 'unavailable' ? 'is-unavailable' : ''}`}
                           data-sort-order={index * 2 + 1}
+                          data-item-id={item.id}
                         >
                           {item.image ? (
                             <div class="image-wrapper image-zoom-container" style={`aspect-ratio: ${getImageAspectRatio(item.image)};`}>
@@ -268,6 +271,7 @@ function getImageAspectRatio(imageUrl: string | undefined): string {
               <a
                 href={`/${vendorSlug}/${item.slug || item.id}`}
                 class={`list-row animate-slide-up ${item.status === 'unavailable' ? 'is-unavailable' : ''}`}
+                data-item-id={item.id}
               >
                 <div class="list-right">
                   {item.image ? (

@@ -8,7 +8,7 @@ import '../styles/admin.css';
 
 interface Props {
   title: string;
-  activeTab: 'categories' | 'products' | 'settings' | 'design';
+  activeTab: 'categories' | 'products' | 'settings' | 'design' | 'analytics';
   vendorSlug: string;
 }
 
@@ -129,6 +129,15 @@ if (session) {
             <line x1="4" y1="18" x2="20" y2="18" />
           </svg>
           <span>دسته‌بندی‌ها</span>
+        </a>
+
+        <a href={`/admin/${vendorSlug}/analytics`} class={`sidenav-link ${activeTab === 'analytics' ? 'active' : ''}`}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="menu-icon-svg">
+            <line x1="18" y1="20" x2="18" y2="10" />
+            <line x1="12" y1="20" x2="12" y2="4" />
+            <line x1="6" y1="20" x2="6" y2="14" />
+          </svg>
+          <span>گزارش و آمار</span>
         </a>
 
         <a href={`/admin/${vendorSlug}/design`} class={`sidenav-link ${activeTab === 'design' ? 'active' : ''}`}>

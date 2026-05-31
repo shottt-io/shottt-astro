@@ -1,4 +1,4 @@
-import { pgTable, serial, varchar, text, boolean, integer, jsonb } from 'drizzle-orm/pg-core';
+import { pgTable, serial, varchar, text, boolean, integer, jsonb, date, primaryKey } from 'drizzle-orm/pg-core';
 
 export interface DBProductSection {
   title?: string;
@@ -65,4 +65,25 @@ export const vendorUsers = pgTable('vendor_users', {
   vendorId: integer('vendor_id').references(() => vendors.id, { onDelete: 'cascade' }).notNull(),
   userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
 });
+
+// 6. Analytics Daily Metrics (Page views / unique visits)
+export const analyticsDailyMetrics = pgTable('analytics_daily_metrics', {
+  vendorId: integer('vendor_id').references(() => vendors.id, { onDelete: 'cascade' }).notNull(),
+  date: date('date').notNull(),
+  pageViews: integer('page_views').default(0).notNull(),
+  uniqueVisits: integer('unique_visits').default(0).notNull(),
+}, (table) => [
+  primaryKey({ columns: [table.vendorId, table.date] }),
+]);
+
+// 7. Analytics Daily Items (Item Impressions)
+export const analyticsDailyItems = pgTable('analytics_daily_items', {
+  vendorId: integer('vendor_id').references(() => vendors.id, { onDelete: 'cascade' }).notNull(),
+  itemId: integer('item_id').references(() => menuItems.id, { onDelete: 'cascade' }).notNull(),
+  date: date('date').notNull(),
+  impressions: integer('impressions').default(0).notNull(),
+}, (table) => [
+  primaryKey({ columns: [table.vendorId, table.itemId, table.date] }),
+]);
+
 

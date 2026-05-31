@@ -81,7 +81,7 @@ const categories = await Promise.all(
   ogImage={vendor.coverImage}
   favicon={vendor.logo}
 >
-  <main class="menu-main-wrapper" id="page-main">
+  <main class="menu-main-wrapper" id="page-main" data-vendor-slug={vendor.slug}>
     <!-- Brand Info Header -->
     <BrandHeader 
       name={vendor.name}
@@ -110,6 +110,180 @@ const categories = await Promise.all(
       </a>
     </footer>
   </main>
+
+  <!-- Client-side Analytics Tracker Script -->
+  <script is:inline>
+    (function() {
+      // Safety Check: Exit silently if essential browser APIs are missing (e.g. old browsers or crawlers)
+      if (typeof window === 'undefined' || typeof window.IntersectionObserver === 'undefined' || typeof window.fetch === 'undefined') {
+        return;
+      }
+
+      // 1. Get vendor slug from main container
+      const pageMain = document.getElementById('page-main');
+      if (!pageMain) return;
+      const vendorSlug = pageMain.getAttribute('data-vendor-slug');
+      if (!vendorSlug) return;
+
+      // Safe localStorage wrapper
+      const storage = {
+        get(key) {
+          try { return localStorage.getItem(key); } catch(e) { return null; }
+        },
+        set(key, val) {
+          try { localStorage.setItem(key, val); } catch(e) {}
+        },
+        remove(key) {
+          try { localStorage.removeItem(key); } catch(e) {}
+        }
+      };
+
+      // 2. Initialize or retrieve the 1-hour session
+      const SESSION_DURATION = 1 * 60 * 60 * 1000; // 1 hour in ms
+      const sessionKey = 'shottt_session_id';
+      const expiryKey = 'shottt_session_expiry';
+      const visitKey = 'shottt_visit_sent_' + vendorSlug;
+      const impressionsKey = 'shottt_sent_imps_' + vendorSlug;
+
+      let sessionId = storage.get(sessionKey);
+      let sessionExpiry = storage.get(expiryKey);
+      
+      const now = Date.now();
+
+      if (!sessionId || !sessionExpiry || now > parseInt(sessionExpiry, 10)) {
+        // Create new session
+        sessionId = Math.random().toString(36).substring(2, 15);
+        storage.set(sessionKey, sessionId);
+        storage.set(expiryKey, (now + SESSION_DURATION).toString());
+        storage.remove(visitKey);
+        storage.remove(impressionsKey);
+      }
+
+      // 3. Track unique visit & total page view
+      let pageView = true;
+      let uniqueVisit = false;
+      
+      const visitSent = storage.get(visitKey);
+      if (visitSent !== 'true') {
+        uniqueVisit = true;
+        storage.set(visitKey, 'true');
+      }
+
+      // 4. Track Impressions
+      const getSentImpressions = () => {
+        try {
+          const data = storage.get(impressionsKey);
+          return data ? JSON.parse(data) : [];
+        } catch (e) {
+          return [];
+        }
+      };
+
+      const addSentImpression = (itemId) => {
+        const list = getSentImpressions();
+        if (!list.includes(itemId)) {
+          list.push(itemId);
+          storage.set(impressionsKey, JSON.stringify(list));
+        }
+      };
+
+      // Queue and Batching variables
+      let pendingPageView = pageView;
+      let pendingUniqueVisit = uniqueVisit;
+      const pendingImpressions = new Set();
+
+      function sendBatch() {
+        if (!pendingPageView && !pendingUniqueVisit && pendingImpressions.size === 0) {
+          return;
+        }
+
+        const payload = {
+          vendorSlug: vendorSlug,
+          pageView: pendingPageView,
+          uniqueVisit: pendingUniqueVisit,
+          impressions: Array.from(pendingImpressions)
+        };
+
+        // Reset queue before sending to prevent duplicates in case of fast triggers
+        pendingPageView = false;
+        pendingUniqueVisit = false;
+        pendingImpressions.clear();
+
+        fetch('/api/analytics/track', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload),
+          keepalive: true // Crucial to ensure request completes on page unload
+        }).catch(err => console.error('Failed to send analytics batch:', err));
+      }
+
+      // Send batch every 10 seconds
+      const batchInterval = setInterval(sendBatch, 10000);
+
+      // Send batch when page is closed/hidden
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') {
+          sendBatch();
+        }
+      });
+
+      // 5. Setup IntersectionObserver for items
+      const visibleTimeouts = new Map();
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          const itemId = entry.target.getAttribute('data-item-id');
+          if (!itemId) return;
+
+          if (entry.isIntersecting) {
+            // Set 800ms timer
+            const timeoutId = setTimeout(() => {
+              const sent = getSentImpressions();
+              if (!sent.includes(itemId)) {
+                pendingImpressions.add(itemId);
+                addSentImpression(itemId);
+                // Trigger batch send earlier if queue is large
+                if (pendingImpressions.size >= 10) {
+                  sendBatch();
+                }
+              }
+            }, 800);
+            visibleTimeouts.set(itemId, timeoutId);
+          } else {
+            // Cancel timer if it goes out of view before 800ms
+            if (visibleTimeouts.has(itemId)) {
+              clearTimeout(visibleTimeouts.get(itemId));
+              visibleTimeouts.delete(itemId);
+            }
+          }
+        });
+      }, {
+        threshold: 0.3 // 30% of item visible
+      });
+
+      // Observe all product card elements
+      const observeItems = () => {
+        const elements = document.querySelectorAll('[data-item-id]');
+        elements.forEach(el => observer.observe(el));
+      };
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', observeItems);
+      } else {
+        observeItems();
+      }
+
+      // Also support observing new elements if layout changes or lazy-loads
+      if (typeof window.MutationObserver !== 'undefined') {
+        const mutationObserver = new MutationObserver(() => {
+          observeItems();
+        });
+        mutationObserver.observe(document.body, { childList: true, subtree: true });
+      }
+    })();
+  </script>
 </Layout>
 
 <style>

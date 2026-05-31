@@ -1,0 +1,896 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { db } from '../../../db/db';
+import { vendors as vendorsTable } from '../../../db/schema';
+import { eq } from 'drizzle-orm';
+
+const vendorSlug = Astro.params.vendor;
+if (!vendorSlug) {
+  return Astro.redirect('/admin');
+}
+
+// Fetch vendor settings
+const vendorList = await db
+  .select()
+  .from(vendorsTable)
+  .where(eq(vendorsTable.slug, vendorSlug))
+  .limit(1);
+
+if (vendorList.length === 0) {
+  return new Response("مجموعه یافت نشد.", { status: 404 });
+}
+const vendor = vendorList[0];
+---
+
+<AdminLayout title="گزارش و آمار" activeTab="analytics" vendorSlug={vendorSlug}>
+  <!-- CDN Dependency for ApexCharts -->
+  <script is:inline src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+  <div class="admin-page-actions">
+    <h1 class="page-title-bold">گزارش و آمار بازدید</h1>
+    
+    <!-- Range Filter Tabs -->
+    <div class="range-selector">
+      <button class="range-btn" data-range="today">امروز</button>
+      <button class="range-btn active" data-range="7">۷ روز گذشته</button>
+      <button class="range-btn" data-range="30">۳۰ روز گذشته</button>
+    </div>
+  </div>
+
+  <!-- KPI Summary Cards -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-icon-box pvs-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="kpi-icon">
+          <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+      </div>
+      <div class="kpi-content">
+        <div class="kpi-label-row">
+          <span class="kpi-label">کل مشاهده کاتالوگ</span>
+          <div class="tooltip-container">
+            <button type="button" class="info-btn">؟</button>
+            <span class="tooltip-text">مجموع کل دفعاتی که کاتالوگ شما توسط کاربران باز یا رفرش شده است.</span>
+          </div>
+        </div>
+        <h3 class="kpi-value" id="kpi-total-views">-</h3>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-icon-box uvs-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="kpi-icon">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+      </div>
+      <div class="kpi-content">
+        <div class="kpi-label-row">
+          <span class="kpi-label">بازدیدکنندگان یکتا (سشن)</span>
+          <div class="tooltip-container">
+            <button type="button" class="info-btn">؟</button>
+            <span class="tooltip-text">تعداد کاربران مجزا که کاتالوگ شما را دیده‌اند. هر کاربر در بازه ۱ ساعته فقط یک‌بار شمارش می‌شود.</span>
+          </div>
+        </div>
+        <h3 class="kpi-value" id="kpi-unique-visits">-</h3>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State Skeleton -->
+  <div id="analytics-loading-skeleton" class="skeleton-container">
+    <div class="skeleton-chart-large"></div>
+    <div class="skeleton-chart-grid">
+      <div class="skeleton-chart-small"></div>
+    </div>
+  </div>
+
+  <!-- Main Chart Section -->
+  <div id="analytics-charts-content" class="charts-content-wrapper" style="display: none;">
+    <!-- Site Views Line Chart -->
+    <div class="admin-card chart-card" id="visits-chart-container">
+      <div class="chart-header">
+        <h3 class="chart-title">روند بازدید کاتالوگ</h3>
+        <p class="chart-subtitle">نمودار مقایسه‌ای تعداد کل مشاهده در برابر بازدید‌های یکتا</p>
+      </div>
+      <div id="visits-line-chart"></div>
+    </div>
+
+    <!-- Top Viewed Items Bar Chart -->
+    <div class="admin-card chart-card">
+      <div class="chart-header">
+        <h3 class="chart-title">۱۰ محصول پربازدید</h3>
+        <p class="chart-subtitle">محصولاتی که بیشترین بار در کادر تصویر مشتریان ظاهر شده‌اند</p>
+      </div>
+      <div id="items-bar-chart"></div>
+    </div>
+
+    <!-- Detailed Products List Table (Supports low & zero visits) -->
+    <div class="admin-card table-card">
+      <div class="info-banner-box">
+        <strong>💡 مفهوم رویت (ایمپریشن):</strong> منظور از رویت این است که محصول روی صفحه نمایش خریدار ظاهر شده باشد (حتی بدون کلیک کردن). این آمار به صورت سشن‌های ۱ ساعته یکتا شده است تا تکرار اسکرول یا رفرش توسط یک کاربر در یک بازدید شمارش نشود.
+      </div>
+
+      <div class="report-header-row">
+        <h3 class="chart-title">گزارش تفصیلی محصولات</h3>
+        
+        <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+          <!-- Search input -->
+          <input type="text" id="items-search-input" class="search-input" placeholder="جستجو در محصولات..." />
+
+          <!-- Sort buttons -->
+          <div class="sort-selector-group">
+            <button class="sort-btn active" id="sort-desc" data-sort="desc">بیشترین بازدید</button>
+            <button class="sort-btn" id="sort-asc" data-sort="asc">کمترین بازدید</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="overflow-x: auto; width: 100%;">
+        <table class="analytics-table">
+          <thead>
+            <tr>
+              <th>نام محصول</th>
+              <th class="text-left">تعداد رویت (ایمپریشن) یکتا</th>
+            </tr>
+          </thead>
+          <tbody id="items-table-body">
+            <!-- Rendered dynamically -->
+          </tbody>
+        </table>
+      </div>
+
+      <div class="load-more-container">
+        <button id="btn-load-more" class="btn-load-more">مشاهده بیشتر</button>
+      </div>
+    </div>
+  </div>
+</AdminLayout>
+
+<style>
+  .admin-page-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+    direction: rtl;
+  }
+
+  .page-title-bold {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #171717;
+  }
+
+  .range-selector {
+    display: flex;
+    background-color: #f5f5f5;
+    padding: 0.25rem;
+    border-radius: 0.75rem;
+    gap: 0.125rem;
+  }
+
+  .range-btn {
+    border: none;
+    background: transparent;
+    padding: 0.5rem 1rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #737373;
+    cursor: pointer;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+    font-family: inherit;
+  }
+
+  .range-btn.active {
+    background-color: #ffffff;
+    color: #171717;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+
+  /* KPI grid layout (2 Columns now) */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+    direction: rtl;
+  }
+
+  @media (max-width: 640px) {
+    .kpi-grid {
+      grid-template-columns: repeat(1, minmax(0, 1fr));
+    }
+  }
+
+  .kpi-card {
+    background-color: #ffffff;
+    border-radius: 1.25rem;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    border: 1px solid #f5f5f5;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.01), 0 1px 2px rgba(0,0,0,0.02);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.03);
+  }
+
+  .kpi-icon-box {
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .pvs-icon {
+    background-color: #eef2ff;
+    color: #4f46e5;
+  }
+
+  .uvs-icon {
+    background-color: #ecfdf5;
+    color: #059669;
+  }
+
+  .kpi-icon {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+
+  .kpi-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    text-align: right;
+  }
+
+  .kpi-label-row {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    justify-content: flex-start;
+  }
+
+  .kpi-label {
+    font-size: 0.8125rem;
+    color: #737373;
+    font-weight: 300;
+  }
+
+  .kpi-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #171717;
+    line-height: 1.2;
+    margin-top: 0.25rem;
+  }
+
+  /* Info tooltips */
+  .tooltip-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .info-btn {
+    width: 0.95rem;
+    height: 0.95rem;
+    border-radius: 50%;
+    background-color: #e5e5e5;
+    border: none;
+    font-size: 0.625rem;
+    font-weight: 700;
+    color: #737373;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    padding: 0;
+  }
+
+  .info-btn:hover {
+    background-color: #d4d4d4;
+    color: #171717;
+  }
+
+  .tooltip-text {
+    visibility: hidden;
+    width: 220px;
+    background-color: #171717;
+    color: #ffffff;
+    text-align: right;
+    border-radius: 0.5rem;
+    padding: 0.625rem 0.75rem;
+    position: absolute;
+    z-index: 20;
+    bottom: 135%;
+    right: 50%;
+    transform: translateX(50%);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    font-size: 0.75rem;
+    line-height: 1.6;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    pointer-events: none;
+    font-weight: 300;
+  }
+
+  .tooltip-text::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #171717 transparent transparent transparent;
+  }
+
+  .tooltip-container:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+  }
+
+  /* Detailed report table card styles */
+  .report-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+  }
+
+  .search-input {
+    padding: 0.625rem 1rem;
+    border-radius: 0.75rem;
+    border: 1px solid #e5e5e5;
+    font-size: 0.8125rem;
+    width: 220px;
+    outline: none;
+    transition: border-color 0.2s ease;
+    font-family: inherit;
+    text-align: right;
+  }
+
+  .search-input:focus {
+    border-color: #6366f1;
+  }
+
+  .sort-selector-group {
+    display: flex;
+    gap: 0.125rem;
+    background-color: #f5f5f5;
+    padding: 0.2rem;
+    border-radius: 0.625rem;
+  }
+
+  .sort-btn {
+    border: none;
+    background: transparent;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #737373;
+    cursor: pointer;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+    font-family: inherit;
+  }
+
+  .sort-btn.active {
+    background-color: #ffffff;
+    color: #171717;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  }
+
+  .analytics-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0.5rem;
+  }
+
+  .analytics-table th {
+    padding: 1rem;
+    border-bottom: 2px solid #f5f5f5;
+    color: #737373;
+    font-weight: 500;
+    font-size: 0.8125rem;
+    text-align: right;
+  }
+
+  .analytics-table th.text-left {
+    text-align: left;
+  }
+
+  .load-more-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 1.5rem;
+  }
+
+  .btn-load-more {
+    background: transparent;
+    border: 1px solid #e5e5e5;
+    padding: 0.5rem 1.5rem;
+    border-radius: 0.75rem;
+    font-size: 0.8125rem;
+    color: #737373;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+  }
+
+  .btn-load-more:hover {
+    border-color: #6366f1;
+    color: #6366f1;
+  }
+
+  .info-banner-box {
+    background-color: #f8fafc;
+    border-right: 3px solid #64748b;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    font-size: 0.8125rem;
+    color: #475569;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+    text-align: right;
+  }
+
+  /* Table animation */
+  .table-row-animate {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Charts Content wrapper */
+  .charts-content-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    direction: rtl;
+  }
+
+  .chart-card, .table-card {
+    padding: 1.75rem;
+  }
+
+  .chart-header {
+    margin-bottom: 1.5rem;
+    text-align: right;
+  }
+
+  .chart-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #171717;
+  }
+
+  .chart-subtitle {
+    font-size: 0.8125rem;
+    color: #a3a3a3;
+    margin-top: 0.25rem;
+    font-weight: 300;
+  }
+
+  /* Skeleton styles */
+  .skeleton-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    direction: rtl;
+  }
+
+  .skeleton-chart-large {
+    height: 380px;
+    background: linear-gradient(90deg, #f5f5f5 25%, #fafafa 50%, #f5f5f5 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 1.25rem;
+    border: 1px solid #f5f5f5;
+  }
+
+  .skeleton-chart-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .skeleton-chart-small {
+    height: 320px;
+    background: linear-gradient(90deg, #f5f5f5 25%, #fafafa 50%, #f5f5f5 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 1.25rem;
+    border: 1px solid #f5f5f5;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+</style>
+
+<script define:vars={{ vendorSlug }}>
+  // Hold active chart instances
+  let visitsChart = null;
+  let itemsChart = null;
+  let allItemsData = []; // Store full items report for filtering/sorting/pagination
+  let tableLimit = 10;
+  let currentSort = 'desc';
+  let currentSearch = '';
+
+  // Format YYYY-MM-DD into Persian month/day (e.g. "۱۰/۳")
+  function formatPersianDate(dateStr) {
+    try {
+      const parts = dateStr.split('-');
+      const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
+      return new Intl.DateTimeFormat('fa-IR', { month: 'numeric', day: 'numeric' }).format(dateObj);
+    } catch(e) {
+      return dateStr;
+    }
+  }
+
+  // Draw the Detailed Products Table with Pagination/Sort/Search
+  function renderDetailedTable() {
+    const tableBody = document.getElementById('items-table-body');
+    const loadMoreBtn = document.getElementById('btn-load-more');
+    if (!tableBody) return;
+
+    // 1. Filter by Search
+    let filtered = allItemsData.filter(item => 
+      item.name.toLowerCase().includes(currentSearch.toLowerCase())
+    );
+
+    // 2. Sort by View Count
+    if (currentSort === 'desc') {
+      filtered.sort((a, b) => b.impressions - a.impressions);
+    } else {
+      filtered.sort((a, b) => a.impressions - b.impressions);
+    }
+
+    // 3. Slice for simple Pagination
+    const sliced = filtered.slice(0, tableLimit);
+
+    tableBody.innerHTML = '';
+    
+    if (sliced.length === 0) {
+      tableBody.innerHTML = `
+        <tr>
+          <td colspan="2" style="text-align: center; color: #a3a3a3; padding: 2rem 0; font-size: 0.875rem;">
+            محصولی یافت نشد.
+          </td>
+        </tr>
+      `;
+      if (loadMoreBtn) loadMoreBtn.style.display = 'none';
+      return;
+    }
+
+    sliced.forEach((item) => {
+      const row = document.createElement('tr');
+      row.className = 'table-row-animate';
+      row.innerHTML = `
+        <td style="padding: 1rem; border-bottom: 1px solid #f5f5f5; text-align: right; font-size: 0.875rem; font-weight: 300;">
+          ${item.name}
+        </td>
+        <td style="padding: 1rem; border-bottom: 1px solid #f5f5f5; text-align: left; font-size: 0.875rem; font-weight: 500; color: ${item.impressions > 0 ? '#4f46e5' : '#a3a3a3'};">
+          ${item.impressions.toLocaleString('fa-IR')} مرتبه
+        </td>
+      `;
+      tableBody.appendChild(row);
+    });
+
+    if (loadMoreBtn) {
+      if (filtered.length > tableLimit) {
+        loadMoreBtn.style.display = 'block';
+      } else {
+        loadMoreBtn.style.display = 'none';
+      }
+    }
+  }
+
+  async function loadAnalytics(range) {
+    const skeleton = document.getElementById('analytics-loading-skeleton');
+    const content = document.getElementById('analytics-charts-content');
+    const visitsChartContainer = document.getElementById('visits-chart-container');
+
+    if (skeleton && content && !visitsChart) {
+      skeleton.style.display = 'flex';
+      content.style.display = 'none';
+    }
+
+    try {
+      const response = await fetch(`/api/admin/analytics?vendorSlug=${vendorSlug}&range=${range}`);
+      const json = await response.json();
+
+      if (!json.success) {
+        alert('خطا در دریافت اطلاعات آنالیتیکس: ' + json.message);
+        return;
+      }
+
+      const { visits, items } = json.data;
+
+      // 1. Calculate KPI summaries
+      const totalViews = visits.reduce((acc, curr) => acc + curr.pageViews, 0);
+      const uniqueVisits = visits.reduce((acc, curr) => acc + curr.uniqueVisits, 0);
+
+      // Animate KPI numbers
+      animateValue('kpi-total-views', totalViews);
+      animateValue('kpi-unique-visits', uniqueVisits);
+
+      // 2. Load Table stats
+      allItemsData = items;
+      tableLimit = 10; // Reset pagination on filter change
+      renderDetailedTable();
+
+      // 3. Render or Update Line Chart (Visits)
+      if (range === 'today') {
+        // Today has only 1 data point; the line chart is redundant/looks empty
+        if (visitsChartContainer) visitsChartContainer.style.display = 'none';
+      } else {
+        if (visitsChartContainer) visitsChartContainer.style.display = 'block';
+
+        const categories = visits.map(v => formatPersianDate(v.date));
+        const pageViewsData = visits.map(v => v.pageViews);
+        const uniqueVisitsData = visits.map(v => v.uniqueVisits);
+        
+        // Calculate max value to enforce integer ticks
+        const maxVal = Math.max(...pageViewsData, ...uniqueVisitsData, 1);
+
+        const visitsOptions = {
+          series: [
+            { name: 'کل مشاهده کاتالوگ', data: pageViewsData },
+            { name: 'بازدیدکننده یکتا', data: uniqueVisitsData }
+          ],
+          chart: {
+            height: 350,
+            type: 'area',
+            fontFamily: 'Estedad, sans-serif',
+            toolbar: { show: false },
+            zoom: { enabled: false }
+          },
+          colors: ['#4f46e5', '#059669'],
+          fill: {
+            type: 'gradient',
+            gradient: {
+              shadeIntensity: 1,
+              opacityFrom: 0.35,
+              opacityTo: 0.02,
+              stops: [0, 90, 100]
+            }
+          },
+          dataLabels: { enabled: false },
+          stroke: { curve: 'smooth', width: 2 },
+          markers: {
+            size: pageViewsData.length === 1 ? 5 : 0,
+            hover: { size: 7 }
+          },
+          xaxis: {
+            categories: categories,
+            labels: { style: { colors: '#737373', fontSize: '11px' } },
+            axisBorder: { show: false },
+            axisTicks: { show: false }
+          },
+          yaxis: {
+            opposite: true, // RTL axis orientation
+            min: 0,
+            tickAmount: Math.min(4, maxVal),
+            labels: {
+              formatter: function(val) {
+                return Math.round(val).toLocaleString('fa-IR');
+              },
+              style: { colors: '#737373', fontSize: '11px' }
+            }
+          },
+          grid: {
+            borderColor: '#f5f5f5',
+            strokeDashArray: 4
+          },
+          tooltip: {
+            inverseOrder: true,
+            style: { fontSize: '12px', fontFamily: 'Estedad, sans-serif' }
+          },
+          legend: {
+            position: 'top',
+            horizontalAlign: 'right',
+            fontFamily: 'Estedad, sans-serif',
+            labels: { colors: '#171717' }
+          }
+        };
+
+        if (visitsChart) {
+          visitsChart.updateOptions(visitsOptions);
+        } else {
+          // @ts-ignore
+          visitsChart = new ApexCharts(document.querySelector("#visits-line-chart"), visitsOptions);
+          visitsChart.render();
+        }
+      }
+
+      // 4. Map data for Top 10 Viewed Items Bar Chart
+      // Filter out items with 0 impressions to keep the chart beautiful
+      const chartItems = items.filter(item => item.impressions > 0).slice(0, 10);
+      
+      const itemNames = chartItems.map(item => item.name);
+      const itemImpressions = chartItems.map(item => item.impressions);
+      const maxImpression = Math.max(...itemImpressions, 1);
+
+      const itemsOptions = {
+        series: [{
+          name: 'تعداد رویت (ایمپریشن)',
+          data: itemImpressions
+        }],
+        chart: {
+          type: 'bar',
+          height: Math.max(220, chartItems.length * 36),
+          fontFamily: 'Estedad, sans-serif',
+          toolbar: { show: false }
+        },
+        plotOptions: {
+          bar: {
+            borderRadius: 5,
+            horizontal: true,
+            barHeight: '55%',
+            distributed: false,
+          }
+        },
+        colors: ['#6366f1'],
+        dataLabels: {
+          enabled: true,
+          textAnchor: 'start',
+          style: {
+            colors: ['#ffffff'],
+            fontSize: '11px',
+            fontFamily: 'Estedad, sans-serif'
+          },
+          formatter: function (val) {
+            return val.toLocaleString('fa-IR') + ' بار';
+          },
+          offsetX: 10
+        },
+        xaxis: {
+          categories: itemNames,
+          min: 0,
+          tickAmount: Math.min(5, maxImpression),
+          labels: {
+            formatter: function(val) {
+              return Math.round(val).toLocaleString('fa-IR');
+            },
+            style: { colors: '#737373', fontSize: '11px' }
+          },
+          axisBorder: { show: false },
+          axisTicks: { show: false }
+        },
+        yaxis: {
+          opposite: true, // RTL axis orientation
+          labels: {
+            style: { colors: '#171717', fontSize: '11px', fontWeight: 500 }
+          }
+        },
+        grid: {
+          borderColor: '#f5f5f5',
+          strokeDashArray: 4,
+          xaxis: { lines: { show: true } },
+          yaxis: { lines: { show: false } }
+        },
+        tooltip: {
+          style: { fontSize: '12px', fontFamily: 'Estedad, sans-serif' }
+        }
+      };
+
+      if (itemsChart) {
+        itemsChart.updateOptions(itemsOptions);
+      } else {
+        // @ts-ignore
+        itemsChart = new ApexCharts(document.querySelector("#items-bar-chart"), itemsOptions);
+        itemsChart.render();
+      }
+
+      // Show charts content and hide loading skeletons
+      if (skeleton && content) {
+        skeleton.style.display = 'none';
+        content.style.display = 'flex';
+      }
+
+    } catch (error) {
+      console.error('Failed to load chart data:', error);
+      alert('خطا در ارتباط با سرور.');
+    }
+  }
+
+  // Animation helper for counting up KPI numbers (always completes in 800ms)
+  function animateValue(id, endVal) {
+    const obj = document.getElementById(id);
+    if (!obj) return;
+    
+    if (endVal === 0) {
+      obj.textContent = '۰';
+      return;
+    }
+
+    const startVal = 0;
+    const duration = 800; // ms
+    const startTime = performance.now();
+
+    function update(now) {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // Easing out quadratic
+      const easeProgress = progress * (2 - progress);
+      const currentVal = Math.floor(startVal + easeProgress * (endVal - startVal));
+      
+      obj.textContent = currentVal.toLocaleString('fa-IR');
+
+      if (progress < 1) {
+        requestAnimationFrame(update);
+      }
+    }
+
+    requestAnimationFrame(update);
+  }
+
+  // Bind range buttons click
+  document.querySelectorAll('.range-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const activeBtn = e.target;
+      document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
+      activeBtn.classList.add('active');
+      
+      const range = activeBtn.getAttribute('data-range');
+      loadAnalytics(range);
+    });
+  });
+
+  // Bind Search Input
+  document.getElementById('items-search-input')?.addEventListener('input', (e) => {
+    currentSearch = e.target.value;
+    tableLimit = 10; // reset page index
+    renderDetailedTable();
+  });
+
+  // Bind Sort Buttons
+  document.getElementById('sort-desc')?.addEventListener('click', (e) => {
+    document.getElementById('sort-asc').classList.remove('active');
+    e.target.classList.add('active');
+    currentSort = 'desc';
+    tableLimit = 10;
+    renderDetailedTable();
+  });
+
+  document.getElementById('sort-asc')?.addEventListener('click', (e) => {
+    document.getElementById('sort-desc').classList.remove('active');
+    e.target.classList.add('active');
+    currentSort = 'asc';
+    tableLimit = 10;
+    renderDetailedTable();
+  });
+
+  // Bind Load More button
+  document.getElementById('btn-load-more')?.addEventListener('click', () => {
+    tableLimit += 15;
+    renderDetailedTable();
+  });
+
+  // Initial load: 7 days default
+  loadAnalytics('7');
+</script>

@@ -7,15 +7,16 @@ body {
 
 /* Layout Grid structure */
 .admin-layout-container {
-  display: flex;
+  display: grid;
+  grid-template-columns: 17rem 1fr minmax(0, 75rem) 1fr;
   min-height: 100vh;
   width: 100vw;
-  overflow-x: hidden;
   position: relative;
 }
 
 /* Sidebar Sidenav styles */
 .admin-sidenav {
+  grid-column: 1;
   width: 17rem;
   background-color: #FFFFFF;
   border-left: 1px solid #f0f0f0;
@@ -27,6 +28,7 @@ body {
   z-index: 40;
   flex-shrink: 0;
   direction: rtl;
+  overflow-y: auto;
 }
 
 .platform-brand {
@@ -225,6 +227,7 @@ body {
 
 /* Workspace content wrap */
 .admin-workspace {
+  grid-column: 3;
   flex-grow: 1;
   padding: 2.5rem;
   max-width: 75rem;
@@ -745,6 +748,7 @@ body {
 /* Mobile responsive rules */
 @media (max-width: 768px) {
   .admin-layout-container {
+    display: flex;
     flex-direction: column;
   }
 
