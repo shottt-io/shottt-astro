@@ -43,11 +43,24 @@ function getImageAspectRatio(imageUrl: string | undefined): string {
   if (!imageUrl) return '1';
   try {
     const url = new URL(imageUrl, 'http://localhost');
+    
+    // 1. Check for ratio parameter (e.g. ?ratio=1.5)
     const ratio = url.searchParams.get('ratio');
     if (ratio) {
       const parsed = parseFloat(ratio);
       if (!isNaN(parsed) && parsed > 0) {
         return parsed.toString();
+      }
+    }
+
+    // 2. Check for ar parameter (e.g. ?ar=3:4 or ?ar=2:3)
+    const ar = url.searchParams.get('ar');
+    if (ar && ar.includes(':')) {
+      const parts = ar.split(':');
+      const width = parseFloat(parts[0]);
+      const height = parseFloat(parts[1]);
+      if (!isNaN(width) && !isNaN(height) && height > 0) {
+        return (width / height).toString();
       }
     }
   } catch (e) {}
