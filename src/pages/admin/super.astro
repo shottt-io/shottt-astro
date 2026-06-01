@@ -122,6 +122,13 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
           <span>کاربران ({usersData.length})</span>
         </button>
 
+        <button class="sidenav-link" id="tab-btn-analytics" style="background: none; border: none; text-align: right; width: 100%; cursor: pointer;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="menu-icon-svg">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+          </svg>
+          <span>آنالیتیکس سراسری</span>
+        </button>
+
         <a id="sidenav-tickets-link" href="/admin/super/tickets" class="sidenav-link">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="menu-icon-svg">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
@@ -325,6 +332,117 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
           })}
         </div>
       </div>
+
+      <!-- TAB 3: ANALYTICS -->
+      <div id="tab-content-analytics" class="tab-content" style="display: none;">
+        <!-- CDN for ApexCharts -->
+        <script is:inline src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+        <div class="admin-page-actions" style="direction: rtl; margin-bottom: 2rem;">
+          <h1 class="page-title-bold">آنالیتیکس سراسری</h1>
+          <div class="range-selector">
+            <button class="range-btn" data-range="today">امروز</button>
+            <button class="range-btn active" data-range="7">۷ روز گذشته</button>
+            <button class="range-btn" data-range="30">۳۰ روز گذشته</button>
+          </div>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="super-kpi-grid">
+          <div class="super-kpi-card">
+            <div class="super-kpi-icon-box" style="background:#eef2ff; color:#4f46e5;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:1.75rem;height:1.75rem;">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                <polyline points="9 22 9 12 15 12 15 22"/>
+              </svg>
+            </div>
+            <div class="super-kpi-content">
+              <span class="super-kpi-label">بازدید صفحه اصلی</span>
+              <h3 class="super-kpi-value" id="s-kpi-hp-views">-</h3>
+            </div>
+          </div>
+
+          <div class="super-kpi-card">
+            <div class="super-kpi-icon-box" style="background:#f0fdf4; color:#16a34a;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:1.75rem;height:1.75rem;">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+              </svg>
+            </div>
+            <div class="super-kpi-content">
+              <span class="super-kpi-label">بازدیدکننده یکتای صفحه اصلی</span>
+              <h3 class="super-kpi-value" id="s-kpi-hp-unique">-</h3>
+            </div>
+          </div>
+
+          <div class="super-kpi-card">
+            <div class="super-kpi-icon-box" style="background:#fef3c7; color:#d97706;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:1.75rem;height:1.75rem;">
+                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </div>
+            <div class="super-kpi-content">
+              <span class="super-kpi-label">کل بازدید کاتالوگ‌ها</span>
+              <h3 class="super-kpi-value" id="s-kpi-vendor-views">-</h3>
+            </div>
+          </div>
+
+          <div class="super-kpi-card">
+            <div class="super-kpi-icon-box" style="background:#fdf4ff; color:#9333ea;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:1.75rem;height:1.75rem;">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+            </div>
+            <div class="super-kpi-content">
+              <span class="super-kpi-label">بازدیدکننده یکتای کاتالوگ‌ها</span>
+              <h3 class="super-kpi-value" id="s-kpi-vendor-unique">-</h3>
+            </div>
+          </div>
+        </div>
+
+        <!-- Loading Skeleton -->
+        <div id="super-analytics-skeleton" style="display:flex;flex-direction:column;gap:1.5rem;direction:rtl;">
+          <div style="height:350px;background:linear-gradient(90deg,#f5f5f5 25%,#fafafa 50%,#f5f5f5 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:1.25rem;border:1px solid #f5f5f5;"></div>
+          <div style="height:320px;background:linear-gradient(90deg,#f5f5f5 25%,#fafafa 50%,#f5f5f5 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:1.25rem;border:1px solid #f5f5f5;"></div>
+          <div style="height:300px;background:linear-gradient(90deg,#f5f5f5 25%,#fafafa 50%,#f5f5f5 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:1.25rem;border:1px solid #f5f5f5;"></div>
+        </div>
+
+        <!-- Charts -->
+        <div id="super-analytics-content" style="display:none;flex-direction:column;gap:1.5rem;direction:rtl;">
+
+          <!-- Homepage Visits Line Chart -->
+          <div class="admin-card" style="padding:1.75rem;">
+            <div style="text-align:right;margin-bottom:1.5rem;">
+              <h3 style="font-size:1.125rem;font-weight:600;color:#171717;">روند بازدید صفحه اصلی</h3>
+              <p style="font-size:0.8125rem;color:#a3a3a3;margin-top:0.25rem;">تعداد کل بازدید در مقابل بازدیدکنندگان یکتا</p>
+            </div>
+            <div id="s-chart-homepage"></div>
+          </div>
+
+          <!-- Vendor Visits Area Chart -->
+          <div class="admin-card" style="padding:1.75rem;">
+            <div style="text-align:right;margin-bottom:1.5rem;">
+              <h3 style="font-size:1.125rem;font-weight:600;color:#171717;">روند بازدید کل کاتالوگ‌ها</h3>
+              <p style="font-size:0.8125rem;color:#a3a3a3;margin-top:0.25rem;">مجموع بازدید از همه مجموعه‌ها در بازه زمانی انتخابی</p>
+            </div>
+            <div id="s-chart-vendors"></div>
+          </div>
+
+          <!-- Top Vendors Bar Chart -->
+          <div class="admin-card" style="padding:1.75rem;">
+            <div style="text-align:right;margin-bottom:1.5rem;">
+              <h3 style="font-size:1.125rem;font-weight:600;color:#171717;">۱۰ مجموعه پربازدید</h3>
+              <p style="font-size:0.8125rem;color:#a3a3a3;margin-top:0.25rem;">مجموعه‌هایی که بیشترین بازدید را در بازه انتخابی داشته‌اند</p>
+            </div>
+            <div id="s-chart-top-vendors"></div>
+          </div>
+
+        </div>
+      </div>
       
     </div>
   </div>
@@ -502,27 +620,207 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
   // Tab Navigation Switching
   const tabBtnVendors = document.getElementById('tab-btn-vendors');
   const tabBtnUsers = document.getElementById('tab-btn-users');
+  const tabBtnAnalytics = document.getElementById('tab-btn-analytics');
   const tabContentVendors = document.getElementById('tab-content-vendors');
   const tabContentUsers = document.getElementById('tab-content-users');
+  const tabContentAnalytics = document.getElementById('tab-content-analytics');
 
-  function switchTab(activeTab: 'vendors' | 'users') {
+  let analyticsLoaded = false;
+  let activeAnalyticsRange = '7';
+  let sHomepageChart: any = null;
+  let sVendorsChart: any = null;
+  let sTopVendorsChart: any = null;
+
+  function switchTab(activeTab: 'vendors' | 'users' | 'analytics') {
+    tabBtnVendors?.classList.remove('active');
+    tabBtnUsers?.classList.remove('active');
+    tabBtnAnalytics?.classList.remove('active');
+    if (tabContentVendors) tabContentVendors.style.display = 'none';
+    if (tabContentUsers) tabContentUsers.style.display = 'none';
+    if (tabContentAnalytics) tabContentAnalytics.style.display = 'none';
+
     if (activeTab === 'vendors') {
       tabBtnVendors?.classList.add('active');
-      tabBtnUsers?.classList.remove('active');
       if (tabContentVendors) tabContentVendors.style.display = 'block';
-      if (tabContentUsers) tabContentUsers.style.display = 'none';
-    } else {
-      tabBtnVendors?.classList.remove('active');
+    } else if (activeTab === 'users') {
       tabBtnUsers?.classList.add('active');
-      if (tabContentVendors) tabContentVendors.style.display = 'none';
       if (tabContentUsers) tabContentUsers.style.display = 'block';
+    } else {
+      tabBtnAnalytics?.classList.add('active');
+      if (tabContentAnalytics) tabContentAnalytics.style.display = 'block';
+      if (!analyticsLoaded) {
+        loadSuperAnalytics(activeAnalyticsRange);
+        analyticsLoaded = true;
+      }
     }
-    // Close mobile nav drawer when tab is switched
     closeNav();
   }
 
   tabBtnVendors?.addEventListener('click', () => switchTab('vendors'));
   tabBtnUsers?.addEventListener('click', () => switchTab('users'));
+  tabBtnAnalytics?.addEventListener('click', () => switchTab('analytics'));
+
+  // Range filter buttons for super analytics
+  document.querySelectorAll('#tab-content-analytics .range-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#tab-content-analytics .range-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeAnalyticsRange = btn.getAttribute('data-range') || '7';
+      analyticsLoaded = false;
+      loadSuperAnalytics(activeAnalyticsRange);
+      analyticsLoaded = true;
+    });
+  });
+
+  function formatPersianDateSuper(dateStr: string): string {
+    try {
+      const parts = dateStr.split('-');
+      const dateObj = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+      return new Intl.DateTimeFormat('fa-IR', { month: 'numeric', day: 'numeric' }).format(dateObj);
+    } catch(e) {
+      return dateStr;
+    }
+  }
+
+  function animateValue(id: string, end: number) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const duration = 700;
+    const start = 0;
+    const startTime = performance.now();
+    function tick(now: number) {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      el.textContent = Math.round(start + (end - start) * eased).toLocaleString('fa-IR');
+      if (progress < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  async function loadSuperAnalytics(range: string) {
+    const skeleton = document.getElementById('super-analytics-skeleton');
+    const content = document.getElementById('super-analytics-content');
+    if (skeleton) skeleton.style.display = 'flex';
+    if (content) content.style.display = 'none';
+
+    try {
+      const res = await fetch(`/api/super/analytics?range=${range}`);
+      const json = await res.json();
+      if (!json.success) return;
+
+      const { homepage, vendors: vendorData, vendorSummary } = json.data;
+
+      // KPIs
+      const hpViews = homepage.reduce((a: number, d: any) => a + d.pageViews, 0);
+      const hpUnique = homepage.reduce((a: number, d: any) => a + d.uniqueVisits, 0);
+      const vViews = vendorData.reduce((a: number, d: any) => a + d.pageViews, 0);
+      const vUnique = vendorData.reduce((a: number, d: any) => a + d.uniqueVisits, 0);
+      animateValue('s-kpi-hp-views', hpViews);
+      animateValue('s-kpi-hp-unique', hpUnique);
+      animateValue('s-kpi-vendor-views', vViews);
+      animateValue('s-kpi-vendor-unique', vUnique);
+
+      const isSingleDay = range === 'today';
+      const hpCategories = homepage.map((d: any) => formatPersianDateSuper(d.date));
+      const hpViewing = homepage.map((d: any) => d.pageViews);
+      const hpUniqueArr = homepage.map((d: any) => d.uniqueVisits);
+      const hpMax = Math.max(...hpViewing, ...hpUniqueArr, 1);
+
+      const homepageOptions: any = {
+        series: [
+          { name: 'کل بازدید صفحه اصلی', data: hpViewing },
+          { name: 'بازدیدکننده یکتا', data: hpUniqueArr }
+        ],
+        chart: { height: 320, type: 'area', fontFamily: 'Estedad, sans-serif', toolbar: { show: false }, zoom: { enabled: false } },
+        colors: ['#4f46e5', '#059669'],
+        fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.35, opacityTo: 0.02, stops: [0, 90, 100] } },
+        dataLabels: { enabled: false },
+        stroke: { curve: 'smooth', width: 2 },
+        markers: { size: isSingleDay ? 5 : 0, hover: { size: 7 } },
+        xaxis: { categories: hpCategories, labels: { style: { colors: '#737373', fontSize: '11px' } }, axisBorder: { show: false }, axisTicks: { show: false } },
+        yaxis: { opposite: true, min: 0, tickAmount: Math.min(4, hpMax), labels: { formatter: (v: number) => Math.round(v).toLocaleString('fa-IR'), style: { colors: '#737373', fontSize: '11px' } } },
+        grid: { borderColor: '#f5f5f5', strokeDashArray: 4 },
+        tooltip: { inverseOrder: true, style: { fontSize: '12px', fontFamily: 'Estedad, sans-serif' } },
+        legend: { position: 'top', horizontalAlign: 'right', fontFamily: 'Estedad, sans-serif', labels: { colors: '#171717' } }
+      };
+      if (sHomepageChart) {
+        sHomepageChart.updateOptions(homepageOptions);
+      } else {
+        sHomepageChart = new (window as any).ApexCharts(document.querySelector('#s-chart-homepage'), homepageOptions);
+        sHomepageChart.render();
+      }
+
+      // Vendor visits chart
+      const vCategories = vendorData.map((d: any) => formatPersianDateSuper(d.date));
+      const vViewArr = vendorData.map((d: any) => d.pageViews);
+      const vUniqueArr = vendorData.map((d: any) => d.uniqueVisits);
+      const vMax = Math.max(...vViewArr, ...vUniqueArr, 1);
+
+      const vendorsOptions: any = {
+        series: [
+          { name: 'کل بازدید کاتالوگ‌ها', data: vViewArr },
+          { name: 'بازدیدکننده یکتا', data: vUniqueArr }
+        ],
+        chart: { height: 320, type: 'area', fontFamily: 'Estedad, sans-serif', toolbar: { show: false }, zoom: { enabled: false } },
+        colors: ['#f59e0b', '#9333ea'],
+        fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.35, opacityTo: 0.02, stops: [0, 90, 100] } },
+        dataLabels: { enabled: false },
+        stroke: { curve: 'smooth', width: 2 },
+        markers: { size: isSingleDay ? 5 : 0, hover: { size: 7 } },
+        xaxis: { categories: vCategories, labels: { style: { colors: '#737373', fontSize: '11px' } }, axisBorder: { show: false }, axisTicks: { show: false } },
+        yaxis: { opposite: true, min: 0, tickAmount: Math.min(4, vMax), labels: { formatter: (v: number) => Math.round(v).toLocaleString('fa-IR'), style: { colors: '#737373', fontSize: '11px' } } },
+        grid: { borderColor: '#f5f5f5', strokeDashArray: 4 },
+        tooltip: { inverseOrder: true, style: { fontSize: '12px', fontFamily: 'Estedad, sans-serif' } },
+        legend: { position: 'top', horizontalAlign: 'right', fontFamily: 'Estedad, sans-serif', labels: { colors: '#171717' } }
+      };
+      if (sVendorsChart) {
+        sVendorsChart.updateOptions(vendorsOptions);
+      } else {
+        sVendorsChart = new (window as any).ApexCharts(document.querySelector('#s-chart-vendors'), vendorsOptions);
+        sVendorsChart.render();
+      }
+
+      // Top vendors bar chart
+      const topNames = vendorSummary.map((v: any) => v.name);
+      const topViews = vendorSummary.map((v: any) => v.totalPageViews);
+      const topMax = Math.max(...topViews, 1);
+
+      const topVendorsOptions: any = {
+        series: [{ name: 'کل بازدید', data: topViews }],
+        chart: { type: 'bar', height: Math.max(220, vendorSummary.length * 40), fontFamily: 'Estedad, sans-serif', toolbar: { show: false } },
+        plotOptions: { bar: { borderRadius: 5, horizontal: true, barHeight: '55%', distributed: false } },
+        colors: ['#6366f1'],
+        dataLabels: {
+          enabled: true, textAnchor: 'start',
+          style: { colors: ['#ffffff'], fontSize: '11px', fontFamily: 'Estedad, sans-serif' },
+          formatter: (val: number) => val.toLocaleString('fa-IR') + ' بار',
+          offsetX: 10
+        },
+        xaxis: {
+          categories: topNames,
+          min: 0,
+          tickAmount: Math.min(5, topMax),
+          labels: { formatter: (v: number) => Math.round(v).toLocaleString('fa-IR'), style: { colors: '#737373', fontSize: '11px' } },
+          axisBorder: { show: false }, axisTicks: { show: false }
+        },
+        yaxis: { opposite: true, labels: { style: { colors: '#171717', fontSize: '11px', fontWeight: 500 } } },
+        grid: { borderColor: '#f5f5f5', strokeDashArray: 4, xaxis: { lines: { show: true } }, yaxis: { lines: { show: false } } },
+        tooltip: { style: { fontSize: '12px', fontFamily: 'Estedad, sans-serif' } }
+      };
+      if (sTopVendorsChart) {
+        sTopVendorsChart.updateOptions(topVendorsOptions);
+      } else {
+        sTopVendorsChart = new (window as any).ApexCharts(document.querySelector('#s-chart-top-vendors'), topVendorsOptions);
+        sTopVendorsChart.render();
+      }
+
+      if (skeleton) skeleton.style.display = 'none';
+      if (content) { content.style.display = 'flex'; }
+    } catch(e) {
+      console.error('Super analytics load error:', e);
+    }
+  }
 
   // Vendor Mode Fields Toggle
   const selectVendorMode = document.getElementById('select-vendor-mode') as HTMLSelectElement;
@@ -1005,5 +1303,114 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
   .sortable-header[data-dir="asc"] .sort-icon,
   .sortable-header[data-dir="desc"] .sort-icon {
     color: #171717;
+  }
+
+  /* ── Super Analytics Tab Styles ────────────────────────── */
+
+  /* Range selector */
+  .range-selector {
+    display: flex;
+    background-color: #f5f5f5;
+    padding: 0.25rem;
+    border-radius: 0.75rem;
+    gap: 0.125rem;
+  }
+
+  .range-btn {
+    border: none;
+    background: transparent;
+    padding: 0.5rem 1rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #737373;
+    cursor: pointer;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+    font-family: inherit;
+  }
+
+  .range-btn.active {
+    background-color: #ffffff;
+    color: #171717;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+
+  /* KPI grid — 4 cards (2x2 on mobile) */
+  .super-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+    direction: rtl;
+  }
+
+  @media (max-width: 900px) {
+    .super-kpi-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 500px) {
+    .super-kpi-grid {
+      grid-template-columns: repeat(1, minmax(0, 1fr));
+    }
+  }
+
+  .super-kpi-card {
+    background-color: #ffffff;
+    border-radius: 1.25rem;
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    border: 1px solid #f5f5f5;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.01), 0 1px 2px rgba(0,0,0,0.02);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .super-kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.03);
+  }
+
+  .super-kpi-icon-box {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 0.875rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .super-kpi-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    text-align: right;
+    min-width: 0;
+  }
+
+  .super-kpi-label {
+    font-size: 0.75rem;
+    color: #737373;
+    font-weight: 300;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .super-kpi-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #171717;
+    line-height: 1.2;
+    margin-top: 0.125rem;
+  }
+
+  /* Shimmer animation for skeletons */
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
   }
 </style>

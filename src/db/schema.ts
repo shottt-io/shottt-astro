@@ -99,7 +99,14 @@ export interface DBTicketMessage {
   createdAt: string; // ISO String
 }
 
-// 9. Tickets Table
+// 9. Homepage Daily Metrics (Landing page visits)
+export const homepageDailyMetrics = pgTable('homepage_daily_metrics', {
+  date: date('date').notNull().primaryKey(),
+  pageViews: integer('page_views').default(0).notNull(),
+  uniqueVisits: integer('unique_visits').default(0).notNull(),
+});
+
+// 10. Tickets Table
 export const tickets = pgTable('tickets', {
   id: serial('id').primaryKey(),
   vendorId: integer('vendor_id').references(() => vendors.id, { onDelete: 'cascade' }).notNull(),

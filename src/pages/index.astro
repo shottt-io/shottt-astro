@@ -219,6 +219,29 @@ while (marqueeItems.length > 0 && marqueeItems.length < 8) {
         }
       });
     }
+
+    // ── Homepage Analytics Tracking ──────────────────────────────────────
+    // Fire-and-forget: track every page view and deduplicate unique visits
+    // within a 1-hour window using sessionStorage (same logic as vendor pages).
+    (function trackHomepageVisit() {
+      const SESSION_KEY = 'hp_unique_visit_ts';
+      const ONE_HOUR = 60 * 60 * 1000;
+
+      const now = Date.now();
+      const lastVisitStr = sessionStorage.getItem(SESSION_KEY);
+      const lastVisit = lastVisitStr ? parseInt(lastVisitStr, 10) : 0;
+      const isUnique = (now - lastVisit) > ONE_HOUR;
+
+      if (isUnique) {
+        sessionStorage.setItem(SESSION_KEY, String(now));
+      }
+
+      fetch('/api/analytics/homepage-track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pageView: true, uniqueVisit: isUnique }),
+      }).catch(() => {});
+    })();
   </script>
 </Layout>
 
