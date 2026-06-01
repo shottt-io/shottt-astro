@@ -1,6 +1,7 @@
 ---
 import type { Category, MenuItem } from '../data/vendors';
 import SectionDivider from './SectionDivider.astro';
+import { formatPrice, formatPriceWithUnit } from '../utils/price';
 
 interface Props {
   categories: Category[];
@@ -131,11 +132,11 @@ function getImageAspectRatio(imageUrl: string | undefined): string {
                         <div class="price-container">
                           {item.discount ? (
                             <>
-                              <span class="price-tag price-old">{item.discount.originalPrice}</span>
-                              <span class="price-tag price-new">{item.price}</span>
+                              <span class="price-tag price-old">{formatPrice(item.discount.originalPrice)}</span>
+                              <span class="price-tag price-new">{formatPrice(item.price)}</span>
                             </>
                           ) : (
-                            <span class="price-tag">{item.price}</span>
+                            <span class="price-tag">{formatPrice(item.price)}</span>
                           )}
                         </div>
                       </div>
@@ -198,11 +199,11 @@ function getImageAspectRatio(imageUrl: string | undefined): string {
                             <div class="price-container">
                               {item.discount ? (
                                 <>
-                                  <span class="price-tag price-old">{item.discount.originalPrice}</span>
-                                  <span class="price-tag price-new">{item.price}</span>
+                                  <span class="price-tag price-old">{formatPrice(item.discount.originalPrice)}</span>
+                                  <span class="price-tag price-new">{formatPrice(item.price)}</span>
                                 </>
                               ) : (
-                                <span class="price-tag">{item.price}</span>
+                                <span class="price-tag">{formatPrice(item.price)}</span>
                               )}
                             </div>
                           </div>
@@ -261,11 +262,11 @@ function getImageAspectRatio(imageUrl: string | undefined): string {
                             <div class="price-container">
                               {item.discount ? (
                                 <>
-                                  <span class="price-tag price-old">{item.discount.originalPrice}</span>
-                                  <span class="price-tag price-new">{item.price}</span>
+                                  <span class="price-tag price-old">{formatPrice(item.discount.originalPrice)}</span>
+                                  <span class="price-tag price-new">{formatPrice(item.price)}</span>
                                 </>
                               ) : (
-                                <span class="price-tag">{item.price}</span>
+                                <span class="price-tag">{formatPrice(item.price)}</span>
                               )}
                             </div>
                           </div>
@@ -335,11 +336,11 @@ function getImageAspectRatio(imageUrl: string | undefined): string {
                     <div class="card-price-container">
                       {item.discount ? (
                         <>
-                          <span class="price-tag price-old">{item.discount.originalPrice}</span>
-                          <span class="price-tag price-new">{item.price}</span>
+                          <span class="price-tag price-old">{formatPriceWithUnit(item.discount.originalPrice)}</span>
+                          <span class="price-tag price-new">{formatPriceWithUnit(item.price)}</span>
                         </>
                       ) : (
-                        <span class="price-tag">{item.price}</span>
+                        <span class="price-tag">{formatPriceWithUnit(item.price)}</span>
                       )}
                     </div>
                   </div>
@@ -397,11 +398,11 @@ function getImageAspectRatio(imageUrl: string | undefined): string {
                   <div class="price-container text-left">
                     {item.discount ? (
                       <>
-                        <span class="price-tag price-old">{item.discount.originalPrice}</span>
-                        <span class="price-tag price-new">{item.price}</span>
+                        <span class="price-tag price-old">{formatPriceWithUnit(item.discount.originalPrice)}</span>
+                        <span class="price-tag price-new">{formatPriceWithUnit(item.price)}</span>
                       </>
                     ) : (
-                      <span class="price-tag">{item.price}</span>
+                      <span class="price-tag">{formatPriceWithUnit(item.price)}</span>
                     )}
                   </div>
                 </div>

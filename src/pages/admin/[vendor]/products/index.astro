@@ -7,6 +7,7 @@ import {
   menuItems as menuItemsTable 
 } from '../../../../db/schema';
 import { eq, asc } from 'drizzle-orm';
+import { formatPrice } from '../../../../utils/price';
 
 const vendorSlug = Astro.params.vendor;
 if (!vendorSlug) {
@@ -127,7 +128,7 @@ const items = await db
                           <span class="status-badge status-badge-inactive">غیرفعال</span>
                         )}
                       </div>
-                      <span class="item-desc-sub">{item.price} هزار تومان {item.span2 && ' • دو ستونه'}</span>
+                      <span class="item-desc-sub">{formatPrice(item.price)} هزار تومان {item.span2 && ' • دو ستونه'}</span>
                     </div>
                   </div>
                   

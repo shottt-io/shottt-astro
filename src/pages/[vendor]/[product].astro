@@ -3,6 +3,7 @@ import Layout from '../../layouts/Layout.astro';
 import { db } from '../../db/db';
 import { vendors as vendorsTable, menuItems as menuItemsTable, categories as categoriesTable } from '../../db/schema';
 import { eq } from 'drizzle-orm';
+import { formatPriceWithUnit } from '../../utils/price';
 
 const vendorSlug = Astro.params.vendor;
 const productIdStr = Astro.params.product;
@@ -159,11 +160,11 @@ const canonicalUrl = new URL(canonicalPath, Astro.url.origin).toString();
           <div class="product-detail-prices" style={product.status === 'unavailable' ? 'opacity: 0.5;' : ''}>
             {product.discount ? (
               <>
-                <span class="price-tag price-old detail-price-tag">{product.discount.originalPrice}</span>
-                <span class="price-tag price-new detail-price-tag">{product.price}</span>
+                <span class="price-tag price-old detail-price-tag">{formatPriceWithUnit(product.discount.originalPrice)}</span>
+                <span class="price-tag price-new detail-price-tag">{formatPriceWithUnit(product.price)}</span>
               </>
             ) : (
-              <span class="price-tag detail-price-tag">{product.price}</span>
+              <span class="price-tag detail-price-tag">{formatPriceWithUnit(product.price)}</span>
             )}
           </div>
         </div>

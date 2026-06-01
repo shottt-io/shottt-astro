@@ -202,7 +202,7 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
                   <th class="sortable-header" data-sort="active" data-dir="" style="cursor: pointer; position: relative;">
                     آخرین فعالیت <span class="sort-icon">⇅</span>
                   </th>
-                  <th style="width: 150px; text-align: center;">عملیات</th>
+                  <th style="width: 240px; text-align: center;">عملیات</th>
                 </tr>
               </thead>
               <tbody id="vendors-table-body">
@@ -237,6 +237,9 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
                       <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
                         <a href={`/admin/${v.slug}/products`} class="btn btn-secondary" style="font-size: 0.75rem; padding: 0.3rem 0.6rem;">
                           پنل مجموعه
+                        </a>
+                        <a href={`/${v.slug}`} target="_blank" class="btn btn-secondary" style="font-size: 0.75rem; padding: 0.3rem 0.6rem;">
+                          نمایش کاتالوگ
                         </a>
                         <button class="btn-icon btn-icon-danger btn-delete-vendor" data-id={v.id} data-name={v.name} title="حذف مجموعه">
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="list-icon-svg">
