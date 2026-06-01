@@ -97,7 +97,7 @@ const dbTickets = await db
                   <span class={`status-badge ${statusClass}`}>{statusText}</span>
                 </div>
                 <div class="ticket-item-bottom">
-                  <span class="ticket-item-date">{formattedDate}</span>
+                  <span class="ticket-item-date local-ticket-date" data-date={t.updatedAt ? new Date(t.updatedAt).toISOString() : ''}>{formattedDate}</span>
                   <span class="ticket-item-preview">
                     {t.messages[t.messages.length - 1]?.message || ''}
                   </span>
@@ -822,6 +822,24 @@ const dbTickets = await db
   const chatPane = document.getElementById('chat-pane');
   const chatContainer = document.getElementById('chat-container');
   const listItems = document.querySelectorAll('.ticket-list-item');
+
+  // Helper to format ticket dates
+  function formatTicketDate(date: Date) {
+    return date.toLocaleDateString('fa-IR', {
+      hour: '2-digit',
+      minute: '2-digit',
+      month: 'short',
+      day: 'numeric'
+    });
+  }
+
+  // Localize dates on page load
+  document.querySelectorAll('.local-ticket-date').forEach((el: any) => {
+    const dateStr = el.getAttribute('data-date');
+    if (dateStr) {
+      el.textContent = formatTicketDate(new Date(dateStr));
+    }
+  });
   
   // Active Ticket state
   let activeTicketId: number | null = null;
@@ -1109,6 +1127,13 @@ const dbTickets = await db
             badge.className = 'status-badge';
             // Since it's sent by vendor, it reverts status to Open (unless closed)
             badge.textContent = 'باز';
+          }
+
+          const dateEl = listItem.querySelector('.ticket-item-date');
+          if (dateEl) {
+            const now = new Date();
+            dateEl.textContent = formatTicketDate(now);
+            dateEl.setAttribute('data-date', now.toISOString());
           }
         }
 

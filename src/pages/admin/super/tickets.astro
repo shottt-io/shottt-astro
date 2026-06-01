@@ -194,8 +194,8 @@ const ticketsList = await db
                       مجموعه: {t.vendorName} ({t.userName})
                     </div>
                     <div class="ticket-item-bottom" style="margin-top: 0.25rem;">
-                      <span class="ticket-item-date">{formattedDate}</span>
-                      <span class="ticket-item-preview">
+                       <span class="ticket-item-date local-ticket-date" data-date={t.updatedAt ? new Date(t.updatedAt).toISOString() : ''}>{formattedDate}</span>
+                       <span class="ticket-item-preview">
                         {t.messages[t.messages.length - 1]?.message || ''}
                       </span>
                     </div>
@@ -862,6 +862,24 @@ const ticketsList = await db
   const listItems = document.querySelectorAll('.ticket-list-item');
   const filterPills = document.querySelectorAll('.filter-pill');
 
+  // Helper to format ticket dates
+  function formatTicketDate(date: Date) {
+    return date.toLocaleDateString('fa-IR', {
+      hour: '2-digit',
+      minute: '2-digit',
+      month: 'short',
+      day: 'numeric'
+    });
+  }
+
+  // Localize dates on page load
+  document.querySelectorAll('.local-ticket-date').forEach((el: any) => {
+    const dateStr = el.getAttribute('data-date');
+    if (dateStr) {
+      el.textContent = formatTicketDate(new Date(dateStr));
+    }
+  });
+
   let activeTicketId: number | null = null;
   let activeTicketData: any = null;
 
@@ -1121,6 +1139,13 @@ const ticketsList = await db
             badge.className = 'status-badge status-answered';
             badge.textContent = 'پاسخ داده شده';
           }
+
+          const dateEl = listItem.querySelector('.ticket-item-date');
+          if (dateEl) {
+            const now = new Date();
+            dateEl.textContent = formatTicketDate(now);
+            dateEl.setAttribute('data-date', now.toISOString());
+          }
         }
 
         renderMessages(data.messages);
@@ -1175,6 +1200,13 @@ const ticketsList = await db
               badge.classList.add('status-open');
               badge.textContent = 'باز';
             }
+          }
+
+          const dateEl = listItem.querySelector('.ticket-item-date');
+          if (dateEl) {
+            const now = new Date();
+            dateEl.textContent = formatTicketDate(now);
+            dateEl.setAttribute('data-date', now.toISOString());
           }
         }
 
