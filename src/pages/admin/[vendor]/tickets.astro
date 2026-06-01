@@ -93,12 +93,7 @@ const dbTickets = await db
             return (
               <div class="ticket-list-item" data-id={t.id} data-ticket={JSON.stringify(t)}>
                 <div class="ticket-item-top">
-                  <div style="display: flex; align-items: center; gap: 0.5rem; max-width: 70%; overflow: hidden;">
-                    {!t.seenByVendor && (
-                      <span class="unread-dot" style="width: 8px; height: 8px; background-color: #ef4444; border-radius: 50%; display: inline-block; flex-shrink: 0;" title="خوانده نشده"></span>
-                    )}
-                    <span class="ticket-item-title">{t.title}</span>
-                  </div>
+                  <span class="ticket-item-title">{t.title}</span>
                   <span class={`status-badge ${statusClass}`}>{statusText}</span>
                 </div>
                 <div class="ticket-item-bottom">
@@ -906,15 +901,14 @@ const dbTickets = await db
         body: JSON.stringify({ ticketId: ticket.id })
       }).then(res => res.json()).then(data => {
         if (data.success) {
-          const listItem = document.querySelector(`.ticket-list-item[data-id="${ticket.id}"]`);
-          const dot = listItem?.querySelector('.unread-dot');
-          if (dot) dot.remove();
           ticket.seenByVendor = true;
+          const listItem = document.querySelector(`.ticket-list-item[data-id="${ticket.id}"]`);
           if (listItem) {
             const tData = JSON.parse(listItem.getAttribute('data-ticket') || '{}');
             tData.seenByVendor = true;
             listItem.setAttribute('data-ticket', JSON.stringify(tData));
           }
+          refreshSidenavDot();
         }
       }).catch(err => console.error('Error marking seen:', err));
     }
@@ -1287,4 +1281,30 @@ const dbTickets = await db
       imageLightbox.style.display = 'none';
     }
   });
+
+  function refreshSidenavDot() {
+    const ticketsLink = document.getElementById('sidenav-tickets-link');
+    if (!ticketsLink) return;
+    const vendorSlugVal = window.location.pathname.split('/')[2];
+    
+    fetch(`/api/tickets/unread?vendorSlug=${vendorSlugVal}`)
+      .then(res => res.json())
+      .then(data => {
+        const dot = ticketsLink.querySelector('.sidenav-unread-dot');
+        if (data.success && data.hasUnread) {
+          if (!dot) {
+            const newDot = document.createElement('span');
+            newDot.className = 'sidenav-unread-dot';
+            newDot.style.cssText = 'width: 8px; height: 8px; background-color: #ef4444; border-radius: 50%; margin-right: auto;';
+            ticketsLink.appendChild(newDot);
+          }
+        } else {
+          if (dot) dot.remove();
+        }
+      })
+      .catch(err => console.error('Error checking unread status:', err));
+  }
+
+  // Initial lazy check
+  refreshSidenavDot();
 </script>

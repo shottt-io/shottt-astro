@@ -98,7 +98,7 @@ const ticketsList = await db
           <span>کاربران</span>
         </a>
 
-        <a href="/admin/super/tickets" class="sidenav-link active">
+        <a id="sidenav-tickets-link" href="/admin/super/tickets" class="sidenav-link active">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="menu-icon-svg">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
           </svg>
@@ -187,12 +187,7 @@ const ticketsList = await db
                 return (
                   <div class="ticket-list-item" data-id={t.id} data-status={t.status} data-ticket={JSON.stringify(t)}>
                     <div class="ticket-item-top">
-                      <div style="display: flex; align-items: center; gap: 0.5rem; max-width: 70%; overflow: hidden;">
-                        {!t.seenBySuper && (
-                          <span class="unread-dot" style="width: 8px; height: 8px; background-color: #ef4444; border-radius: 50%; display: inline-block; flex-shrink: 0;" title="پیام جدید خوانده‌نشده"></span>
-                        )}
-                        <span class="ticket-item-title">{t.title}</span>
-                      </div>
+                      <span class="ticket-item-title">{t.title}</span>
                       <span class={`status-badge ${statusClass}`}>{statusText}</span>
                     </div>
                     <div style="font-size: 0.6875rem; color: #171717; margin-top: 0.125rem; font-weight: 500;">
@@ -940,15 +935,14 @@ const ticketsList = await db
         body: JSON.stringify({ ticketId: ticket.id })
       }).then(res => res.json()).then(data => {
         if (data.success) {
-          const listItem = document.querySelector(`.ticket-list-item[data-id="${ticket.id}"]`);
-          const dot = listItem?.querySelector('.unread-dot');
-          if (dot) dot.remove();
           ticket.seenBySuper = true;
+          const listItem = document.querySelector(`.ticket-list-item[data-id="${ticket.id}"]`);
           if (listItem) {
             const tData = JSON.parse(listItem.getAttribute('data-ticket') || '{}');
             tData.seenBySuper = true;
             listItem.setAttribute('data-ticket', JSON.stringify(tData));
           }
+          refreshSidenavDot();
         }
       }).catch(err => console.error('Error marking seen:', err));
     }
@@ -1211,4 +1205,29 @@ const ticketsList = await db
       imageLightbox.style.display = 'none';
     }
   });
+
+  function refreshSidenavDot() {
+    const ticketsLink = document.getElementById('sidenav-tickets-link');
+    if (!ticketsLink) return;
+    
+    fetch('/api/tickets/unread')
+      .then(res => res.json())
+      .then(data => {
+        const dot = ticketsLink.querySelector('.sidenav-unread-dot');
+        if (data.success && data.hasUnread) {
+          if (!dot) {
+            const newDot = document.createElement('span');
+            newDot.className = 'sidenav-unread-dot';
+            newDot.style.cssText = 'width: 8px; height: 8px; background-color: #ef4444; border-radius: 50%; margin-right: auto;';
+            ticketsLink.appendChild(newDot);
+          }
+        } else {
+          if (dot) dot.remove();
+        }
+      })
+      .catch(err => console.error('Error checking unread status:', err));
+  }
+
+  // Initial lazy check
+  refreshSidenavDot();
 </script>
