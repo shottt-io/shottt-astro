@@ -148,9 +148,9 @@ while (marqueeItems.length > 0 && marqueeItems.length < 8) {
     )}
   </main>
 
-  <script>
+  <script is:inline>
     const priceTrigger = document.getElementById('price-trigger');
-    const dialog = document.getElementById('info-dialog') as HTMLDialogElement;
+    const dialog = document.getElementById('info-dialog');
     const closeDialog = document.getElementById('close-dialog');
 
     if (priceTrigger && dialog) {
@@ -186,7 +186,7 @@ while (marqueeItems.length > 0 && marqueeItems.length < 8) {
 
     // Terms Dialog Logic
     const termsTrigger = document.getElementById('terms-trigger');
-    const termsDialog = document.getElementById('terms-dialog') as HTMLDialogElement;
+    const termsDialog = document.getElementById('terms-dialog');
     const closeTermsDialog = document.getElementById('close-terms-dialog');
 
     if (termsTrigger && termsDialog) {
@@ -221,25 +221,42 @@ while (marqueeItems.length > 0 && marqueeItems.length < 8) {
     }
 
     // ── Homepage Analytics Tracking ──────────────────────────────────────
-    // Fire-and-forget: track every page view and deduplicate unique visits
-    // within a 1-hour window using sessionStorage (same logic as vendor pages).
-    (function trackHomepageVisit() {
-      const SESSION_KEY = 'hp_unique_visit_ts';
-      const ONE_HOUR = 60 * 60 * 1000;
+    (function() {
+      if (typeof window === 'undefined' || typeof window.fetch === 'undefined') return;
 
+      const storage = {
+        get(key) { try { return localStorage.getItem(key); } catch(e) { return null; } },
+        set(key, val) { try { localStorage.setItem(key, val); } catch(e) {} },
+        remove(key) { try { localStorage.removeItem(key); } catch(e) {} }
+      };
+
+      const SESSION_DURATION = 1 * 60 * 60 * 1000;
+      const sessionKey = 'hp_session_id';
+      const expiryKey = 'hp_session_expiry';
+      const visitKey = 'hp_visit_sent';
+
+      let sessionId = storage.get(sessionKey);
+      let sessionExpiry = storage.get(expiryKey);
       const now = Date.now();
-      const lastVisitStr = sessionStorage.getItem(SESSION_KEY);
-      const lastVisit = lastVisitStr ? parseInt(lastVisitStr, 10) : 0;
-      const isUnique = (now - lastVisit) > ONE_HOUR;
 
-      if (isUnique) {
-        sessionStorage.setItem(SESSION_KEY, String(now));
+      if (!sessionId || !sessionExpiry || now > parseInt(sessionExpiry, 10)) {
+        sessionId = Math.random().toString(36).substring(2, 15);
+        storage.set(sessionKey, sessionId);
+        storage.set(expiryKey, (now + SESSION_DURATION).toString());
+        storage.remove(visitKey);
       }
 
-      fetch('/api/analytics/homepage-track', {
+      let uniqueVisit = false;
+      if (storage.get(visitKey) !== 'true') {
+        uniqueVisit = true;
+        storage.set(visitKey, 'true');
+      }
+
+      fetch(`/api/analytics/homepage-track?v=${now}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pageView: true, uniqueVisit: isUnique }),
+        body: JSON.stringify({ pageView: true, uniqueVisit: uniqueVisit }),
+        keepalive: true
       }).catch(() => {});
     })();
   </script>
