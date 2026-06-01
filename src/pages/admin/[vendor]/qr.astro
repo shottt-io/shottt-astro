@@ -22,7 +22,10 @@ if (vendorList.length === 0) {
 const vendor = vendorList[0];
 
 // Build direct link using the request URL origin
-const customerUrl = new URL(`/${vendorSlug}`, Astro.url).toString();
+let customerUrl = new URL(`/${vendorSlug}`, Astro.url).toString();
+if (Astro.url.hostname !== 'localhost' && Astro.url.hostname !== '127.0.0.1') {
+  customerUrl = customerUrl.replace(/^http:/, 'https:');
+}
 ---
 
 <AdminLayout title="دانلود کیوآر و لینک مشتری" activeTab="qr" vendorSlug={vendorSlug}>
@@ -51,20 +54,22 @@ const customerUrl = new URL(`/${vendorSlug}`, Astro.url).toString();
   <div class="qr-grid-container">
     <!-- Link Card -->
     <div class="admin-card text-right-align">
-      <h2 class="card-section-title">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="card-title-icon">
-          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-        </svg>
-        <span>لینک مستقیم مشتری</span>
-      </h2>
-      <p class="card-section-desc">این آدرس اختصاصی کاتالوگ دیجیتال مجموعه شماست. می‌توانید آن را در بیو اینستاگرام، کانال‌های ارتباطی یا پیامک‌های تبلیغاتی خود قرار دهید.</p>
+      <div style="width: 100%;">
+        <h2 class="card-section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="card-title-icon">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+          </svg>
+          <span>لینک مستقیم مشتری</span>
+        </h2>
+        <p class="card-section-desc">این آدرس اختصاصی کاتالوگ دیجیتال مجموعه شماست. می‌توانید آن را در بیو اینستاگرام، کانال‌های ارتباطی یا پیامک‌های تبلیغاتی خود قرار دهید.</p>
+      </div>
 
-      <div class="form-group" style="margin-top: 1.5rem; margin-bottom: 0;">
+      <div class="form-group" style="margin-top: 1.5rem; margin-bottom: 0; width: 100%;">
         <label class="form-label">آدرس کاتالوگ دیجیتال</label>
         <div class="copy-url-wrapper">
           <input type="text" id="customer-url-input" class="form-input ltr-input" value={customerUrl} readonly />
-          <button type="button" id="btn-copy-url" class="btn btn-primary">کپی لینک</button>
+          <button type="button" id="btn-copy-url" class="btn btn-primary btn-full" style="padding: 0.85rem; font-weight: 500;">کپی لینک کاتالوگ</button>
         </div>
       </div>
     </div>
@@ -216,7 +221,7 @@ const customerUrl = new URL(`/${vendorSlug}`, Astro.url).toString();
     text-align: right;
     display: flex;
     flex-direction: column;
-    justify-content: flex-start;
+    justify-content: space-between;
   }
 
   .qr-card-align {
@@ -252,8 +257,8 @@ const customerUrl = new URL(`/${vendorSlug}`, Astro.url).toString();
 
   .copy-url-wrapper {
     display: flex;
-    gap: 0.5rem;
-    align-items: center;
+    flex-direction: column;
+    gap: 0.75rem;
     margin-top: 0.5rem;
     width: 100%;
   }
