@@ -1,0 +1,296 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { db } from '../../../db/db';
+import { vendors as vendorsTable } from '../../../db/schema';
+import { eq } from 'drizzle-orm';
+
+const vendorSlug = Astro.params.vendor;
+if (!vendorSlug) {
+  return Astro.redirect('/admin');
+}
+
+// Fetch vendor settings
+const vendorList = await db
+  .select()
+  .from(vendorsTable)
+  .where(eq(vendorsTable.slug, vendorSlug))
+  .limit(1);
+
+if (vendorList.length === 0) {
+  return new Response("مجموعه یافت نشد.", { status: 404 });
+}
+const vendor = vendorList[0];
+
+// Build direct link using the request URL origin
+const customerUrl = new URL(`/${vendorSlug}`, Astro.url).toString();
+---
+
+<AdminLayout title="دانلود کیوآر و لینک مشتری" activeTab="qr" vendorSlug={vendorSlug}>
+  <!-- CDN dependencies for QRCode library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.1/qrcode.min.js" is:inline crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <!-- Onboarding banner -->
+  <div class="onboarding-banner">
+    <div class="onboarding-icon-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width: 1.125rem; height: 1.125rem;">
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="16" x2="12" y2="12" />
+        <line x1="12" y1="8" x2="12.01" y2="8" />
+      </svg>
+    </div>
+    <div class="onboarding-text-box">
+      <span class="onboarding-title">راهنمای استفاده از کد QR و لینک مستقیم</span>
+      <p class="onboarding-desc">شما با قرار دادن لینک مستقیم کاتالوگ در شبکه‌های اجتماعی خود، به مشتریان آنلاین کمک می‌کنید تا سریع‌تر به منوی شما دسترسی پیدا کنند. همچنین می‌توانید تصویر باکیفیت کد QR را دانلود کرده، چاپ کنید و بر روی میزها، کانتر پذیرش یا شیشه مغازه بچسبانید تا مشتریان حضوری با اسکن آن، فوراً منو را ببینند.</p>
+    </div>
+  </div>
+
+  <div class="admin-page-actions">
+    <h1 class="page-title-bold">دانلود کیوآر و لینک مشتری</h1>
+  </div>
+
+  <div class="qr-grid-container">
+    <!-- Link Card -->
+    <div class="admin-card text-right-align">
+      <h2 class="card-section-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="card-title-icon">
+          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+        </svg>
+        <span>لینک مستقیم مشتری</span>
+      </h2>
+      <p class="card-section-desc">این آدرس اختصاصی کاتالوگ دیجیتال مجموعه شماست. می‌توانید آن را در بیو اینستاگرام، کانال‌های ارتباطی یا پیامک‌های تبلیغاتی خود قرار دهید.</p>
+
+      <div class="form-group" style="margin-top: 1.5rem; margin-bottom: 0;">
+        <label class="form-label">آدرس کاتالوگ دیجیتال</label>
+        <div class="copy-url-wrapper">
+          <input type="text" id="customer-url-input" class="form-input ltr-input" value={customerUrl} readonly />
+          <button type="button" id="btn-copy-url" class="btn btn-primary">کپی لینک</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- QR Code Card -->
+    <div class="admin-card qr-card-align">
+      <div style="width: 100%;">
+        <h2 class="card-section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="card-title-icon">
+            <rect x="3" y="3" width="7" height="7" />
+            <rect x="14" y="3" width="7" height="7" />
+            <rect x="3" y="14" width="7" height="7" />
+            <path d="M14 14h3v3h-3z" />
+            <path d="M21 14h-3v3h3z" />
+            <path d="M14 21h7v-4h-7z" />
+          </svg>
+          <span>کد QR اختصاصی کاتالوگ</span>
+        </h2>
+        <p class="card-section-desc">با قرار دادن این کد روی میزها یا پیشخوان، مشتریان با اسکن آن توسط دوربین موبایل خود فوراً منو را باز می‌کنند.</p>
+      </div>
+
+      <!-- High-res QR Render Container -->
+      <div class="qr-render-box">
+        <img id="qr-preview" style="width: 100%; height: 100%; display: none; border-radius: 0.5rem;" alt="QR Code Preview" />
+        <div id="qr-loading" class="qr-loading-text">در حال تولید کد QR...</div>
+      </div>
+
+      <button type="button" id="btn-download-qr" class="btn btn-primary btn-full" style="padding: 0.85rem; font-weight: 500;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width: 1.125rem; height: 1.125rem;">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+          <polyline points="7 10 12 15 17 10" />
+          <line x1="12" y1="15" x2="12" y2="3" />
+        </svg>
+        <span>دانلود کیو‌آر کد با کیفیت بالا (PNG)</span>
+      </button>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  const copyBtn = document.getElementById('btn-copy-url');
+  const urlInput = document.getElementById('customer-url-input') as HTMLInputElement;
+
+  copyBtn?.addEventListener('click', async () => {
+    if (!urlInput) return;
+    try {
+      await navigator.clipboard.writeText(urlInput.value);
+      
+      const originalText = copyBtn.innerText;
+      copyBtn.innerText = 'کپی شد! ✓';
+      copyBtn.style.backgroundColor = '#16a34a';
+      
+      // Custom visual alert dialog defined in layout
+      // @ts-ignore
+      if (window.showAlertDialog) {
+        // @ts-ignore
+        await window.showAlertDialog('لینک مستقیم کاتالوگ با موفقیت در حافظه کپی شد.', {
+          type: 'success',
+          okText: 'باشه'
+        });
+      }
+      
+      setTimeout(() => {
+        copyBtn.innerText = originalText;
+        copyBtn.style.backgroundColor = '';
+      }, 2000);
+
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+      // @ts-ignore
+      if (window.showAlertDialog) {
+        // @ts-ignore
+        await window.showAlertDialog('خطا در کپی کردن لینک. لطفا آدرس را به صورت دستی کپی کنید.', {
+          type: 'error',
+          okText: 'باشه'
+        });
+      }
+    }
+  });
+
+  function generateQRCode() {
+    const qrPreview = document.getElementById('qr-preview') as HTMLImageElement;
+    const qrLoading = document.getElementById('qr-loading');
+    const url = urlInput?.value;
+
+    if (!url) return;
+
+    // @ts-ignore
+    if (typeof QRCode !== 'undefined') {
+      // @ts-ignore
+      QRCode.toDataURL(url, {
+        width: 600,
+        margin: 2,
+        color: {
+          dark: '#171717',
+          light: '#ffffff'
+        }
+      }, (err: any, dataUrl: string) => {
+        if (err) {
+          console.error(err);
+          if (qrLoading) qrLoading.textContent = 'خطا در تولید کد QR';
+          return;
+        }
+        if (qrPreview) {
+          qrPreview.src = dataUrl;
+          qrPreview.style.display = 'block';
+        }
+        if (qrLoading) {
+          qrLoading.style.display = 'none';
+        }
+      });
+    } else {
+      // Retry in 100ms in case CDN is loading asynchronously
+      setTimeout(generateQRCode, 100);
+    }
+  }
+
+  // Trigger QR generation
+  generateQRCode();
+
+  const downloadBtn = document.getElementById('btn-download-qr');
+  downloadBtn?.addEventListener('click', () => {
+    const qrPreview = document.getElementById('qr-preview') as HTMLImageElement;
+    if (!qrPreview || !qrPreview.src) return;
+
+    const slug = getVendorSlug();
+    const link = document.createElement('a');
+    link.download = `${slug}-qr-code.png`;
+    link.href = qrPreview.src;
+    link.click();
+  });
+
+  function getVendorSlug() {
+    const parts = window.location.pathname.split('/');
+    return parts[2]; // /admin/[vendorSlug]/qr
+  }
+</script>
+
+<style>
+  .qr-grid-container {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+    direction: rtl;
+  }
+
+  .text-right-align {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+  }
+
+  .qr-card-align {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+  }
+
+  .card-section-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #171717;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .card-title-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    color: #171717;
+  }
+
+  .card-section-desc {
+    font-size: 0.75rem;
+    color: #737373;
+    line-height: 1.6;
+  }
+
+  .copy-url-wrapper {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin-top: 0.5rem;
+    width: 100%;
+  }
+
+  .ltr-input {
+    direction: ltr;
+    font-weight: 500;
+    background-color: #fafafa;
+    border-color: #e5e5e5;
+    font-family: monospace !important;
+    text-align: left;
+    flex-grow: 1;
+  }
+
+  .qr-render-box {
+    background: #ffffff;
+    padding: 1rem;
+    border-radius: 1.25rem;
+    border: 1px solid #f0f0f0;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 220px;
+    height: 220px;
+    position: relative;
+    box-sizing: border-box;
+  }
+
+  .qr-loading-text {
+    font-size: 0.8125rem;
+    color: #a3a3a3;
+  }
+
+  @media (max-width: 768px) {
+    .qr-grid-container {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
