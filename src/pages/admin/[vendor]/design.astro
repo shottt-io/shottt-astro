@@ -1,8 +1,8 @@
 ---
 import AdminLayout from '../../../layouts/AdminLayout.astro';
 import { db } from '../../../db/db';
-import { vendors as vendorsTable } from '../../../db/schema';
-import { eq } from 'drizzle-orm';
+import { vendors as vendorsTable, categories as categoriesTable, menuItems as menuItemsTable } from '../../../db/schema';
+import { eq, inArray } from 'drizzle-orm';
 
 const vendorSlug = Astro.params.vendor;
 if (!vendorSlug) {
@@ -20,6 +20,28 @@ if (vendorList.length === 0) {
   return new Response("مجموعه یافت نشد.", { status: 404 });
 }
 const vendor = vendorList[0];
+
+// Fetch categories for this vendor to retrieve all menu items
+const categories = await db
+  .select()
+  .from(categoriesTable)
+  .where(eq(categoriesTable.vendorId, vendor.id));
+
+const categoryIds = categories.map(c => c.id);
+let items = [];
+if (categoryIds.length > 0) {
+  items = await db
+    .select()
+    .from(menuItemsTable)
+    .where(inArray(menuItemsTable.categoryId, categoryIds));
+}
+
+const totalItems = items.length;
+const itemsWithImage = items.filter(item => item.image && item.image.trim() !== '').length;
+const itemsWithDesc = items.filter(item => item.description && item.description.trim() !== '').length;
+
+const imagePercent = totalItems > 0 ? Math.round((itemsWithImage / totalItems) * 100) : 0;
+const descPercent = totalItems > 0 ? Math.round((itemsWithDesc / totalItems) * 100) : 0;
 ---
 
 <AdminLayout title="طراحی و قالب کاتالوگ" activeTab="design" vendorSlug={vendorSlug}>
@@ -43,7 +65,7 @@ const vendor = vendorList[0];
   </div>
 
   <div class="admin-card">
-    <form id="design-settings-form" style="display: flex; flex-direction: column; gap: 1.5rem;">
+    <form id="design-settings-form" style="display: flex; flex-direction: column; gap: 1.5rem;" data-total-items={totalItems} data-image-percent={imagePercent} data-desc-percent={descPercent}>
       <input type="hidden" id="selected-layout" name="defaultLayout" value={vendor.defaultLayout} />
       
       <div class="form-group">
@@ -132,6 +154,21 @@ const vendor = vendorList[0];
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+
+        <!-- Suggestion Banner for Layout selection -->
+        <div id="layout-suggestion-banner" class="suggestion-banner" style="display: none;">
+          <div class="suggestion-icon-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width: 1.25rem; height: 1.25rem;">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="16" x2="12" y2="12" />
+              <line x1="12" y1="8" x2="12.01" y2="8" />
+            </svg>
+          </div>
+          <div class="suggestion-text-box">
+            <span class="suggestion-title">پیشنهاد بهبود طراحی کاتالوگ</span>
+            <p id="layout-suggestion-text" class="suggestion-desc"></p>
           </div>
         </div>
       </div>
@@ -223,6 +260,42 @@ const vendor = vendorList[0];
   // UI interaction for layout radio cards
   const layoutCards = document.querySelectorAll('.layout-radio-card');
   const layoutInputHidden = document.getElementById('selected-layout') as HTMLInputElement;
+  const suggestionBanner = document.getElementById('layout-suggestion-banner');
+  const suggestionText = document.getElementById('layout-suggestion-text');
+  const designForm = document.getElementById('design-settings-form');
+  
+  const imagePercent = parseInt(designForm?.getAttribute('data-image-percent') || '0', 10);
+  const descPercent = parseInt(designForm?.getAttribute('data-desc-percent') || '0', 10);
+
+  function checkLayoutRecommendation(layout: string) {
+    if (!suggestionBanner || !suggestionText) return;
+
+    if (layout === 'pinterest') {
+      if (imagePercent < 60) {
+        suggestionText.textContent = `با توجه به اینکه تنها ${imagePercent}٪ از محصولات شما دارای عکس هستند، پیشنهاد می‌شود از قالب «ساده و متنی (کامپکت)» استفاده کنید. در قالب پینترستی (ماسونری)، عدم وجود عکس برای اکثر محصولات باعث ایجاد فضاهای خالی بزرگ و نامنظم و در نتیجه افت کیفیت بصری کاتالوگ می‌شود.`;
+        suggestionBanner.style.display = 'flex';
+      } else {
+        suggestionBanner.style.display = 'none';
+      }
+    } else if (layout === 'card') {
+      if (imagePercent < 40 || descPercent < 40) {
+        let reason = '';
+        if (imagePercent < 40 && descPercent < 40) {
+          reason = `تنها ${imagePercent}٪ محصولات شما دارای عکس و ${descPercent}٪ دارای توضیحات هستند.`;
+        } else if (imagePercent < 40) {
+          reason = `تنها ${imagePercent}٪ محصولات شما دارای عکس هستند.`;
+        } else {
+          reason = `تنها ${descPercent}٪ محصولات شما دارای توضیحات هستند.`;
+        }
+        suggestionText.textContent = `با توجه به اینکه ${reason} پیشنهاد می‌شود از قالب «ساده و متنی (کامپکت)» استفاده کنید. قالب کارتی برای داشتن ظاهر شکیل نیاز به وجود عکس و توضیحات متنی در اکثر محصولات دارد، در غیر این صورت فضاها خالی و رها شده به نظر می‌رسند.`;
+        suggestionBanner.style.display = 'flex';
+      } else {
+        suggestionBanner.style.display = 'none';
+      }
+    } else {
+      suggestionBanner.style.display = 'none';
+    }
+  }
 
   layoutCards.forEach(card => {
     card.addEventListener('click', () => {
@@ -240,8 +313,14 @@ const vendor = vendorList[0];
 
       const layoutVal = card.getAttribute('data-layout') || 'pinterest';
       layoutInputHidden.value = layoutVal;
+      checkLayoutRecommendation(layoutVal);
     });
   });
+
+  // Initial check on load
+  if (layoutInputHidden) {
+    checkLayoutRecommendation(layoutInputHidden.value);
+  }
 
   // UI interaction for theme radio cards
   const themeCards = document.querySelectorAll('.theme-radio-card');
@@ -658,5 +737,53 @@ const vendor = vendorList[0];
       width: 1.5rem !important;
       height: 1.5px !important;
     }
+  }
+
+  /* Layout Suggestion Banner Styles */
+  .suggestion-banner {
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 0.75rem !important;
+    padding: 1rem !important;
+    background-color: #fffbeb !important; /* Amber 50 */
+    border: 1px solid #fde68a !important; /* Amber 200 */
+    border-radius: 0.75rem !important;
+    margin-top: 1rem !important;
+    direction: rtl !important;
+    animation: fadeInSuggestion 0.25s ease-out !important;
+  }
+
+  @keyframes fadeInSuggestion {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .suggestion-icon-box {
+    color: #d97706 !important; /* Amber 600 */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+    margin-top: 0.125rem !important;
+  }
+
+  .suggestion-text-box {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.25rem !important;
+  }
+
+  .suggestion-title {
+    font-size: 0.8125rem !important;
+    font-weight: 600 !important;
+    color: #92400e !important; /* Amber 800 */
+    margin: 0 !important;
+  }
+
+  .suggestion-desc {
+    font-size: 0.75rem !important;
+    color: #b45309 !important; /* Amber 700 */
+    line-height: 1.6 !important;
+    margin: 0 !important;
   }
 </style>
