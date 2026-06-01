@@ -360,32 +360,7 @@ function getImageAspectRatio(imageUrl: string | undefined): string {
                 data-item-id={item.id}
               >
                 <div class="list-right">
-                  <div class="list-info">
-                    <div style="display: flex; align-items: center; gap: 0.375rem;">
-                      <h3 class="list-title">{item.name}</h3>
-                      {item.status === 'unavailable' && (
-                        <span class="compact-unavailable-badge">ناموجود</span>
-                      )}
-                    </div>
-                    {item.discount && item.status !== 'unavailable' && (
-                      <span class="list-discount-badge">{item.discount.discountText}</span>
-                    )}
-                  </div>
-                  
-                  <div class="price-container">
-                    {item.discount ? (
-                      <>
-                        <span class="price-tag price-old">{item.discount.originalPrice}</span>
-                        <span class="price-tag price-new">{item.price}</span>
-                      </>
-                    ) : (
-                      <span class="price-tag">{item.price}</span>
-                    )}
-                  </div>
-                </div>
-                
-                {item.image && (
-                  <div class="list-left">
+                  {item.image && (
                     <div class="mini-thumb-wrapper">
                       <img
                         src={item.image}
@@ -403,8 +378,33 @@ function getImageAspectRatio(imageUrl: string | undefined): string {
                         </svg>
                       </div>
                     </div>
+                  )}
+                  
+                  <div class="list-info">
+                    <div style="display: flex; align-items: center; gap: 0.375rem;">
+                      <h3 class="list-title">{item.name}</h3>
+                      {item.status === 'unavailable' && (
+                        <span class="compact-unavailable-badge">ناموجود</span>
+                      )}
+                    </div>
+                    {item.discount && item.status !== 'unavailable' && (
+                      <span class="list-discount-badge">{item.discount.discountText}</span>
+                    )}
                   </div>
-                )}
+                </div>
+                
+                <div class="list-left">
+                  <div class="price-container text-left">
+                    {item.discount ? (
+                      <>
+                        <span class="price-tag price-old">{item.discount.originalPrice}</span>
+                        <span class="price-tag price-new">{item.price}</span>
+                      </>
+                    ) : (
+                      <span class="price-tag">{item.price}</span>
+                    )}
+                  </div>
+                </div>
               </a>
             ))}
           </div>
@@ -700,22 +700,17 @@ function getImageAspectRatio(imageUrl: string | undefined): string {
 
   .list-right {
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.35rem;
+    align-items: center;
+    gap: 0.75rem;
     min-width: 0; /* Allow title to truncate */
     flex: 1 1 auto;
   }
 
-  .list-right .price-container {
-    margin-right: 0;
-  }
-
   .mini-thumb-wrapper {
     position: relative;
-    width: 2.75rem;
-    height: 2.75rem;
-    border-radius: 0.75rem;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.5rem;
     overflow: hidden;
     background: var(--bg-secondary, #f5f5f5);
     background-image: linear-gradient(90deg, var(--bg-secondary, #f5f5f5) 0px, var(--bg-primary, #ffffff) 20px, var(--bg-secondary, #f5f5f5) 40px);
@@ -726,8 +721,8 @@ function getImageAspectRatio(imageUrl: string | undefined): string {
 
   @media (min-width: 640px) {
     .mini-thumb-wrapper {
-      width: 3.25rem;
-      height: 3.25rem;
+      width: 2.5rem;
+      height: 2.5rem;
     }
   }
 
@@ -745,31 +740,6 @@ function getImageAspectRatio(imageUrl: string | undefined): string {
 
   .mini-fallback {
     min-height: 100%;
-  }
-
-  .mini-thumb-placeholder {
-    width: 2.75rem;
-    height: 2.75rem;
-    border-radius: 0.75rem;
-    background-color: var(--bg-secondary, #f5f5f5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-secondary, #a3a3a3);
-    flex-shrink: 0;
-  }
-
-  @media (min-width: 640px) {
-    .mini-thumb-placeholder {
-      width: 3.25rem;
-      height: 3.25rem;
-      border-radius: 0.75rem;
-    }
-  }
-
-  .mini-placeholder-icon {
-    width: 1rem;
-    height: 1rem;
   }
 
   .list-info {
