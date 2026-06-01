@@ -24,6 +24,8 @@ export const vendors = pgTable('vendors', {
   logoIcon: varchar('logo_icon', { length: 50 }).notNull(),
   logo: varchar('logo', { length: 2048 }).notNull(),
   city: varchar('city', { length: 255 }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  lastActiveAt: timestamp('last_active_at', { withTimezone: true }).defaultNow().notNull(),
 });
 
 // 2. Categories Table
@@ -105,6 +107,8 @@ export const tickets = pgTable('tickets', {
   title: varchar('title', { length: 255 }).notNull(),
   status: varchar('status', { length: 50 }).default('open').notNull(), // 'open', 'answered', 'closed'
   messages: jsonb('messages').$type<DBTicketMessage[]>().default([]).notNull(),
+  seenByVendor: boolean('seen_by_vendor').default(true).notNull(),
+  seenBySuper: boolean('seen_by_super').default(false).notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 });

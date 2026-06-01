@@ -93,7 +93,12 @@ const dbTickets = await db
             return (
               <div class="ticket-list-item" data-id={t.id} data-ticket={JSON.stringify(t)}>
                 <div class="ticket-item-top">
-                  <span class="ticket-item-title">{t.title}</span>
+                  <div style="display: flex; align-items: center; gap: 0.5rem; max-width: 70%; overflow: hidden;">
+                    {!t.seenByVendor && (
+                      <span class="unread-dot" style="width: 8px; height: 8px; background-color: #ef4444; border-radius: 50%; display: inline-block; flex-shrink: 0;" title="خوانده نشده"></span>
+                    )}
+                    <span class="ticket-item-title">{t.title}</span>
+                  </div>
                   <span class={`status-badge ${statusClass}`}>{statusText}</span>
                 </div>
                 <div class="ticket-item-bottom">
@@ -892,6 +897,27 @@ const dbTickets = await db
   function openTicketChat(ticket: any) {
     activeTicketId = ticket.id;
     activeTicketData = ticket;
+
+    // Mark as seen/read
+    if (!ticket.seenByVendor) {
+      fetch('/api/tickets/seen', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ticketId: ticket.id })
+      }).then(res => res.json()).then(data => {
+        if (data.success) {
+          const listItem = document.querySelector(`.ticket-list-item[data-id="${ticket.id}"]`);
+          const dot = listItem?.querySelector('.unread-dot');
+          if (dot) dot.remove();
+          ticket.seenByVendor = true;
+          if (listItem) {
+            const tData = JSON.parse(listItem.getAttribute('data-ticket') || '{}');
+            tData.seenByVendor = true;
+            listItem.setAttribute('data-ticket', JSON.stringify(tData));
+          }
+        }
+      }).catch(err => console.error('Error marking seen:', err));
+    }
 
     // Toggle container classes
     workspace?.classList.add('chat-active');

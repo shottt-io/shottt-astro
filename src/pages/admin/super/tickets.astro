@@ -23,6 +23,8 @@ const ticketsList = await db
     title: ticketsTable.title,
     status: ticketsTable.status,
     messages: ticketsTable.messages,
+    seenByVendor: ticketsTable.seenByVendor,
+    seenBySuper: ticketsTable.seenBySuper,
     createdAt: ticketsTable.createdAt,
     updatedAt: ticketsTable.updatedAt,
     vendorName: vendorsTable.name,
@@ -185,7 +187,12 @@ const ticketsList = await db
                 return (
                   <div class="ticket-list-item" data-id={t.id} data-status={t.status} data-ticket={JSON.stringify(t)}>
                     <div class="ticket-item-top">
-                      <span class="ticket-item-title">{t.title}</span>
+                      <div style="display: flex; align-items: center; gap: 0.5rem; max-width: 70%; overflow: hidden;">
+                        {!t.seenBySuper && (
+                          <span class="unread-dot" style="width: 8px; height: 8px; background-color: #ef4444; border-radius: 50%; display: inline-block; flex-shrink: 0;" title="پیام جدید خوانده‌نشده"></span>
+                        )}
+                        <span class="ticket-item-title">{t.title}</span>
+                      </div>
                       <span class={`status-badge ${statusClass}`}>{statusText}</span>
                     </div>
                     <div style="font-size: 0.6875rem; color: #171717; margin-top: 0.125rem; font-weight: 500;">
@@ -924,6 +931,27 @@ const ticketsList = await db
   function openTicketChat(ticket: any) {
     activeTicketId = ticket.id;
     activeTicketData = ticket;
+
+    // Mark as seen/read
+    if (!ticket.seenBySuper) {
+      fetch('/api/tickets/seen', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ticketId: ticket.id })
+      }).then(res => res.json()).then(data => {
+        if (data.success) {
+          const listItem = document.querySelector(`.ticket-list-item[data-id="${ticket.id}"]`);
+          const dot = listItem?.querySelector('.unread-dot');
+          if (dot) dot.remove();
+          ticket.seenBySuper = true;
+          if (listItem) {
+            const tData = JSON.parse(listItem.getAttribute('data-ticket') || '{}');
+            tData.seenBySuper = true;
+            listItem.setAttribute('data-ticket', JSON.stringify(tData));
+          }
+        }
+      }).catch(err => console.error('Error marking seen:', err));
+    }
 
     workspace?.classList.add('chat-active');
     chatPane?.classList.remove('empty');

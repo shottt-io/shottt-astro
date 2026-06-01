@@ -52,6 +52,14 @@ if (session) {
   if (hasAccess.length === 0) {
     redirectUrl = '/admin';
   } else {
+    // Update vendor activity timestamp on page loads (exclude super admin)
+    if (session.username !== 'super') {
+      await db
+        .update(vendorsTable)
+        .set({ lastActiveAt: new Date() })
+        .where(eq(vendorsTable.id, vendor.id));
+    }
+
     // 4. Query user vendor count
     const userVendors = await db
       .select({ id: vendorUsersTable.id })

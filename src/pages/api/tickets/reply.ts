@@ -62,12 +62,16 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     
     // 4. Update status: Super admin reply sets it to 'answered', vendor admin reply resets to 'open'
     const newStatus = session.username === 'super' ? 'answered' : 'open';
+    const seenByVendor = session.username === 'super' ? false : true;
+    const seenBySuper = session.username === 'super' ? true : false;
 
     await db
       .update(tickets)
       .set({
         messages: updatedMessages,
         status: newStatus,
+        seenByVendor,
+        seenBySuper,
         updatedAt: new Date(),
       })
       .where(eq(tickets.id, ticket.id));

@@ -54,6 +54,8 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         title,
         status: 'open',
         messages: [initialMessage],
+        seenByVendor: true,
+        seenBySuper: false,
       })
       .returning({ id: tickets.id });
 
