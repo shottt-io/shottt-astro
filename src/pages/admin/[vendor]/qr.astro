@@ -29,8 +29,8 @@ if (Astro.url.hostname !== 'localhost' && Astro.url.hostname !== '127.0.0.1') {
 ---
 
 <AdminLayout title="دانلود کیوآر و لینک مشتری" activeTab="qr" vendorSlug={vendorSlug}>
-  <!-- CDN dependencies for QRCode library -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.1/qrcode.min.js" is:inline crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <!-- Local QRCode library -->
+  <script src="/js/qrcode.min.js" is:inline></script>
 
   <!-- Onboarding banner -->
   <div class="onboarding-banner">
