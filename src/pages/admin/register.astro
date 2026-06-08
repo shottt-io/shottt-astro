@@ -1,6 +1,8 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import '../../styles/admin.css';
+
+const domainName = Astro.url.host;
 ---
 
 <Layout title="ثبت‌نام مجموعه جدید در شات" description="ایجاد کاتالوگ دیجیتال و منوی آنلاین اختصاصی به صورت رایگان">
@@ -33,7 +35,7 @@ import '../../styles/admin.css';
           <div class="form-group">
             <label for="slug" class="form-label">آدرس اینترنتی مجموعه (شناسه انگلیسی) *</label>
             <div style="position: relative; display: flex; align-items: center; width: 100%;">
-              <span class="slug-prefix" style="direction: ltr; display: inline-block; text-align: left; position: absolute; left: 1rem; font-size: 0.875rem; color: #a3a3a3; user-select: none;">shottt.io/</span>
+              <span class="slug-prefix" style="direction: ltr; display: inline-block; text-align: left; position: absolute; left: 1rem; font-size: 0.875rem; color: #a3a3a3; user-select: none;">{domainName}/</span>
               <input 
                 type="text" 
                 id="slug" 
@@ -41,11 +43,11 @@ import '../../styles/admin.css';
                 class="form-input" 
                 placeholder="lumiere" 
                 required 
-                style="direction: ltr; padding-left: 5.5rem; text-align: left; width: 100%;"
+                style={`direction: ltr; padding-left: ${(domainName.length + 1) * 0.5 + 0.75}rem; text-align: left; width: 100%;`}
               />
             </div>
             <span style="font-size: 0.75rem; color: #737373; margin-top: 0.5rem; line-height: 1.6; display: block; text-align: justify;">
-              آدرس کاتالوگ شما در بستر شات خواهد بود. به عنوان مثال اگر عبارت <strong style="color: #171717; font-weight: 600;">lumiere</strong> را وارد کنید، آدرس کاتالوگ شما <strong style="direction: ltr; display: inline-block; color: #171717; font-weight: 600;">shottt.io/lumiere</strong> خواهد شد. (فقط حروف انگلیسی کوچک، اعداد و خط تیره -)
+              آدرس کاتالوگ شما در بستر شات خواهد بود. به عنوان مثال اگر عبارت <strong style="color: #171717; font-weight: 600;">lumiere</strong> را وارد کنید، آدرس کاتالوگ شما <strong style="direction: ltr; display: inline-block; color: #171717; font-weight: 600;">{domainName}/lumiere</strong> خواهد شد. (فقط حروف انگلیسی کوچک، اعداد و خط تیره -)
             </span>
           </div>
 

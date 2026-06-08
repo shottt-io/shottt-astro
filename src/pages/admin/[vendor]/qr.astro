@@ -3,6 +3,7 @@ import AdminLayout from '../../../layouts/AdminLayout.astro';
 import { db } from '../../../db/db';
 import { vendors as vendorsTable } from '../../../db/schema';
 import { eq } from 'drizzle-orm';
+import { SITE_URL } from '../../../config/region';
 
 const vendorSlug = Astro.params.vendor;
 if (!vendorSlug) {
@@ -21,9 +22,12 @@ if (vendorList.length === 0) {
 }
 const vendor = vendorList[0];
 
-// Build direct link using the request URL origin
-let customerUrl = new URL(`/${vendorSlug}`, Astro.url).toString();
-if (Astro.url.hostname !== 'localhost' && Astro.url.hostname !== '127.0.0.1') {
+// Build direct link using SITE_URL if configured, otherwise fallback to request URL origin
+let customerUrl = SITE_URL 
+  ? `${SITE_URL.endsWith('/') ? SITE_URL.slice(0, -1) : SITE_URL}/${vendorSlug}`
+  : new URL(`/${vendorSlug}`, Astro.url).toString();
+
+if (!SITE_URL && Astro.url.hostname !== 'localhost' && Astro.url.hostname !== '127.0.0.1') {
   customerUrl = customerUrl.replace(/^http:/, 'https:');
 }
 ---

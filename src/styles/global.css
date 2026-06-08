@@ -1,7 +1,5 @@
-/* Google Fonts Outfit Import (Must precede all other statements) */
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&display=swap');
-
 /* Local Estedad font-face declarations (weights: 300, 400, 500, 700, 900) */
+
 @font-face {
   font-family: 'Estedad';
   font-style: normal;

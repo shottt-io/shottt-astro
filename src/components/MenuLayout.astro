@@ -2,6 +2,9 @@
 import type { Category, MenuItem } from '../data/vendors';
 import SectionDivider from './SectionDivider.astro';
 import { formatPrice, formatPriceWithUnit } from '../utils/price';
+import { getLocale } from '../utils/i18n';
+
+const locale = getLocale(Astro.cookies, Astro.request);
 
 interface Props {
   categories: Category[];
@@ -336,11 +339,11 @@ function getImageAspectRatio(imageUrl: string | undefined): string {
                     <div class="card-price-container">
                       {item.discount ? (
                         <>
-                          <span class="price-tag price-old">{formatPriceWithUnit(item.discount.originalPrice)}</span>
-                          <span class="price-tag price-new">{formatPriceWithUnit(item.price)}</span>
+                          <span class="price-tag price-old">{formatPriceWithUnit(item.discount.originalPrice, locale)}</span>
+                          <span class="price-tag price-new">{formatPriceWithUnit(item.price, locale)}</span>
                         </>
                       ) : (
-                        <span class="price-tag">{formatPriceWithUnit(item.price)}</span>
+                        <span class="price-tag">{formatPriceWithUnit(item.price, locale)}</span>
                       )}
                     </div>
                   </div>

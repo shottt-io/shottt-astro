@@ -25,3 +25,7 @@ pnpm-debug.log*
 
 # uploads
 public/uploads/
+
+# Vercel
+.vercel/
+

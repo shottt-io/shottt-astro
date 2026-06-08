@@ -95,8 +95,8 @@ export const POST: APIRoute = async ({ request }) => {
     });
   } catch (error) {
     console.error('Analytics tracking error:', error);
-    return new Response(JSON.stringify({ success: false, message: 'Internal server error' }), {
-      status: 500,
+    return new Response(JSON.stringify({ success: false, message: 'Failed to record analytics (database connection issue)' }), {
+      status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
   }

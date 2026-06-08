@@ -1,5 +1,7 @@
 ---
 import '../styles/global.css';
+import { useTranslations } from '../utils/i18n';
+import { SITE_URL } from '../config/region';
 
 interface Props {
   title: string;
@@ -13,13 +15,16 @@ interface Props {
 
 const { 
   title, 
-  description = 'کاتالوگ دیجیتال مدرن مجموعه‌ها', 
   ogImage, 
   canonicalUrl, 
   favicon, 
   theme = 'light',
   twitterCard = 'summary_large_image'
 } = Astro.props;
+
+const { t, locale, dir } = useTranslations(Astro.cookies, Astro.request);
+
+const description = Astro.props.description || t('digitalCatalog');
 
 // Helper to convert relative URLs to absolute URLs
 const makeAbsolute = (url?: string) => {
@@ -28,17 +33,35 @@ const makeAbsolute = (url?: string) => {
     return url;
   }
   const cleanUrl = url.startsWith('/') ? url : `/${url}`;
-  return `${Astro.url.origin}${cleanUrl}`;
+  const base = SITE_URL ? (SITE_URL.endsWith('/') ? SITE_URL.slice(0, -1) : SITE_URL) : Astro.url.origin;
+  return `${base}${cleanUrl}`;
 };
 
 // Fallback chain for Open Graph image: ogImage -> favicon -> default site logo
 const rawImage = ogImage || favicon || '/logo.png';
 const resolvedOgImage = makeAbsolute(rawImage);
-const resolvedCanonicalUrl = canonicalUrl || Astro.url.href;
+
+let resolvedCanonicalUrl = canonicalUrl;
+if (!resolvedCanonicalUrl) {
+  if (SITE_URL) {
+    const base = SITE_URL.endsWith('/') ? SITE_URL.slice(0, -1) : SITE_URL;
+    resolvedCanonicalUrl = `${base}${Astro.url.pathname}${Astro.url.search}`;
+  } else {
+    resolvedCanonicalUrl = Astro.url.href;
+  }
+}
+
+const ogLocaleMap = {
+  fa: 'fa_IR',
+  en: 'en_US',
+  tr: 'tr_TR',
+};
+const ogLocale = ogLocaleMap[locale] || 'en_US';
+const siteName = locale === 'fa' ? 'شات' : 'Shottt';
 ---
 
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<html lang={locale} dir={dir}>
   <head>
     <meta charset="utf-8" />
     {favicon ? (
@@ -63,8 +86,8 @@ const resolvedCanonicalUrl = canonicalUrl || Astro.url.href;
     <meta property="og:description" content={description} />
     {resolvedOgImage && <meta property="og:image" content={resolvedOgImage} />}
     <meta property="og:url" content={resolvedCanonicalUrl} />
-    <meta property="og:site_name" content="شات" />
-    <meta property="og:locale" content="fa_IR" />
+    <meta property="og:site_name" content={siteName} />
+    <meta property="og:locale" content={ogLocale} />
 
     <!-- Twitter -->
     <meta property="twitter:card" content={twitterCard} />
@@ -78,7 +101,14 @@ const resolvedCanonicalUrl = canonicalUrl || Astro.url.href;
     </div>
 
     <!-- Global Custom Confirm Dialog -->
-    <dialog id="global-confirm-dialog" class="custom-confirm-dialog" style="direction: rtl;">
+    <dialog 
+      id="global-confirm-dialog" 
+      class="custom-confirm-dialog" 
+      style={`direction: ${dir};`}
+      data-ok-text={t('confirm')}
+      data-cancel-text={t('cancel')}
+      data-got-it-text={t('gotIt')}
+    >
       <div class="confirm-dialog-wrapper">
         <div class="confirm-dialog-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -91,8 +121,8 @@ const resolvedCanonicalUrl = canonicalUrl || Astro.url.href;
           <p id="global-confirm-message" class="confirm-dialog-message"></p>
         </div>
         <div class="confirm-dialog-actions">
-          <button id="global-confirm-cancel-btn" class="confirm-btn confirm-btn-secondary">انصراف</button>
-          <button id="global-confirm-ok-btn" class="confirm-btn confirm-btn-danger">تایید</button>
+          <button id="global-confirm-cancel-btn" class="confirm-btn confirm-btn-secondary">{t('cancel')}</button>
+          <button id="global-confirm-ok-btn" class="confirm-btn confirm-btn-danger">{t('confirm')}</button>
         </div>
       </div>
     </dialog>
@@ -112,10 +142,13 @@ const resolvedCanonicalUrl = canonicalUrl || Astro.url.href;
           }
           return Promise.resolve(window.confirm(message));
         }
+
+        const defaultOkText = dialog.getAttribute('data-ok-text') || 'Confirm';
+        const defaultCancelText = dialog.getAttribute('data-cancel-text') || 'Cancel';
         
         messageEl.textContent = message;
-        okBtn.textContent = options.okText || 'تایید';
-        cancelBtn.textContent = options.cancelText || 'انصراف';
+        okBtn.textContent = options.okText || defaultOkText;
+        cancelBtn.textContent = options.cancelText || defaultCancelText;
         
         // Handle Dialog Type (success, error, warning, info)
         const type = options.type || (options.isAlert ? 'info' : 'warning');
@@ -187,10 +220,12 @@ const resolvedCanonicalUrl = canonicalUrl || Astro.url.href;
       };
 
       window.showAlertDialog = function(message, options = {}) {
+        const dialog = document.getElementById('global-confirm-dialog');
+        const defaultGotItText = dialog ? (dialog.getAttribute('data-got-it-text') || 'Got it') : 'Got it';
         return window.showConfirmDialog(message, {
           ...options,
           isAlert: true,
-          okText: options.okText || 'متوجه شدم'
+          okText: options.okText || defaultGotItText
         });
       };
     </script>

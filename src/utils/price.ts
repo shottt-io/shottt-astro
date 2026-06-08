@@ -1,3 +1,5 @@
+import { translations, getLocale } from './i18n';
+
 /**
  * Formats a numeric price string or number with standard English digits and thousand separators.
  * E.g., "1450" -> "1,450"
@@ -17,10 +19,23 @@ export function formatPrice(price: string | number | null | undefined): string {
 }
 
 /**
- * Formats a numeric price and appends the "تومان" suffix.
- * E.g., "1450" -> "1,450 تومان"
+ * Formats a numeric price and appends/prepends the localized currency symbol.
+ * E.g., "1450" (fa) -> "1,450 تومان"
+ * E.g., "1450" (tr) -> "1,450 TL"
+ * E.g., "10" (en) -> "$10"
  */
-export function formatPriceWithUnit(price: string | number | null | undefined): string {
+export function formatPriceWithUnit(
+  price: string | number | null | undefined,
+  currentLocale?: string
+): string {
   const formatted = formatPrice(price);
-  return formatted ? `${formatted} تومان` : '';
+  if (!formatted) return '';
+
+  const locale = getLocale(currentLocale);
+  const currency = translations[locale].currency;
+
+  if (locale === 'en') {
+    return `${currency}${formatted}`;
+  }
+  return `${formatted} ${currency}`;
 }
