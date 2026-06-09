@@ -124,7 +124,7 @@ const countryDialCodesJson = JSON.stringify(Object.fromEntries(countries.map(c =
           <div class="form-group">
             <label for="slug" class="form-label">{t('shopUrlSlug')}</label>
             <div style="position: relative; display: flex; align-items: center; width: 100%;">
-              <span class="slug-prefix" style={`direction: ltr; display: inline-block; text-align: left; position: absolute; ${dir === 'rtl' ? 'left: 1rem;' : 'right: 1rem;'} font-size: 0.875rem; color: #a3a3a3; user-select: none;`}>{domainName}/</span>
+              <span class="slug-prefix" style="direction: ltr; display: inline-block; text-align: left; position: absolute; left: 1rem; font-size: 0.875rem; color: #a3a3a3; user-select: none;">{domainName}/</span>
               <input 
                 type="text" 
                 id="slug" 
@@ -132,7 +132,7 @@ const countryDialCodesJson = JSON.stringify(Object.fromEntries(countries.map(c =
                 class="form-input" 
                 placeholder="lumiere" 
                 required 
-                style={`direction: ltr; padding-left: ${dir === 'rtl' ? ((domainName.length + 1) * 0.5 + 0.75) + 'rem;' : '1rem;'} padding-right: ${dir === 'ltr' ? ((domainName.length + 1) * 0.5 + 0.75) + 'rem;' : '1rem;'} text-align: left; width: 100%;`}
+                style={`direction: ltr; padding-left: calc(${domainName.length + 1.5}ch + 1rem); padding-right: 1rem; text-align: left; width: 100%;`}
               />
             </div>
             <span style="font-size: 0.75rem; color: #737373; margin-top: 0.5rem; line-height: 1.6; display: block; text-align: justify;">
@@ -158,18 +158,6 @@ const countryDialCodesJson = JSON.stringify(Object.fromEntries(countries.map(c =
           </div>
 
           <div class="form-group">
-            <label for="city" class="form-label">{t('shopCity')}</label>
-            <input 
-              type="text" 
-              id="city" 
-              name="city" 
-              class="form-input" 
-              placeholder={t('cityPlaceholder')} 
-              required 
-            />
-          </div>
-
-          <div class="form-group">
             <label for="country" class="form-label">{t('shopCountry')}</label>
             <span id="country-data" data-dial-codes={countryDialCodesJson} style="display:none;"></span>
             <select name="country" id="country" class="form-select" required style={dir === 'ltr' ? 'background-position: right 1rem center; padding-right: 2.5rem; padding-left: 1rem;' : ''}>
@@ -185,6 +173,18 @@ const countryDialCodesJson = JSON.stringify(Object.fromEntries(countries.map(c =
                 );
               })}
             </select>
+          </div>
+
+          <div class="form-group">
+            <label for="city" class="form-label">{t('shopCity')}</label>
+            <input 
+              type="text" 
+              id="city" 
+              name="city" 
+              class="form-input" 
+              placeholder={t('cityPlaceholder')} 
+              required 
+            />
           </div>
 
           <div class="form-group" style="margin-top: 1.5rem; border-top: 1px solid #f5f5f5; padding-top: 1.25rem;">
