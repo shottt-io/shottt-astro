@@ -4,7 +4,7 @@ import { getSession } from '../../utils/auth';
 import { db } from '../../db/db';
 import { vendors as vendorsTable, vendorUsers as vendorUsersTable } from '../../db/schema';
 import { eq } from 'drizzle-orm';
-import { useTranslations } from '../../utils/i18n';
+import { useTranslations, getTranslatedType } from '../../utils/i18n';
 import '../../styles/admin.css';
 
 // 1. Get Session
@@ -83,7 +83,7 @@ return Astro.redirect(`/admin/${userVendors[0].slug}`);
             <div class="vendor-admin-card">
               <div class="vendor-cover-wrapper">
                 <img src={vendor.logo} alt={vendor.name} class="vendor-cover-img" />
-                <span class="vendor-type-badge">{vendor.type}</span>
+                <span class="vendor-type-badge">{getTranslatedType(vendor.type, t)}</span>
               </div>
               <div class="vendor-info">
                 <h2 class="vendor-name">{vendor.name}</h2>

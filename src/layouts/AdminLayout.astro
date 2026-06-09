@@ -4,7 +4,7 @@ import { getSession } from '../utils/auth';
 import { db } from '../db/db';
 import { vendors as vendorsTable, vendorUsers as vendorUsersTable } from '../db/schema';
 import { eq, and } from 'drizzle-orm';
-import { useTranslations } from '../utils/i18n';
+import { useTranslations, getTranslatedType } from '../utils/i18n';
 import '../styles/admin.css';
 
 interface Props {
@@ -134,7 +134,7 @@ if (session) {
           </div>
           <div class="brand-meta">
             <h2 class="brand-title-name">{vendor.name}</h2>
-            <p class="brand-sub-title">{vendor.type}</p>
+            <p class="brand-sub-title">{getTranslatedType(vendor.type, t)}</p>
           </div>
         </div>
         <button class="btn-icon mobile-close-nav-btn" id="mobile-nav-close" aria-label="Close">✕</button>

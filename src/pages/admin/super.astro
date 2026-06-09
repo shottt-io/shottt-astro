@@ -8,7 +8,7 @@ import {
   vendorUsers as vendorUsersTable 
 } from '../../db/schema';
 import { eq, desc } from 'drizzle-orm';
-import { useTranslations } from '../../utils/i18n';
+import { useTranslations, getTranslatedType } from '../../utils/i18n';
 import '../../styles/admin.css';
 
 // 1. Session verification
@@ -259,7 +259,7 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
                     </td>
                     <td>
                       <span style="display: block; font-size: 0.75rem; color: #737373;">
-                        {v.type} • <code>{v.slug}</code>
+                        {getTranslatedType(v.type, t)} • <code>{v.slug}</code>
                       </span>
                     </td>
                     <td>
@@ -609,7 +609,7 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
               {vendorsList.map((v) => (
                 <label class="checkbox-group" style="margin: 0; font-size: 0.8125rem;">
                   <input type="checkbox" name="vendorIds" value={v.id} class="checkbox-input user-vendor-checkbox" />
-                  <span>{v.name} ({v.type})</span>
+                  <span>{v.name} ({getTranslatedType(v.type, t)})</span>
                 </label>
               ))}
               {vendorsList.length === 0 && <span style="font-size: 0.75rem; color: #a3a3a3; text-align: center;">{t('noShopsFound')}</span>}

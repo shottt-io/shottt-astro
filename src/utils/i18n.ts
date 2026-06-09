@@ -1764,3 +1764,45 @@ export function useTranslations(cookies: any, request?: Request, overrideLocale?
     dir: locale === 'fa' ? 'rtl' : 'ltr',
   };
 }
+
+export function getTranslatedType(type: string | null | undefined, t: any): string {
+  if (!type) return '';
+  const typeLower = type.toLowerCase();
+  
+  if (typeLower.includes('کافه رستوران') || (typeLower.includes('cafe') && typeLower.includes('restaurant'))) {
+    return t('typeCafeRestaurant');
+  }
+  if (typeLower.includes('کافه تخصصی') || typeLower.includes('کافه گالری') || typeLower === 'کافه' || typeLower === 'cafe') {
+    return t('typeCafe');
+  }
+  if (typeLower.includes('رستوران مدرن') || typeLower.includes('رستوران مدرن فرانسوی-ایرانی') || typeLower === 'رستوران' || typeLower === 'restaurant') {
+    return t('typeRestaurant');
+  }
+  if (typeLower.includes('نان و شیرینی') || typeLower.includes('بوتیک قنادی فرانسوی') || typeLower.includes('قنادی و بوتیک شیرینی') || typeLower.includes('bakery') || typeLower.includes('pastry')) {
+    return t('typeBakery');
+  }
+  if (typeLower.includes('پوشاک') || typeLower.includes('clothing')) {
+    return t('typeClothing');
+  }
+  if (typeLower.includes('گالری') || typeLower.includes('gallery')) {
+    return t('typeGallery');
+  }
+  if (typeLower.includes('دیجیتال') || typeLower.includes('digital') || typeLower.includes('shop')) {
+    return t('typeDigital');
+  }
+  if (typeLower.includes('آرایشی') || typeLower.includes('cosmetics')) {
+    return t('typeCosmetics');
+  }
+  if (typeLower.includes('آجیل') || typeLower.includes('nuts')) {
+    return t('typeNuts');
+  }
+  if (typeLower.includes('آبمیوه') || typeLower.includes('بستنی') || typeLower.includes('ice cream') || typeLower.includes('juice')) {
+    return t('typeIceCream');
+  }
+  if (typeLower.includes('سایر') || typeLower.includes('other')) {
+    return t('typeOther');
+  }
+  
+  return type;
+}
+
