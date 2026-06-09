@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "node run-migrate.js && astro build",
     "preview": "astro preview",
     "astro": "astro",
     "db:migrate": "drizzle-kit migrate",
