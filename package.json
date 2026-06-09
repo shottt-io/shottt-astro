@@ -7,9 +7,11 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "drizzle-kit migrate && astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push"
   },
   "dependencies": {
     "@astrojs/node": "^10.1.2",
