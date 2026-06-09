@@ -774,6 +774,17 @@ body {
     transform: translateX(0);
   }
 
+  [dir="ltr"] .admin-sidenav {
+    right: auto;
+    left: 0;
+    transform: translateX(-100%);
+    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.05);
+  }
+
+  [dir="ltr"] .admin-sidenav.active {
+    transform: translateX(0);
+  }
+
   .admin-sidenav-backdrop.active {
     display: block;
   }
