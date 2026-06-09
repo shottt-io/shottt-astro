@@ -42,33 +42,19 @@ async function purgeArvan(urls: string[]): Promise<void> {
 
   // Group URLs by domain
   const urlsByDomain: Record<string, string[]> = {};
-  const defaultDomain = getEnv('ARVAN_DOMAIN');
 
   for (const url of urls) {
-    let domain = defaultDomain;
     try {
       const parsedUrl = new URL(url);
-      domain = parsedUrl.hostname;
-    } catch (e) {
-      if (!domain) {
-        const siteUrl = getSiteUrl();
-        if (siteUrl) {
-          try {
-            domain = new URL(siteUrl).hostname;
-          } catch (_) {}
-        }
+      const domain = parsedUrl.hostname;
+
+      if (!urlsByDomain[domain]) {
+        urlsByDomain[domain] = [];
       }
+      urlsByDomain[domain].push(url);
+    } catch (e) {
+      console.warn(`[ArvanPurge] Invalid URL format: ${url}. Skipping.`);
     }
-
-    if (!domain) {
-      console.warn(`[ArvanPurge] Could not determine domain for URL: ${url}. Skipping.`);
-      continue;
-    }
-
-    if (!urlsByDomain[domain]) {
-      urlsByDomain[domain] = [];
-    }
-    urlsByDomain[domain].push(url);
   }
 
   console.log(`[ArvanPurge] Grouped URLs for purge:`, urlsByDomain);
