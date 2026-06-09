@@ -1,6 +1,4 @@
-import { promises as fs } from 'fs';
-import path from 'path';
-import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { uploadImage } from './storage';
 
 /**
  * Downloads an image from the given URL and saves it to local public/uploads directory or S3 storage.
@@ -22,63 +20,15 @@ export async function downloadAndSaveImage(imageUrl: string, vendorSlug?: string
 
     // Generate unique name as WebP
     const filename = `upload-${Date.now()}-${Math.random().toString(36).substring(2, 9)}.webp`;
-    const objectKey = vendorSlug ? `${vendorSlug}/${filename}` : filename;
 
-    // S3 configuration check (mirroring src/pages/api/upload.ts)
-    const s3Endpoint = process.env.S3_ENDPOINT || import.meta.env.S3_ENDPOINT;
-    const s3AccessKeyId = process.env.S3_ACCESS_KEY_ID || import.meta.env.S3_ACCESS_KEY_ID;
-    const s3SecretAccessKey = process.env.S3_SECRET_ACCESS_KEY || import.meta.env.S3_SECRET_ACCESS_KEY;
-    const s3Bucket = process.env.S3_BUCKET || import.meta.env.S3_BUCKET;
-    const s3PublicUrl = process.env.S3_PUBLIC_URL || import.meta.env.S3_PUBLIC_URL;
-    const s3Region = process.env.S3_REGION || import.meta.env.S3_REGION || 'us-east-1';
+    const publicUrl = await uploadImage({
+      buffer,
+      filename,
+      folder: vendorSlug || undefined,
+      contentType: 'image/webp',
+    });
 
-    if (s3Endpoint && s3AccessKeyId && s3SecretAccessKey && s3Bucket) {
-      let formattedEndpoint = s3Endpoint;
-      if (!/^https?:\/\//i.test(formattedEndpoint)) {
-        formattedEndpoint = `https://${formattedEndpoint}`;
-      }
-
-      let formattedPublicUrl = s3PublicUrl;
-      if (formattedPublicUrl && !/^https?:\/\//i.test(formattedPublicUrl)) {
-        formattedPublicUrl = `https://${formattedPublicUrl}`;
-      }
-
-      const s3Client = new S3Client({
-        endpoint: formattedEndpoint,
-        region: s3Region,
-        credentials: {
-          accessKeyId: s3AccessKeyId,
-          secretAccessKey: s3SecretAccessKey,
-        },
-        forcePathStyle: true,
-      });
-
-      await s3Client.send(
-        new PutObjectCommand({
-          Bucket: s3Bucket,
-          Key: objectKey,
-          Body: buffer,
-          ContentType: 'image/webp',
-          ACL: 'public-read',
-        })
-      );
-
-      const publicUrl = formattedPublicUrl
-        ? `${formattedPublicUrl.replace(/\/$/, '')}/${objectKey}`
-        : `${formattedEndpoint.replace(/\/$/, '')}/${s3Bucket}/${objectKey}`;
-
-      return publicUrl;
-    } else {
-      // Local fallback
-      const uploadsDir = vendorSlug
-        ? path.join(process.cwd(), 'public', 'uploads', vendorSlug)
-        : path.join(process.cwd(), 'public', 'uploads');
-      await fs.mkdir(uploadsDir, { recursive: true });
-      const filePath = path.join(uploadsDir, filename);
-      await fs.writeFile(filePath, buffer);
-
-      return vendorSlug ? `/uploads/${vendorSlug}/${filename}` : `/uploads/${filename}`;
-    }
+    return publicUrl;
   } catch (error) {
     console.error(`Error saving downloaded image from ${imageUrl}:`, error);
     return null;
