@@ -3,7 +3,22 @@ function getEnv(key: string): string {
     return process.env[key]!;
   }
   try {
-    return (import.meta.env[key] as string) || '';
+    switch (key) {
+      case 'PUBLIC_TOTAL_FREE':
+        return (import.meta.env.PUBLIC_TOTAL_FREE as string) || '';
+      case 'PUBLIC_DEFAULT_LOCALE':
+        return (import.meta.env.PUBLIC_DEFAULT_LOCALE as string) || '';
+      case 'PUBLIC_SITE_URL':
+        return (import.meta.env.PUBLIC_SITE_URL as string) || '';
+      case 'CDN_STRATEGY':
+        return (import.meta.env.CDN_STRATEGY as string) || '';
+      case 'PUBLIC_SUPPORTED_CURRENCIES':
+        return (import.meta.env.PUBLIC_SUPPORTED_CURRENCIES as string) || '';
+      case 'PUBLIC_IS_IRAN_SERVER':
+        return (import.meta.env.PUBLIC_IS_IRAN_SERVER as string) || '';
+      default:
+        return (import.meta.env[key] as string) || '';
+    }
   } catch (e) {
     return '';
   }
