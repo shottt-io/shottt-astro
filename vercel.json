@@ -8,7 +8,7 @@
           "value": "storage.shottt.io"
         }
       ],
-      "destination": "https://YOUR_VERCEL_BLOB_STORE_ID.public.blob.vercel-storage.com/:path*"
+      "destination": "https://aqwmbm2rcjhhwrcg.public.blob.vercel-storage.com/:path*"
     }
   ]
 }
