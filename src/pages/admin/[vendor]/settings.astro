@@ -4,12 +4,8 @@ import { db } from '../../../db/db';
 import { vendors as vendorsTable } from '../../../db/schema';
 import { eq } from 'drizzle-orm';
 import { useTranslations } from '../../../utils/i18n';
-import { DEFAULT_LOCALE } from '../../../config/region';
-import { getTimezoneOptions, getPopularTimezoneOptions } from '../../../utils/timezone';
 
 const vendorSlug = Astro.params.vendor;
-const allTimezones = getTimezoneOptions();
-const popularTimezones = getPopularTimezoneOptions(allTimezones);
 if (!vendorSlug) {
   return Astro.redirect('/admin');
 }
@@ -99,22 +95,7 @@ const unifiedSlogan = vendor.slogan || vendor.description;
         />
       </div>
 
-      <div class="form-group">
-        <label class="form-label">{t('shopTimezone')}</label>
-        <select name="timezone" class="form-select" required>
-          <optgroup label="Popular Timezones">
-            {popularTimezones.map((tz) => (
-              <option value={tz.id} selected={vendor.timezone === tz.id}>{tz.label}</option>
-            ))}
-          </optgroup>
-          <optgroup label="All Timezones">
-            {allTimezones.map((tz) => (
-              <option value={tz.id} selected={vendor.timezone === tz.id}>{tz.label}</option>
-            ))}
-          </optgroup>
-        </select>
-        <span style="font-size: 0.6875rem; color: #737373; margin-top: 0.25rem; display: block;">{t('shopTimezoneDesc')}</span>
-      </div>
+
 
       <div class="form-group">
         <label class="form-label">{t('shopLogo')}</label>
@@ -296,7 +277,6 @@ const unifiedSlogan = vendor.slogan || vendor.description;
     const type = (formData.get('type') as string).trim();
     const slogan = (formData.get('slogan') as string).trim();
     const logo = (formData.get('logo') as string).trim();
-    const timezone = (formData.get('timezone') as string).trim();
 
     const successMsg = form.getAttribute('data-success-msg') || 'Saved';
     const errorMsg = form.getAttribute('data-error-msg') || 'Error';
@@ -328,8 +308,7 @@ const unifiedSlogan = vendor.slogan || vendor.description;
       slogan,
       description: slogan, // Save same value to description in DB
       logoIcon,
-      logo,
-      timezone
+      logo
     };
 
     try {
