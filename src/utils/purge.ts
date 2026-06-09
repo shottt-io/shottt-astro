@@ -28,26 +28,8 @@ function getSiteUrl(): string {
  */
 async function purgeArvan(urls: string[]): Promise<void> {
   const apiKey = getEnv('ARVAN_API_KEY');
-  let domain = getEnv('ARVAN_DOMAIN');
-
-  // Fallback domain extraction from SITE_URL if ARVAN_DOMAIN is missing
-  if (!domain) {
-    const siteUrl = getSiteUrl();
-    if (siteUrl) {
-      try {
-        const parsedUrl = new URL(siteUrl);
-        domain = parsedUrl.hostname;
-      } catch (e) {
-        console.warn(`[ArvanPurge] Failed to parse PUBLIC_SITE_URL to extract domain:`, e);
-      }
-    }
-  }
-
-  console.log(`[ArvanPurge] Attempting to purge URLs:`, urls);
-  console.log(`[ArvanPurge] Config - Domain: ${domain}, API Key configured: ${!!apiKey}`);
-
-  if (!apiKey || !domain) {
-    console.warn(`[ArvanPurge] Skipping purge: ARVAN_API_KEY or ARVAN_DOMAIN is not set.`);
+  if (!apiKey) {
+    console.warn(`[ArvanPurge] Skipping purge: ARVAN_API_KEY is not set.`);
     return;
   }
 
@@ -58,29 +40,65 @@ async function purgeArvan(urls: string[]): Promise<void> {
 
   const authHeader = `Apikey ${cleanKey}`;
 
-  try {
-    const apiEndpoint = `https://napi.arvancloud.ir/cdn/4.0/domains/${domain}/caching/purge`;
-    const res = await fetch(apiEndpoint, {
-      method: 'POST',
-      headers: {
-        'Authorization': authHeader,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        purge: 'individual',
-        purge_urls: urls,
-      }),
-      redirect: 'manual',
-    });
+  // Group URLs by domain
+  const urlsByDomain: Record<string, string[]> = {};
+  const defaultDomain = getEnv('ARVAN_DOMAIN');
 
-    const body = await res.text();
-    if (res.ok) {
-      console.log(`[ArvanPurge] Successfully purged ${urls.join(', ')}. Response: ${res.status} ${body}`);
-    } else {
-      console.error(`[ArvanPurge] Failed to purge ${urls.join(', ')}: ${res.status} ${body}`);
+  for (const url of urls) {
+    let domain = defaultDomain;
+    try {
+      const parsedUrl = new URL(url);
+      domain = parsedUrl.hostname;
+    } catch (e) {
+      if (!domain) {
+        const siteUrl = getSiteUrl();
+        if (siteUrl) {
+          try {
+            domain = new URL(siteUrl).hostname;
+          } catch (_) {}
+        }
+      }
     }
-  } catch (err) {
-    console.error('[ArvanPurge] Network error during purge:', err);
+
+    if (!domain) {
+      console.warn(`[ArvanPurge] Could not determine domain for URL: ${url}. Skipping.`);
+      continue;
+    }
+
+    if (!urlsByDomain[domain]) {
+      urlsByDomain[domain] = [];
+    }
+    urlsByDomain[domain].push(url);
+  }
+
+  console.log(`[ArvanPurge] Grouped URLs for purge:`, urlsByDomain);
+
+  for (const [domain, domainUrls] of Object.entries(urlsByDomain)) {
+    try {
+      console.log(`[ArvanPurge] Purging ${domainUrls.length} URLs for domain ${domain}...`);
+      const apiEndpoint = `https://napi.arvancloud.ir/cdn/4.0/domains/${domain}/caching/purge`;
+      const res = await fetch(apiEndpoint, {
+        method: 'POST',
+        headers: {
+          'Authorization': authHeader,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          purge: 'individual',
+          purge_urls: domainUrls,
+        }),
+        redirect: 'manual',
+      });
+
+      const body = await res.text();
+      if (res.ok) {
+        console.log(`[ArvanPurge] Successfully purged ${domainUrls.join(', ')} on domain ${domain}. Response: ${res.status} ${body}`);
+      } else {
+        console.error(`[ArvanPurge] Failed to purge ${domainUrls.join(', ')} on domain ${domain}: ${res.status} ${body}`);
+      }
+    } catch (err) {
+      console.error(`[ArvanPurge] Network error during purge for domain ${domain}:`, err);
+    }
   }
 }
 
