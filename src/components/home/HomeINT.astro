@@ -2,6 +2,9 @@
 import { db } from '../../db/db';
 import { vendors as vendorsTable } from '../../db/schema';
 import { sql } from 'drizzle-orm';
+import { getLocale, useTranslations } from '../../utils/i18n';
+import { IS_IRAN_SERVER } from '../../config/region';
+
 const enableConvertPaper = import.meta.env.ENABLE_CONVERT_PAPER === 'true' || process.env.ENABLE_CONVERT_PAPER === 'true';
 
 let randomVendors: Array<{ name: string; slug: string; logo: string }> = [];
@@ -24,8 +27,6 @@ while (marqueeItems.length > 0 && marqueeItems.length < 8) {
   marqueeItems = [...marqueeItems, ...randomVendors];
 }
 
-import { getLocale, useTranslations } from '../../utils/i18n';
-import { IS_IRAN_SERVER } from '../../config/region';
 const currentLocale = getLocale(Astro.cookies, Astro.request);
 const { t: globalT } = useTranslations(Astro.cookies, Astro.request);
 
