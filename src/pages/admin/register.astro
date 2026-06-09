@@ -7,6 +7,42 @@ import '../../styles/admin.css';
 const domainName = Astro.url.host;
 const { t, locale, dir } = useTranslations(Astro.cookies, Astro.request);
 
+const countries = [
+  { code: 'ir', flag: '🇮🇷', key: 'countryIran', dial: '+98' },
+  { code: 'tr', flag: '🇹🇷', key: 'countryTurkey', dial: '+90' },
+  { code: 'gb', flag: '🇬🇧', key: 'countryUnitedKingdom', dial: '+44' },
+  { code: 'us', flag: '🇺🇸', key: 'countryUnitedStates', dial: '+1' },
+  { code: 'de', flag: '🇩🇪', key: 'countryGermany', dial: '+49' },
+  { code: 'ca', flag: '🇨🇦', key: 'countryCanada', dial: '+1' },
+  { code: 'ae', flag: '🇦🇪', key: 'countryUAE', dial: '+971' },
+  { code: 'om', flag: '🇴🇲', key: 'countryOman', dial: '+968' },
+  { code: 'qa', flag: '🇶🇦', key: 'countryQatar', dial: '+974' },
+  { code: 'iq', flag: '🇮🇶', key: 'countryIraq', dial: '+964' },
+  { code: 'af', flag: '🇦🇫', key: 'countryAfghanistan', dial: '+93' },
+  { code: 'tj', flag: '🇹🇯', key: 'countryTajikistan', dial: '+992' },
+  { code: 'am', flag: '🇦🇲', key: 'countryArmenia', dial: '+374' },
+  { code: 'az', flag: '🇦🇿', key: 'countryAzerbaijan', dial: '+994' },
+  { code: 'fr', flag: '🇫🇷', key: 'countryFrance', dial: '+33' },
+  { code: 'it', flag: '🇮🇹', key: 'countryItaly', dial: '+39' },
+  { code: 'es', flag: '🇪🇸', key: 'countrySpain', dial: '+34' },
+  { code: 'nl', flag: '🇳🇱', key: 'countryNetherlands', dial: '+31' },
+  { code: 'se', flag: '🇸🇪', key: 'countrySweden', dial: '+46' },
+  { code: 'ch', flag: '🇨🇭', key: 'countrySwitzerland', dial: '+41' },
+  { code: 'au', flag: '🇦🇺', key: 'countryAustralia', dial: '+61' },
+  { code: 'ge', flag: '🇬🇪', key: 'countryGeorgia', dial: '+995' },
+  { code: 'ru', flag: '🇷🇺', key: 'countryRussia', dial: '+7' },
+  { code: 'cn', flag: '🇨🇳', key: 'countryChina', dial: '+86' },
+  { code: 'jp', flag: '🇯🇵', key: 'countryJapan', dial: '+81' },
+  { code: 'kr', flag: '🇰🇷', key: 'countrySouthKorea', dial: '+82' },
+  { code: 'in', flag: '🇮🇳', key: 'countryIndia', dial: '+91' },
+  { code: 'pk', flag: '🇵🇰', key: 'countryPakistan', dial: '+92' },
+  { code: 'kw', flag: '🇰🇼', key: 'countryKuwait', dial: '+965' },
+  { code: 'sa', flag: '🇸🇦', key: 'countrySaudiArabia', dial: '+966' },
+  { code: 'bh', flag: '🇧🇭', key: 'countryBahrain', dial: '+973' }
+];
+
+const countryDialCodesJson = JSON.stringify(Object.fromEntries(countries.map(c => [c.code, c.dial])));
+
 ---
 
 <Layout title={t('registerSeoTitle')} description={t('registerSeoDesc')}>
@@ -133,6 +169,24 @@ const { t, locale, dir } = useTranslations(Astro.cookies, Astro.request);
             />
           </div>
 
+          <div class="form-group">
+            <label for="country" class="form-label">{t('shopCountry')}</label>
+            <span id="country-data" data-dial-codes={countryDialCodesJson} style="display:none;"></span>
+            <select name="country" id="country" class="form-select" required style={dir === 'ltr' ? 'background-position: right 1rem center; padding-right: 2.5rem; padding-left: 1rem;' : ''}>
+              <option value="" disabled>{t('selectCountry')}</option>
+              {countries.map((c) => {
+                const isSelected = (c.code === 'ir' && locale === 'fa') || 
+                                   (c.code === 'tr' && locale === 'tr') || 
+                                   (c.code === 'gb' && locale !== 'fa' && locale !== 'tr');
+                return (
+                  <option value={c.code} selected={isSelected}>
+                    {c.flag} {t(c.key)}
+                  </option>
+                );
+              })}
+            </select>
+          </div>
+
           <div class="form-group" style="margin-top: 1.5rem; border-top: 1px solid #f5f5f5; padding-top: 1.25rem;">
             <label for="userName" class="form-label">{t('managerName')}</label>
             <input 
@@ -146,16 +200,26 @@ const { t, locale, dir } = useTranslations(Astro.cookies, Astro.request);
           </div>
 
           <div class="form-group">
-            <label for="phone" class="form-label">{t('managerPhone')}</label>
-            <input 
-              type="tel" 
-              id="phone" 
-              name="phone" 
-              class="form-input" 
-              placeholder="09123456789" 
-              required 
-              style="direction: ltr; text-align: left;"
-            />
+            <label for="phone-number" class="form-label">{t('managerPhone')}</label>
+            <div style="display: flex; gap: 0.5rem; width: 100%; direction: ltr;">
+              <input 
+                type="text" 
+                id="phone-prefix" 
+                class="form-input" 
+                placeholder="+98" 
+                required 
+                style="width: 5.5rem; text-align: center; flex-shrink: 0;"
+              />
+              <input 
+                type="tel" 
+                id="phone-number" 
+                class="form-input" 
+                placeholder="9123456789" 
+                required 
+                style="flex-grow: 1; text-align: left;"
+              />
+            </div>
+            <input type="hidden" id="phone" name="phone" />
           </div>
 
           <div class="form-group">
@@ -182,10 +246,10 @@ const { t, locale, dir } = useTranslations(Astro.cookies, Astro.request);
                 class="form-input" 
                 placeholder="••••••••" 
                 required 
-                style={`direction: ltr; padding-left: 1rem; padding-right: 3.5rem; text-align: left; width: 100%;`}
+                style={`direction: ltr; padding-left: ${dir === 'rtl' ? '3.5rem' : '1rem'}; padding-right: ${dir === 'rtl' ? '1rem' : '3.5rem'}; text-align: left; width: 100%;`}
                 autocomplete="new-password"
               />
-              <button type="button" class="toggle-password-btn" data-target="password" style={`position: absolute; ${dir === 'rtl' ? 'right: 0.75rem;' : 'left: 0.75rem;'} background: none; border: none; cursor: pointer; color: #737373; font-size: 0.75rem; font-weight: 500; user-select: none;`}>
+              <button type="button" class="toggle-password-btn" data-target="password" style={`position: absolute; ${dir === 'rtl' ? 'left: 0.75rem;' : 'right: 0.75rem;'} background: none; border: none; cursor: pointer; color: #737373; font-size: 0.75rem; font-weight: 500; user-select: none;`}>
                 {t('show')}
               </button>
             </div>
@@ -201,10 +265,10 @@ const { t, locale, dir } = useTranslations(Astro.cookies, Astro.request);
                 class="form-input" 
                 placeholder="••••••••" 
                 required 
-                style={`direction: ltr; padding-left: 1rem; padding-right: 3.5rem; text-align: left; width: 100%;`}
+                style={`direction: ltr; padding-left: ${dir === 'rtl' ? '3.5rem' : '1rem'}; padding-right: ${dir === 'rtl' ? '1rem' : '3.5rem'}; text-align: left; width: 100%;`}
                 autocomplete="new-password"
               />
-              <button type="button" class="toggle-password-btn" data-target="passwordConfirm" style={`position: absolute; ${dir === 'rtl' ? 'right: 0.75rem;' : 'left: 0.75rem;'} background: none; border: none; cursor: pointer; color: #737373; font-size: 0.75rem; font-weight: 500; user-select: none;`}>
+              <button type="button" class="toggle-password-btn" data-target="passwordConfirm" style={`position: absolute; ${dir === 'rtl' ? 'left: 0.75rem;' : 'right: 0.75rem;'} background: none; border: none; cursor: pointer; color: #737373; font-size: 0.75rem; font-weight: 500; user-select: none;`}>
                 {t('show')}
               </button>
             </div>
@@ -241,6 +305,42 @@ const { t, locale, dir } = useTranslations(Astro.cookies, Astro.request);
   const btnText = document.getElementById('btn-text') as HTMLSpanElement;
   const spinner = document.getElementById('loading-spinner') as SVGElement;
   const slugInput = document.getElementById('slug') as HTMLInputElement;
+
+  // Phone country-code prefix logic
+  const countrySelect = document.getElementById('country') as HTMLSelectElement;
+  const prefixInput = document.getElementById('phone-prefix') as HTMLInputElement;
+  const numberInput = document.getElementById('phone-number') as HTMLInputElement;
+  const hiddenPhoneInput = document.getElementById('phone') as HTMLInputElement;
+
+  const countryDialCodesElement = document.getElementById('country-data');
+  const countryDialCodes = countryDialCodesElement ? JSON.parse(countryDialCodesElement.getAttribute('data-dial-codes') || '{}') : {};
+
+  function updateHiddenPhone() {
+    if (!prefixInput || !numberInput || !hiddenPhoneInput) return;
+    let prefix = prefixInput.value.trim();
+    if (prefix && !prefix.startsWith('+')) {
+      prefix = '+' + prefix;
+    }
+    const number = numberInput.value.trim();
+    hiddenPhoneInput.value = prefix + number;
+  }
+
+  function handleCountryChange() {
+    if (!countrySelect || !prefixInput) return;
+    const country = countrySelect.value;
+    prefixInput.value = countryDialCodes[country] || '';
+    updateHiddenPhone();
+  }
+
+  countrySelect?.addEventListener('change', handleCountryChange);
+  prefixInput?.addEventListener('input', updateHiddenPhone);
+  numberInput?.addEventListener('input', updateHiddenPhone);
+
+  // Initialize phone prefix
+  if (countrySelect && prefixInput) {
+    prefixInput.value = countryDialCodes[countrySelect.value] || '';
+    updateHiddenPhone();
+  }
 
   // Set client timezone
   const tzInput = document.getElementById('timezone-input') as HTMLInputElement;

@@ -1,0 +1,1 @@
+ALTER TABLE "vendors" ADD COLUMN "country" varchar(255);
