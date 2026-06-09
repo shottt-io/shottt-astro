@@ -24,7 +24,9 @@ while (marqueeItems.length > 0 && marqueeItems.length < 8) {
 }
 
 import { getLocale } from '../../utils/i18n';
+import { IS_IRAN_SERVER } from '../../config/region';
 const currentLocale = getLocale(Astro.cookies, Astro.request);
+
 
 
 const homeTranslations = {
@@ -312,7 +314,33 @@ const t = homeTranslations[currentLocale as Locale] || homeTranslations['en'];
   </footer>
 </main>
 
-<script is:inline define:vars={{ priceMo: t.paidPriceMo, priceYr: t.paidPriceYr, periodMo: t.paidPeriodMo, periodYr: t.paidPeriodYr }}>
+<!-- Iran Server Redirect Dialog/Modal -->
+<div id="iran-redirect-modal" class="modal-overlay">
+  <div class="modal-content" style="max-width: 450px; direction: rtl; text-align: right;">
+    <div class="modal-header">
+      <span class="modal-title">سرورهای ایران شات</span>
+      <button type="button" class="modal-close" id="close-redirect-modal">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div style="display: flex; align-items: center; justify-content: center; background: #fffbeb; border-radius: 50%; width: 3.5rem; height: 3.5rem; color: #d97706; margin-bottom: 0.5rem;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-7 h-7" style="width: 1.75rem; height: 1.75rem;">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+      </div>
+      <p style="font-size: 0.875rem; line-height: 1.7; color: #374151; margin: 0; text-align: center; font-family: 'Estedad', system-ui, -apple-system, sans-serif;">
+        زیرساخت و سرورهای نسخه ایران مجزا هستند. اگر مشتریان یا کسب‌وکار شما در داخل ایران قرار دارند، پیشنهاد می‌شود از نسخه بهینه شده برای ایران استفاده کنید.
+      </p>
+    </div>
+    <div class="modal-footer">
+      <a href="https://shottt.ir" class="btn btn-primary" style="text-decoration: none;">انتقال به shottt.ir</a>
+      <button type="button" id="continue-intl-fa" class="btn btn-secondary">ادامه در این سایت با زبان فارسی</button>
+      <button type="button" id="cancel-redirect-modal" class="btn btn-cancel" style="background: none; border: none; color: #6b7280; font-size: 0.8125rem; font-weight: 500; cursor: pointer; padding: 0.25rem;">انصراف</button>
+    </div>
+  </div>
+</div>
+
+<script is:inline define:vars={{ priceMo: t.paidPriceMo, priceYr: t.paidPriceYr, periodMo: t.paidPeriodMo, periodYr: t.paidPeriodYr, isIranServer: IS_IRAN_SERVER }}>
+
   // Toggle billing logic
   const toggleBtn = document.getElementById('billing-toggle');
   const priceEl = document.getElementById('paid-price');
@@ -377,12 +405,50 @@ const t = homeTranslations[currentLocale as Locale] || homeTranslations['en'];
 
   const langItems = document.querySelectorAll('.lang-dropdown-item');
   langItems.forEach(item => {
-    item.addEventListener('click', () => {
+    item.addEventListener('click', (e) => {
       const targetLang = item.getAttribute('data-lang') || 'fa';
-      document.cookie = `lang=${targetLang}; path=/; max-age=31536000`;
-      window.location.reload();
+      if (targetLang === 'fa' && !isIranServer) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Show redirect modal
+        const modal = document.getElementById('iran-redirect-modal');
+        if (modal) {
+          modal.classList.add('show-modal');
+        }
+      } else {
+        document.cookie = `lang=${targetLang}; path=/; max-age=31536000`;
+        window.location.reload();
+      }
     });
   });
+
+  // Modal event listeners
+  const redirectModal = document.getElementById('iran-redirect-modal');
+  const closeRedirectBtn = document.getElementById('close-redirect-modal');
+  const cancelRedirectBtn = document.getElementById('cancel-redirect-modal');
+  const continueRedirectBtn = document.getElementById('continue-intl-fa');
+
+  function hideRedirectModal() {
+    if (redirectModal) {
+      redirectModal.classList.remove('show-modal');
+    }
+  }
+
+  closeRedirectBtn?.addEventListener('click', hideRedirectModal);
+  cancelRedirectBtn?.addEventListener('click', hideRedirectModal);
+
+  redirectModal?.addEventListener('click', (e) => {
+    if (e.target === redirectModal) {
+      hideRedirectModal();
+    }
+  });
+
+  continueRedirectBtn?.addEventListener('click', () => {
+    document.cookie = `lang=fa; path=/; max-age=31536000`;
+    window.location.reload();
+  });
+
 
   // ── Homepage Analytics Tracking ──────────────────────────────────────
   (function() {
@@ -1096,4 +1162,129 @@ const t = homeTranslations[currentLocale as Locale] || homeTranslations['en'];
   .h-4 {
     height: 1rem;
   }
+
+  /* Iran Server Redirect Modal styling */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(10, 10, 10, 0.45);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1.5rem;
+  }
+
+  .modal-overlay.show-modal {
+    display: flex !important;
+  }
+
+  .modal-content {
+    background: #ffffff;
+    border-radius: 1.5rem;
+    width: 100%;
+    max-width: 450px;
+    max-height: 90vh;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    animation: slideUpModal 0.35s forwards cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .modal-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #ffffff;
+  }
+
+  .modal-title {
+    font-size: 1.0625rem;
+    font-weight: 600;
+    color: #171717;
+    font-family: 'Estedad', system-ui, -apple-system, sans-serif;
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #a3a3a3;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    padding: 0.25rem;
+    line-height: 1;
+  }
+
+  .modal-close:hover {
+    color: #171717;
+  }
+
+  .modal-body {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    align-items: center;
+    background: #ffffff;
+  }
+
+  .modal-footer {
+    padding: 1.25rem 1.5rem;
+    border-top: 1px solid #f0f0f0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    background-color: #fafafa;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    font-family: 'Estedad', system-ui, -apple-system, sans-serif;
+    border: none;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .btn-primary {
+    background-color: #18181b;
+    color: #ffffff;
+  }
+
+  .btn-primary:hover {
+    background-color: #000000;
+  }
+
+  .btn-secondary {
+    background-color: #f4f4f5;
+    color: #27272a;
+    border: 1px solid #e4e4e7;
+  }
+
+  .btn-secondary:hover {
+    background-color: #e4e4e7;
+  }
+
+  @keyframes slideUpModal {
+    from { transform: translateY(16px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
 </style>
+

@@ -1,10 +1,12 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import { useTranslations } from '../../utils/i18n';
+import { IS_IRAN_SERVER } from '../../config/region';
 import '../../styles/admin.css';
 
 const domainName = Astro.url.host;
 const { t, locale, dir } = useTranslations(Astro.cookies, Astro.request);
+
 ---
 
 <Layout title={t('registerSeoTitle')} description={t('registerSeoDesc')}>
@@ -36,7 +38,17 @@ const { t, locale, dir } = useTranslations(Astro.cookies, Astro.request);
 
     <main class="login-wrapper" id="register-container">
     <div class="login-container animate-slide-up">
+      {!IS_IRAN_SERVER && (
+        <div class="iran-server-banner" style={`direction: ${dir}; text-align: ${dir === 'rtl' ? 'right' : 'left'};`}>
+          <div class="iran-server-banner-content">
+            <p class="iran-server-banner-text" set:html={t('iranServerNoticeRegister')} />
+          </div>
+        </div>
+      )}
+
+
       <header class="login-header">
+
         <div class="login-logo-container">
           <img src="/logo.png" alt="shottt" class="login-logo-img" />
         </div>

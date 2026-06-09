@@ -2,6 +2,7 @@
 import Layout from '../../layouts/Layout.astro';
 import { getSession } from '../../utils/auth';
 import { useTranslations } from '../../utils/i18n';
+import { IS_IRAN_SERVER } from '../../config/region';
 import '../../styles/admin.css';
 
 // Redirect to /admin if already logged in
@@ -11,6 +12,7 @@ if (session) {
 }
 
 const { t, locale, dir } = useTranslations(Astro.cookies, Astro.request);
+
 ---
 
 <Layout title={t('loginSeoTitle')} description={t('loginSeoDesc')}>
@@ -42,7 +44,17 @@ const { t, locale, dir } = useTranslations(Astro.cookies, Astro.request);
 
     <main class="login-wrapper">
     <div class="login-container animate-slide-up">
+      {!IS_IRAN_SERVER && (
+        <div class="iran-server-banner" style={`direction: ${dir}; text-align: ${dir === 'rtl' ? 'right' : 'left'};`}>
+          <div class="iran-server-banner-content">
+            <p class="iran-server-banner-text" set:html={t('iranServerNoticeLogin')} />
+          </div>
+        </div>
+      )}
+
+
       <header class="login-header">
+
         <div class="login-logo-container">
           <img src="/logo.png" alt="shottt" class="login-logo-img" />
         </div>
