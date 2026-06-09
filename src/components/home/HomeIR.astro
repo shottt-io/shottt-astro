@@ -3,6 +3,7 @@ import { db } from '../../db/db';
 import { vendors as vendorsTable } from '../../db/schema';
 import { sql } from 'drizzle-orm';
 import { useTranslations } from '../../utils/i18n';
+const enableConvertPaper = import.meta.env.ENABLE_CONVERT_PAPER === 'true' || process.env.ENABLE_CONVERT_PAPER === 'true';
 
 let randomVendors: Array<{ name: string; slug: string; logo: string }> = [];
 try {
@@ -32,7 +33,7 @@ const irTranslations = {
     subStatement: "اگر به دنبال خدمات یا امکانات دیگری هستید، پیشنهاد می‌کنیم به سایر وب‌سایت‌ها سر بزنید؛ چرا که ما در شات خدمتی فراتر از این ارائه نمی‌دهیم.",
     pricingBadge: "تعرفه: رایگان",
     termsBadge: "ثبت‌نام: رایگان و آنلاین",
-    createBtn: "ساخت فوری کاتالوگ دیجیتال ⚡",
+    createBtn: "ثبت‌نام مجموعه جدید ⚡",
     loginBtn: "ورود به پنل مدیریت",
     whyFreeTitle: "چرا رایگان؟",
     whyFreeP1: "ما حدود ۱۰ سال در زمینه ارائه منوی دیجیتال، سیستم سفارش‌گیری، باشگاه مشتریان و خدمات متنوع دیگر فعالیت کردیم؛ اما در طول این سال‌ها با چالش‌ها و شرایطی مواجه شدیم که مسیر توسعه را بسیار دشوار کرد. در سال‌های اخیر تلاش کردیم با حداقل هزینه اشتراک خدماتمان را ادامه دهیم، اما مشکلات مداوم زیرساختی و اینترنت کشور همواره ما را با چالش‌های پایه‌ای و فرساینده روبه‌رو ساخت.",
@@ -46,7 +47,7 @@ const irTranslations = {
     subStatement: "If you are looking for other complex services, we suggest checking other websites; because at Shottt, we do not offer any services beyond this.",
     pricingBadge: "Pricing: Free",
     termsBadge: "Registration: Free & Online",
-    createBtn: "Create Digital Catalog ⚡",
+    createBtn: "Register Now ⚡",
     loginBtn: "Log in to Dashboard",
     whyFreeTitle: "Why is it Free?",
     whyFreeP1: "We operated for about 10 years in the field of digital menus, ordering systems, customer clubs, and various other services. However, over the years we faced challenges and conditions that made development very difficult. In recent years, we tried to continue our services with minimal subscription costs, but continuous infrastructure and internet issues always presented base and exhausting challenges.",
@@ -60,7 +61,7 @@ const irTranslations = {
     subStatement: "Başka karmaşık hizmetler arıyorsanız, diğer web sitelerini kontrol etmenizi öneririz; çünkü Shottt'ta bunun ötesinde herhangi bir hizmet sunmuyoruz.",
     pricingBadge: "Fiyatlandırma: Ücretsiz",
     termsBadge: "Kayıt: Ücretsiz & Çevrimiçi",
-    createBtn: "Dijital Katalog Oluştur ⚡",
+    createBtn: "Hemen Kayıt Ol ⚡",
     loginBtn: "Yönetici Paneline Giriş Yap",
     whyFreeTitle: "Neden Ücretsiz?",
     whyFreeP1: "Dijital menüler, sipariş sistemleri, müşteri kulüpleri ve diğer çeşitli hizmetler alanında yaklaşık 10 yıl faaliyet gösterdik. Ancak yıllar geçtikçe geliştirilmesini çok zorlaştıran zorluklarla ve koşullarla karşılaştık. Son yıllarda hizmetlerimize asgari abonelik maliyetleriyle devam etmeye çalıştık, ancak sürekli altyapı ve internet sorunları her zaman temel ve yorucu zorluklar çıkardı.",
@@ -136,6 +137,16 @@ const localT = irTranslations[locale] || irTranslations['fa'];
         <a href="/admin/register" class="admin-link-main">
           <span>{localT.createBtn}</span>
         </a>
+        {enableConvertPaper && (
+          <button id="ai-dialog-trigger" class="ai-trigger-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 1.1rem; height: 1.1rem; margin-inline-end: 0.5rem;">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <span>{t('aiTriggerBtn')}</span>
+          </button>
+        )}
       </div>
     </div>
   </div>
@@ -176,6 +187,69 @@ const localT = irTranslations[locale] || irTranslations['fa'];
       </div>
     </div>
   </dialog>
+
+  <!-- AI Converter Dialog (Modal) -->
+  {enableConvertPaper && (
+    <dialog id="ai-dialog" class="custom-dialog">
+      <div class="dialog-wrapper" style="max-width: 30rem;">
+        <header class="dialog-header">
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <h2 class="dialog-title" style="margin: 0; font-size: 0.9375rem;">{t('aiTitle')}</h2>
+            <span class="ai-badge" style="margin: 0; font-size: 0.625rem; padding: 0.25rem 0.6rem; background-color: #18181b; color: #ffffff; border-radius: 9999px; font-weight: 500;">{t('aiBadge')}</span>
+          </div>
+          <button id="close-ai-dialog" class="close-btn" aria-label={t('aiDialogClose')}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </header>
+        <div class="dialog-body" style="padding: 1rem 0 0 0;">
+          <p class="dialog-text" style="font-size: 0.75rem; margin: 0 0 1rem 0; line-height: 1.5;">
+            {t('aiDesc')}
+          </p>
+          
+          <form id="ai-crawler-form" class="ai-form" style="margin-top: 0.25rem;">
+            <div class="ai-input-group" style="gap: 0.5rem;">
+              <div class="image-upload-dropzone" id="ai-dropzone" style="padding: 1.5rem 1rem; border-radius: 0.75rem; border-style: dashed; border-width: 1px; gap: 0.35rem;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="upload-icon" style="width: 1.5rem; height: 1.5rem; color: #71717a;">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                <span class="upload-text" style="font-size: 0.8125rem;">{t('aiDropzoneText')}</span>
+                <span class="upload-subtext" style="font-size: 0.6875rem;">{t('aiDropzoneSubtext')}</span>
+                <input type="file" id="ai-file-input" multiple accept="image/*" style="display: none;" />
+              </div>
+              <div id="selected-files-list" class="selected-files-list" style="display: none; font-size: 0.6875rem;"></div>
+              <button 
+                type="submit" 
+                id="ai-submit-btn" 
+                class="ai-btn" 
+                disabled 
+                data-status-start={t('aiProgressStart')}
+                data-status-upload={t('aiProgressUpload')}
+                data-status-processing={t('aiProgressProcessing')}
+                data-status-extracting={t('aiProgressExtracting')}
+                data-status-success={t('aiSuccess')}
+                data-error-msg={t('aiErrorAlert')}
+                style="padding: 0.75rem 1.5rem; font-size: 0.75rem; border-radius: 9999px; width: 100%; display: flex; align-items: center; justify-content: center;"
+              >
+                <span>{t('aiBtn')}</span>
+              </button>
+            </div>
+          </form>
+  
+          <div id="ai-progress" class="ai-progress-container" style="display: none; margin-top: 1rem; flex-direction: column; gap: 0.5rem; width: 100%;">
+            <div class="ai-progress-bar" style="height: 4px; background-color: #f4f4f5; border-radius: 2px; width: 100%; overflow: hidden;">
+              <div id="ai-progress-fill" class="ai-progress-fill" style="width: 0%; height: 100%; background-color: #18181b; transition: width 0.3s ease;"></div>
+            </div>
+            <span id="ai-progress-status" class="ai-progress-status" style="font-size: 0.6875rem; color: #71717a;">{t('aiProgressStart')}</span>
+          </div>
+        </div>
+      </div>
+    </dialog>
+  )}
 
   <!-- Random Collections Section -->
   {randomVendors.length > 0 && (
@@ -336,6 +410,203 @@ const localT = irTranslations[locale] || irTranslations['fa'];
       keepalive: true
     }).catch(() => {});
   })();
+
+  // ── AI Crawler Form Handling ─────────────────────────────────────────
+  const dropzone = document.getElementById('ai-dropzone');
+  const fileInput = document.getElementById('ai-file-input');
+  const filesList = document.getElementById('selected-files-list');
+  const crawlForm = document.getElementById('ai-crawler-form');
+  const crawlSubmitBtn = document.getElementById('ai-submit-btn');
+  const crawlProgress = document.getElementById('ai-progress');
+  const progressFill = document.getElementById('ai-progress-fill');
+  const progressStatus = document.getElementById('ai-progress-status');
+
+  let selectedFiles = [];
+
+  if (dropzone && fileInput) {
+    dropzone.addEventListener('click', () => fileInput.click());
+    
+    dropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropzone.classList.add('dragover');
+    });
+
+    dropzone.addEventListener('dragleave', () => {
+      dropzone.classList.remove('dragover');
+    });
+
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('dragover');
+      if (e.dataTransfer.files) {
+        handleFiles(e.dataTransfer.files);
+      }
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files) {
+        handleFiles(e.target.files);
+      }
+    });
+  }
+
+  function handleFiles(files) {
+    for (const file of files) {
+      if (file.type.startsWith('image/')) {
+        selectedFiles.push(file);
+      }
+    }
+    renderFilesList();
+  }
+
+  function renderFilesList() {
+    if (!filesList) return;
+    filesList.innerHTML = '';
+    if (selectedFiles.length > 0) {
+      filesList.style.display = 'grid';
+      selectedFiles.forEach((file, index) => {
+        const item = document.createElement('div');
+        item.className = 'file-item';
+
+        const img = document.createElement('img');
+        img.style.width = '100%';
+        img.style.height = '100%';
+        img.style.objectFit = 'cover';
+        
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+        
+        item.appendChild(img);
+
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'remove-file-btn';
+        removeBtn.setAttribute('data-index', index);
+        removeBtn.innerHTML = '&times;';
+        item.appendChild(removeBtn);
+
+        filesList.appendChild(item);
+      });
+      
+      filesList.querySelectorAll('.remove-file-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const idx = parseInt(btn.getAttribute('data-index'));
+          selectedFiles.splice(idx, 1);
+          renderFilesList();
+        });
+      });
+      
+      if (crawlSubmitBtn) crawlSubmitBtn.disabled = false;
+    } else {
+      filesList.style.display = 'none';
+      if (crawlSubmitBtn) crawlSubmitBtn.disabled = true;
+    }
+  }
+
+  // ── AI Dialog Trigger and Close Logic ──
+  const aiTrigger = document.getElementById('ai-dialog-trigger');
+  const aiDialog = document.getElementById('ai-dialog');
+  const closeAiBtn = document.getElementById('close-ai-dialog');
+
+  if (aiTrigger && aiDialog) {
+    aiTrigger.addEventListener('click', () => {
+      aiDialog.showModal();
+    });
+  }
+
+  if (closeAiBtn && aiDialog) {
+    closeAiBtn.addEventListener('click', () => {
+      aiDialog.close();
+    });
+  }
+
+
+  if (crawlForm) {
+    crawlForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (selectedFiles.length === 0) return;
+
+      const statusStart = crawlSubmitBtn.getAttribute('data-status-start') || 'در حال خواندن فایل‌های منو...';
+      const statusUpload = crawlSubmitBtn.getAttribute('data-status-upload') || 'در حال ارسال تصاویر به هوش مصنوعی...';
+      const statusProcessing = crawlSubmitBtn.getAttribute('data-status-processing') || 'هوش مصنوعی در حال پردازش تصاویر منو...';
+      const statusExtracting = crawlSubmitBtn.getAttribute('data-status-extracting') || 'در حال استخراج دسته‌بندی‌ها و محصولات...';
+      const statusSuccess = crawlSubmitBtn.getAttribute('data-status-success') || 'آماده شد! انتقال به پیش‌نمایش...';
+      const errorMsg = crawlSubmitBtn.getAttribute('data-error-msg') || 'خطا در پردازش تصاویر منو. لطفاً تصاویر واضح‌تری انتخاب کنید.';
+
+      crawlSubmitBtn.disabled = true;
+      crawlProgress.style.display = 'flex';
+      progressFill.style.width = '10%';
+      progressStatus.textContent = statusStart;
+
+      // Read files as base64
+      const base64Promises = selectedFiles.map(file => {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = err => reject(err);
+          reader.readAsDataURL(file);
+        });
+      });
+
+      try {
+        const images = await Promise.all(base64Promises);
+        
+        progressFill.style.width = '30%';
+        progressStatus.textContent = statusUpload;
+
+        // Simulate progress updates during API call
+        let progress = 30;
+        const progressInterval = setInterval(() => {
+          if (progress < 85) {
+            progress += Math.floor(Math.random() * 4) + 1;
+            progressFill.style.width = `${progress}%`;
+            if (progress < 60) {
+              progressStatus.textContent = statusProcessing;
+            } else {
+              progressStatus.textContent = statusExtracting;
+            }
+          }
+        }, 1000);
+
+        const response = await fetch('/api/ai/convert-paper-menu', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ images }),
+        });
+
+        clearInterval(progressInterval);
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          progressFill.style.width = '100%';
+          progressStatus.textContent = statusSuccess;
+          setTimeout(() => {
+            window.location.href = `/preview/${data.id}`;
+          }, 800);
+        } else {
+          throw new Error(data.error || 'Failed.');
+        }
+      } catch (err) {
+        crawlSubmitBtn.disabled = false;
+        progressFill.style.width = '0%';
+        crawlProgress.style.display = 'none';
+        
+        if (window.showAlertDialog) {
+          await window.showAlertDialog(err.message || errorMsg, {
+            type: 'error',
+            okText: crawlSubmitBtn.getAttribute('data-error-retry') || 'تلاش مجدد',
+          });
+        } else {
+          alert(err.message || errorMsg);
+        }
+      }
+    });
+  }
 </script>
 
 <style>
@@ -811,9 +1082,17 @@ const localT = irTranslations[locale] || irTranslations['fa'];
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1rem;
+    justify-content: center;
+    gap: 0.75rem;
     width: 100%;
     margin-top: 1.5rem;
+  }
+
+  @media (min-width: 640px) {
+    .action-buttons-wrap {
+      flex-direction: row;
+      gap: 1rem;
+    }
   }
 
   /* Minimal Admin Button */
@@ -833,12 +1112,42 @@ const localT = irTranslations[locale] || irTranslations['fa'];
     width: 100%;
     max-width: 24rem;
     box-sizing: border-box;
+    white-space: nowrap;
   }
 
   .admin-link-main:hover {
     background-color: #000000;
     transform: translateY(-1px);
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Outline AI Trigger Button */
+  .ai-trigger-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: transparent;
+    color: #18181b;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    padding: 0.75rem 2rem;
+    border-radius: 9999px;
+    border: 1px solid #e4e4e7;
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    width: 100%;
+    max-width: 24rem;
+    box-sizing: border-box;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .ai-trigger-btn:hover {
+    background-color: #fafafa;
+    border-color: #d4d4d8;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   }
 
   /* Minimalist dialog modal design */
@@ -1077,5 +1386,97 @@ const localT = irTranslations[locale] || irTranslations['fa'];
     100% {
       transform: translateX(-50%);
     }
+  }
+
+  textarea.ai-input {
+    height: 6rem;
+    border-radius: 1.25rem;
+    resize: vertical;
+  }
+
+  /* Image Upload Dropzone Styles */
+  .image-upload-dropzone {
+    border: 2px dashed #e4e4e7;
+    border-radius: 1.25rem;
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    background-color: #fafafa;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .image-upload-dropzone:hover, .image-upload-dropzone.dragover {
+    border-color: #18181b;
+    background-color: #f4f4f5;
+  }
+
+  .upload-icon {
+    width: 2rem;
+    height: 2rem;
+    color: #71717a;
+  }
+
+  .upload-text {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #18181b;
+  }
+
+  .upload-subtext {
+    font-size: 0.75rem;
+    color: #71717a;
+  }
+
+  :global(.selected-files-list) {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(4.5rem, 1fr));
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    width: 100%;
+  }
+
+  :global(.file-item) {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    border: 1px solid #e4e4e7;
+    background-color: #fafafa;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease;
+  }
+
+  :global(.file-item:hover) {
+    transform: scale(1.02);
+  }
+
+  :global(.remove-file-btn) {
+    position: absolute;
+    top: 0.25rem;
+    right: 0.25rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 50%;
+    background: rgba(239, 68, 68, 0.9);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    line-height: 1;
+    padding: 0;
+    z-index: 10;
+  }
+
+  :global(.remove-file-btn:hover) {
+    background: #ef4444;
+    transform: scale(1.1);
   }
 </style>

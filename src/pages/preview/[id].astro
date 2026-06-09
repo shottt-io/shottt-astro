@@ -1,0 +1,310 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import BrandHeader from '../../components/BrandHeader.astro';
+import CategoryNav from '../../components/CategoryNav.astro';
+import MenuLayout from '../../components/MenuLayout.astro';
+import { previews } from '../../utils/store';
+import { useTranslations } from '../../utils/i18n';
+
+const { id } = Astro.params;
+if (!id) {
+  return new Response("Not Found", { status: 404 });
+}
+
+const vendor = previews.get(id);
+if (!vendor) {
+  return new Response("Preview Session Expired or Not Found", { status: 404 });
+}
+
+const { t } = useTranslations(Astro.cookies, Astro.request, vendor.locale || undefined);
+
+// Map categories to components schema format
+const categories = vendor.categories.map((category) => ({
+  id: category.id,
+  name: category.name,
+  status: category.status,
+  items: category.items.map((item) => ({
+    id: item.id,
+    name: item.name,
+    slug: item.slug,
+    price: item.price,
+    image: item.image,
+    description: item.description,
+    discount: item.discount,
+    span2: item.span2,
+    status: item.status,
+  })),
+}));
+
+// Multi-language banner messages
+const bannerTitle = {
+  fa: 'این پیش‌نمایش منوی شماست! برای ثبت و اختصاصی کردن آن ثبت‌نام کنید.',
+  en: 'This is your menu preview! Register to claim and customize it.',
+  tr: 'Bu sizin menü önizlemenizdir! Sahiplenmek ve özelleştirmek için kaydolun.',
+}[vendor.locale || 'fa'];
+
+const registerLabel = {
+  fa: 'ثبت‌نام مجموعه ⚡',
+  en: 'Register Now ⚡',
+  tr: 'Şimdi Kaydol ⚡',
+}[vendor.locale || 'fa'];
+
+const changeDesignLabel = {
+  fa: 'تغییر طرح ✨',
+  en: 'Change Design ✨',
+  tr: 'Tasarımı Değiştir ✨',
+}[vendor.locale || 'fa'];
+---
+
+<Layout 
+  title={`${vendor.name} — ${t('digitalCatalog')} (${t('preview') || 'Preview'})`} 
+  description={`${vendor.type} ${vendor.name} - ${vendor.slogan}`}
+  ogImage={vendor.logo}
+  favicon={vendor.logo}
+  theme={vendor.theme}
+  twitterCard="summary"
+  localeOverride={vendor.locale || undefined}
+>
+  <!-- Sticky Top Call-To-Action Banner -->
+  <div class="preview-cta-banner">
+    <div class="banner-content">
+      <span class="banner-text">{bannerTitle}</span>
+      <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <button 
+          id="change-design-btn" 
+          class="preview-design-btn"
+          data-preview-id={id}
+          data-current-layout={vendor.defaultLayout}
+          data-current-theme={vendor.theme}
+        >
+          {changeDesignLabel}
+        </button>
+        <a href={`/admin/register?preview_id=${id}`} class="preview-register-btn">{registerLabel}</a>
+      </div>
+    </div>
+  </div>
+
+  <main class="menu-main-wrapper" id="page-main" data-vendor-slug="#">
+    <!-- Brand Info Header -->
+    <BrandHeader 
+      name={vendor.name}
+      type={vendor.type}
+      slogan={vendor.slogan}
+      logoIcon={vendor.logoIcon}
+      logo={vendor.logo}
+    />
+
+    <!-- Frosted Glass Categories Sticky Bar -->
+    <CategoryNav categories={categories} />
+
+    <!-- Core Menu Items List (Pinterest Masonry, Compact List, or Card layout) -->
+    <MenuLayout 
+      categories={categories}
+      layoutMode={vendor.defaultLayout as 'pinterest' | 'simple' | 'card'}
+      vendorSlug="#"
+      locale={vendor.locale || undefined}
+      currency={vendor.currency}
+    />
+
+    <!-- Product Page Footer -->
+    <footer class="product-page-footer">
+      <div class="footer-divider"></div>
+      <a href="/" class="footer-platform-link">
+        {t('developedWith')}
+        <img src="/logo.png" alt="shottt" class="footer-logo-img" />
+      </a>
+    </footer>
+  </main>
+
+  <style>
+    .preview-cta-banner {
+      background: linear-gradient(135deg, #18181b, #09090b);
+      color: #ffffff;
+      padding: 0.75rem 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .banner-content {
+      max-width: 42rem;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      font-family: 'Estedad', system-ui, -apple-system, sans-serif;
+    }
+
+    .banner-text {
+      font-size: 0.8125rem;
+      font-weight: 500;
+      line-height: 1.4;
+    }
+
+    .preview-register-btn {
+      background-color: #ffffff;
+      color: #18181b;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.45rem 1rem;
+      border-radius: 9999px;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .preview-register-btn:hover {
+      background-color: #f4f4f5;
+      transform: scale(1.02);
+    }
+
+    .menu-main-wrapper {
+      background-color: var(--bg-primary, #FFFFFF);
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      transition: background-color 0.3s ease;
+    }
+
+    /* Product Page Footer Styles */
+    .product-page-footer {
+      padding: 3rem 0 1.5rem 0;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      width: 100%;
+      max-width: 42rem;
+      margin: auto auto 0 auto;
+      box-sizing: border-box;
+    }
+
+    .footer-divider {
+      width: 100%;
+      height: 1px;
+      background-color: var(--border-color, #f5f5f5);
+      margin-bottom: 0.5rem;
+    }
+
+    .footer-platform-link {
+      font-size: 0.8125rem;
+      font-weight: 300;
+      color: var(--text-secondary, #a3a3a3);
+      text-decoration: none;
+      transition: color 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .footer-logo-img {
+      width: 3.25rem;
+      height: 3.25rem;
+      object-fit: contain;
+      border-radius: 0.75rem;
+      opacity: 0.8;
+      transition: opacity 0.2s ease;
+    }
+
+    .footer-platform-link:hover {
+      color: var(--text-primary, #171717);
+    }
+
+    .footer-platform-link:hover .footer-logo-img {
+      opacity: 1;
+    }
+
+    .preview-design-btn {
+      background-color: transparent;
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.45rem 1rem;
+      border-radius: 9999px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+
+    .preview-design-btn:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.6);
+      transform: scale(1.02);
+    }
+  </style>
+
+  <!-- Client-side script to intercept details page clicks -->
+  <script is:inline>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Intercept Details clicks
+      const pageMain = document.getElementById('page-main');
+      if (pageMain) {
+        pageMain.addEventListener('click', (e) => {
+          const anchor = e.target.closest('a');
+          if (anchor) {
+            if (anchor.classList.contains('preview-register-btn') || anchor.classList.contains('footer-platform-link')) {
+              return;
+            }
+            e.preventDefault();
+          }
+        }, true);
+      }
+
+      // Handle Change Design Button Clicks
+      const changeDesignBtn = document.getElementById('change-design-btn');
+      if (changeDesignBtn) {
+        changeDesignBtn.addEventListener('click', async () => {
+          const layouts = ['pinterest', 'simple', 'card'];
+          const themes = ['light', 'dark'];
+          
+          const currentLayout = changeDesignBtn.getAttribute('data-current-layout');
+          const currentTheme = changeDesignBtn.getAttribute('data-current-theme');
+          const id = changeDesignBtn.getAttribute('data-preview-id');
+          
+          // Filter out current values to guarantee a change
+          const otherLayouts = layouts.filter(l => l !== currentLayout);
+          const otherThemes = themes.filter(t => t !== currentTheme);
+          
+          // Randomly choose whether to change layout, theme, or both
+          const changeType = Math.floor(Math.random() * 3); // 0: layout, 1: theme, 2: both
+          
+          let nextLayout = currentLayout;
+          let nextTheme = currentTheme;
+          
+          if (changeType === 0 || changeType === 2) {
+            nextLayout = otherLayouts[Math.floor(Math.random() * otherLayouts.length)];
+          }
+          if (changeType === 1 || changeType === 2) {
+            nextTheme = otherThemes[Math.floor(Math.random() * otherThemes.length)];
+          }
+          
+          changeDesignBtn.disabled = true;
+          changeDesignBtn.style.opacity = '0.7';
+          
+          try {
+            const res = await fetch('/api/ai/update-preview', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ id, layout: nextLayout, theme: nextTheme }),
+            });
+            if (res.ok) {
+              window.location.reload();
+            } else {
+              throw new Error('Update failed');
+            }
+          } catch (err) {
+            console.error(err);
+            changeDesignBtn.disabled = false;
+            changeDesignBtn.style.opacity = '1';
+          }
+        });
+      }
+    });
+  </script>
+</Layout>

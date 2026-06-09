@@ -3,9 +3,23 @@ import Layout from '../../layouts/Layout.astro';
 import { useTranslations } from '../../utils/i18n';
 import { IS_IRAN_SERVER } from '../../config/region';
 import '../../styles/admin.css';
+import { previews } from '../../utils/store';
 
 const domainName = Astro.url.host;
 const { t, locale, dir } = useTranslations(Astro.cookies, Astro.request);
+
+const previewId = Astro.url.searchParams.get('preview_id') || '';
+let prefillData = { name: '', type: '', country: '' };
+if (previewId) {
+  const preview = previews.get(previewId);
+  if (preview) {
+    prefillData = {
+      name: preview.name || '',
+      type: preview.type || '',
+      country: preview.locale === 'tr' ? 'tr' : preview.locale === 'fa' ? 'ir' : 'gb',
+    };
+  }
+}
 
 const countries = [
   { code: 'ir', flag: '🇮🇷', key: 'countryIran', dial: '+98' },
@@ -109,6 +123,7 @@ const countryDialCodesJson = JSON.stringify(Object.fromEntries(countries.map(c =
           data-hide-text={t('hide')}
         >
           <input type="hidden" name="timezone" id="timezone-input" value="Asia/Tehran" />
+          <input type="hidden" name="previewId" value={previewId} />
           <div class="form-group">
             <label for="name" class="form-label">{t('shopName')}</label>
             <input 
@@ -118,6 +133,7 @@ const countryDialCodesJson = JSON.stringify(Object.fromEntries(countries.map(c =
               class="form-input" 
               placeholder={t('shopNamePlaceholder')} 
               required 
+              value={prefillData.name}
             />
           </div>
 
@@ -143,17 +159,39 @@ const countryDialCodesJson = JSON.stringify(Object.fromEntries(countries.map(c =
           <div class="form-group">
             <label for="type" class="form-label">{t('shopType')}</label>
             <select name="type" id="type" class="form-select" required style={dir === 'ltr' ? 'background-position: right 1rem center; padding-right: 2.5rem; padding-left: 1rem;' : ''}>
-              <option value="" disabled selected>{t('selectOption')}</option>
-              <option value="کافه">{t('typeCafe')}</option>
-              <option value="رستوران">{t('typeRestaurant')}</option>
-              <option value="کافه رستوران">{t('typeCafeRestaurant')}</option>
-              <option value="نان و شیرینی">{t('typeBakery')}</option>
-              <option value="پوشاک و اکسسوری">{t('typeClothing')}</option>
-              <option value="گالری و آثار هنری">{t('typeGallery')}</option>
-              <option value="فروشگاه دیجیتال">{t('typeDigital')}</option>
-              <option value="آرایشی و بهداشتی">{t('typeCosmetics')}</option>
-              <option value="آبمیوه بستنی">{t('typeIceCream')}</option>
-              <option value="سایر">{t('typeOther')}</option>
+              <option value="" disabled selected={!prefillData.type}>{t('selectOption')}</option>
+              {(() => {
+                const matchesType = (val: string) => {
+                  if (!prefillData.type) return false;
+                  const p = prefillData.type.toLowerCase();
+                  if (val === 'کافه') return p.includes('cafe') || p.includes('کافه') || p.includes('coffee') || p.includes('kahve');
+                  if (val === 'رستوران') return p.includes('restaurant') || p.includes('رستوران') || p.includes('lokanta');
+                  if (val === 'کافه رستوران') return p.includes('کافه رستوران') || (p.includes('cafe') && p.includes('restaurant'));
+                  if (val === 'نان و شیرینی') return p.includes('bakery') || p.includes('pastry') || p.includes('fırın') || p.includes('نان') || p.includes('شیرینی');
+                  if (val === 'پوشاک و اکسسوری') return p.includes('clothing') || p.includes('fashion') || p.includes('giyim') || p.includes('پوشاک');
+                  if (val === 'گالری و آثار هنری') return p.includes('gallery') || p.includes('art') || p.includes('galeri') || p.includes('گالری');
+                  if (val === 'فروشگاه دیجیتال') return p.includes('digital') || p.includes('electronics') || p.includes('دیجیتال');
+                  if (val === 'آرایشی و بهداشتی') return p.includes('cosmetics') || p.includes('beauty') || p.includes('آرایشی');
+                  if (val === 'آبمیوه بستنی') return p.includes('ice cream') || p.includes('juice') || p.includes('بستنی');
+                  return false;
+                };
+                const hasMatch = ['کافه', 'رستوران', 'کافه رستوران', 'نان و شیرینی', 'پوشاک و اکسسوری', 'گالری و آثار هنری', 'فروشگاه دیجیتال', 'آرایشی و بهداشتی', 'آبمیوه بستنی'].some(matchesType);
+                
+                return (
+                  <>
+                    <option value="کافه" selected={matchesType('کافه')}>{t('typeCafe')}</option>
+                    <option value="رستوران" selected={matchesType('رستوران')}>{t('typeRestaurant')}</option>
+                    <option value="کافه رستوران" selected={matchesType('کافه رستوران')}>{t('typeCafeRestaurant')}</option>
+                    <option value="نان و شیرینی" selected={matchesType('نان و شیرینی')}>{t('typeBakery')}</option>
+                    <option value="پوشاک و اکسسوری" selected={matchesType('پوشاک و اکسسوری')}>{t('typeClothing')}</option>
+                    <option value="گالری و آثار هنری" selected={matchesType('گالری و آثار هنری')}>{t('typeGallery')}</option>
+                    <option value="فروشگاه دیجیتال" selected={matchesType('فروشگاه دیجیتال')}>{t('typeDigital')}</option>
+                    <option value="آرایشی و بهداشتی" selected={matchesType('آرایشی و بهداشتی')}>{t('typeCosmetics')}</option>
+                    <option value="آبمیوه بستنی" selected={matchesType('آبمیوه بستنی')}>{t('typeIceCream')}</option>
+                    <option value="سایر" selected={!!prefillData.type && !hasMatch}>{t('typeOther')}</option>
+                  </>
+                );
+              })()}
             </select>
           </div>
 
@@ -163,9 +201,11 @@ const countryDialCodesJson = JSON.stringify(Object.fromEntries(countries.map(c =
             <select name="country" id="country" class="form-select" required style={dir === 'ltr' ? 'background-position: right 1rem center; padding-right: 2.5rem; padding-left: 1rem;' : ''}>
               <option value="" disabled>{t('selectCountry')}</option>
               {countries.map((c) => {
-                const isSelected = (c.code === 'ir' && locale === 'fa') || 
-                                   (c.code === 'tr' && locale === 'tr') || 
-                                   (c.code === 'gb' && locale !== 'fa' && locale !== 'tr');
+                const isSelected = prefillData.country 
+                  ? c.code === prefillData.country 
+                  : (c.code === 'ir' && locale === 'fa') || 
+                    (c.code === 'tr' && locale === 'tr') || 
+                    (c.code === 'gb' && locale !== 'fa' && locale !== 'tr');
                 return (
                   <option value={c.code} selected={isSelected}>
                     {c.flag} {t(c.key)}

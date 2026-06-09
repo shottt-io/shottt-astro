@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { db } from '../../../db/db';
-import { users as usersTable, vendors as vendorsTable, vendorUsers as vendorUsersTable } from '../../../db/schema';
+import { users as usersTable, vendors as vendorsTable, vendorUsers as vendorUsersTable, categories as categoriesTable, menuItems as menuItemsTable } from '../../../db/schema';
 import { hashPassword, signSession } from '../../../utils/auth';
 import { eq } from 'drizzle-orm';
 import { purgeVendorCache } from '../../../utils/purge';
@@ -10,7 +10,13 @@ export const POST: APIRoute = async ({ request, cookies }) => {
   const { t } = useTranslations(cookies, request);
   try {
     const body = await request.json();
-    const { name, slug, type, city, country, userName, phone, username, password, timezone } = body;
+    const { name, slug, type, city, country, userName, phone, username, password, timezone, previewId } = body;
+
+    let previewData: any = null;
+    if (previewId) {
+      const { previews } = await import('../../../utils/store');
+      previewData = previews.get(previewId);
+    }
 
     // 1. Validation
     if (!name || !slug || !type || !city || !country || !userName || !phone || !username || !password) {
@@ -111,16 +117,18 @@ export const POST: APIRoute = async ({ request, cookies }) => {
           slug: normalizedSlug,
           name: name.trim(),
           type: type.trim(),
-          slogan: t('seoDescription'),
-          description: t('seoDescription'),
-          defaultLayout: 'pinterest',
-          theme: 'light',
-          logoIcon: logoIcon,
-          logo: '/logo.png',
+          slogan: previewData ? (previewData.slogan || t('seoDescription')) : t('seoDescription'),
+          description: previewData ? (previewData.slogan || t('seoDescription')) : t('seoDescription'),
+          defaultLayout: previewData ? (previewData.defaultLayout || 'pinterest') : 'pinterest',
+          theme: previewData ? (previewData.theme || 'light') : 'light',
+          logoIcon: previewData ? (previewData.logoIcon || logoIcon) : logoIcon,
+          logo: previewData ? (previewData.logo || '/logo.png') : '/logo.png',
           city: city.trim(),
           country: country.trim(),
           timezone: timezone ? timezone.trim() : 'Asia/Tehran',
-          syncSourceUrl: null
+          syncSourceUrl: null,
+          locale: previewData ? (previewData.locale || null) : null,
+          currency: previewData ? (previewData.currency || null) : null
         })
         .returning();
 
@@ -143,12 +151,58 @@ export const POST: APIRoute = async ({ request, cookies }) => {
           userId: newUser.id
         });
 
+      // Clone preview categories and items
+      if (previewData && previewData.categories) {
+        let catOrder = 0;
+        for (const cat of previewData.categories) {
+          const [newCat] = await tx
+            .insert(categoriesTable)
+            .values({
+              vendorId: newVendor.id,
+              name: cat.name,
+              sortOrder: catOrder++,
+              status: cat.status || 'available'
+            })
+            .returning();
+
+          if (cat.items) {
+            let itemOrder = 0;
+            for (const item of cat.items) {
+              await tx
+                .insert(menuItemsTable)
+                .values({
+                  categoryId: newCat.id,
+                  name: item.name,
+                  slug: item.slug || null,
+                  price: String(item.price),
+                  image: item.image || null,
+                  description: item.description || null,
+                  discount: item.discount ? {
+                    originalPrice: String(item.discount.originalPrice),
+                    discountText: item.discount.discountText
+                  } : null,
+                  span2: item.span2 || false,
+                  status: item.status || 'available',
+                  sortOrder: itemOrder++,
+                  sections: []
+                });
+            }
+          }
+        }
+      }
+
       userSessionData = {
         userId: newUser.id,
         username: newUser.username,
         name: newUser.name || newUser.username
       };
     });
+
+    // Clean up preview session
+    if (previewId) {
+      const { previews } = await import('../../../utils/store');
+      previews.delete(previewId);
+    }
 
     // 5. Sign Session Cookie
     const token = signSession(userSessionData);
