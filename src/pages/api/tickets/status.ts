@@ -3,22 +3,24 @@ import { db } from '../../../db/db';
 import { tickets, vendorUsers } from '../../../db/schema';
 import { getSession } from '../../../utils/auth';
 import { and, eq } from 'drizzle-orm';
+import { useTranslations } from '../../../utils/i18n';
 
 export const PATCH: APIRoute = async ({ request, cookies }) => {
+  const { t } = useTranslations(cookies, request);
   const session = getSession(cookies);
   if (!session) {
-    return new Response(JSON.stringify({ success: false, message: 'عدم احراز هویت' }), { status: 401 });
+    return new Response(JSON.stringify({ success: false, message: t('unauthorized') }), { status: 401 });
   }
 
   try {
     const { ticketId, status } = await request.json();
 
     if (!ticketId || !status) {
-      return new Response(JSON.stringify({ success: false, message: 'اطلاعات ارسالی ناقص است' }), { status: 400 });
+      return new Response(JSON.stringify({ success: false, message: t('requiredFieldsMissing') }), { status: 400 });
     }
 
     if (!['open', 'answered', 'closed'].includes(status)) {
-      return new Response(JSON.stringify({ success: false, message: 'وضعیت نامعتبر است' }), { status: 400 });
+      return new Response(JSON.stringify({ success: false, message: t('invalidStatus') }), { status: 400 });
     }
 
     // 1. Fetch the ticket
@@ -29,7 +31,7 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
       .limit(1);
 
     if (ticketList.length === 0) {
-      return new Response(JSON.stringify({ success: false, message: 'تیکت یافت نشد' }), { status: 404 });
+      return new Response(JSON.stringify({ success: false, message: t('ticketNotFound') }), { status: 404 });
     }
 
     const ticket = ticketList[0];
@@ -48,7 +50,7 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
         .limit(1);
 
       if (access.length === 0) {
-        return new Response(JSON.stringify({ success: false, message: 'شما دسترسی به این تیکت را ندارید' }), { status: 403 });
+        return new Response(JSON.stringify({ success: false, message: t('noAccessToTicket') }), { status: 403 });
       }
     }
 
@@ -64,6 +66,6 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
     return new Response(JSON.stringify({ success: true, status }), { status: 200 });
   } catch (error: any) {
     console.error('Error changing ticket status:', error);
-    return new Response(JSON.stringify({ success: false, message: error.message || 'خطا در بروزرسانی وضعیت تیکت' }), { status: 500 });
+    return new Response(JSON.stringify({ success: false, message: error.message || t('errorTicketStatusUpdate') }), { status: 500 });
   }
 };

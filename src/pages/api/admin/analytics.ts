@@ -10,6 +10,7 @@ import {
 } from '../../../db/schema';
 import { getSession } from '../../../utils/auth';
 import { eq, and, gte, asc, desc, sum, inArray, ne } from 'drizzle-orm';
+import { useTranslations } from '../../../utils/i18n';
 
 // Helper to check user access to a vendor ID
 async function checkVendorAccess(userId: number, vendorId: number): Promise<boolean> {
@@ -34,9 +35,10 @@ const getTehranDateOffsetString = (offsetDays: number): string => {
 };
 
 export const GET: APIRoute = async ({ request, cookies }) => {
+  const { t } = useTranslations(cookies, request);
   const session = getSession(cookies);
   if (!session) {
-    return new Response(JSON.stringify({ success: false, message: 'عدم احراز هویت' }), {
+    return new Response(JSON.stringify({ success: false, message: t('unauthorized') }), {
       status: 401,
       headers: { 'Content-Type': 'application/json' },
     });
@@ -48,7 +50,7 @@ export const GET: APIRoute = async ({ request, cookies }) => {
     const rangeParam = url.searchParams.get('range'); // 'today', '7', or '30'
 
     if (!vendorSlug) {
-      return new Response(JSON.stringify({ success: false, message: 'شناسه مجموعه الزامی است' }), {
+      return new Response(JSON.stringify({ success: false, message: t('requiredFieldsMissing') }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
       });
@@ -64,7 +66,7 @@ export const GET: APIRoute = async ({ request, cookies }) => {
       .limit(1);
 
     if (vendorList.length === 0) {
-      return new Response(JSON.stringify({ success: false, message: 'مجموعه یافت نشد' }), {
+      return new Response(JSON.stringify({ success: false, message: t('vendorNotFound') }), {
         status: 404,
         headers: { 'Content-Type': 'application/json' },
       });
@@ -74,7 +76,7 @@ export const GET: APIRoute = async ({ request, cookies }) => {
 
     const hasAccess = await checkVendorAccess(session.userId, vendor.id);
     if (!hasAccess) {
-      return new Response(JSON.stringify({ success: false, message: 'عدم دسترسی به این مجموعه' }), {
+      return new Response(JSON.stringify({ success: false, message: t('noAccessToVendor') }), {
         status: 403,
         headers: { 'Content-Type': 'application/json' },
       });
@@ -178,7 +180,7 @@ export const GET: APIRoute = async ({ request, cookies }) => {
 
   } catch (error) {
     console.error('Fetch analytics error:', error);
-    return new Response(JSON.stringify({ success: false, message: 'خطای سرور' }), {
+    return new Response(JSON.stringify({ success: false, message: t('serverError') }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });

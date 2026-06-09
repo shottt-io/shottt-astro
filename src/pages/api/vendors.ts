@@ -4,6 +4,7 @@ import { vendors as vendorsTable, vendorUsers as vendorUsersTable } from '../../
 import { getSession } from '../../utils/auth';
 import { eq, and } from 'drizzle-orm';
 import { purgeVendorCache } from '../../utils/purge';
+import { useTranslations } from '../../utils/i18n';
 
 // Helper to check user access to a vendor ID
 async function checkVendorAccess(userId: number, vendorId: number): Promise<boolean> {
@@ -17,17 +18,18 @@ async function checkVendorAccess(userId: number, vendorId: number): Promise<bool
 
 // PATCH: Update vendor details (supports partial updates)
 export const PATCH: APIRoute = async ({ request, cookies }) => {
+  const { t } = useTranslations(cookies, request);
   const session = getSession(cookies);
   if (!session) {
-    return new Response(JSON.stringify({ success: false, message: 'عدم احراز هویت' }), { status: 401 });
+    return new Response(JSON.stringify({ success: false, message: t('unauthorized') }), { status: 401 });
   }
 
   try {
     const data = await request.json();
-    const { slug, name, type, slogan, description, defaultLayout, logoIcon, logo, theme } = data;
+    const { slug, name, type, slogan, description, defaultLayout, logoIcon, logo, theme, locale } = data;
 
     if (!slug) {
-      return new Response(JSON.stringify({ success: false, message: 'شناسه مجموعه (Slug) الزامی است' }), { status: 400 });
+      return new Response(JSON.stringify({ success: false, message: t('requiredFieldsMissing') }), { status: 400 });
     }
 
     // Lookup vendor by slug
@@ -38,7 +40,7 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
       .limit(1);
 
     if (vendorList.length === 0) {
-      return new Response(JSON.stringify({ success: false, message: 'مجموعه یافت نشد' }), { status: 404 });
+      return new Response(JSON.stringify({ success: false, message: t('vendorNotFound') }), { status: 404 });
     }
 
     const vendor = vendorList[0];
@@ -46,7 +48,7 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
     // Check user access
     const hasAccess = await checkVendorAccess(session.userId, vendor.id);
     if (!hasAccess) {
-      return new Response(JSON.stringify({ success: false, message: 'عدم دسترسی به این مجموعه' }), { status: 403 });
+      return new Response(JSON.stringify({ success: false, message: t('noAccessToVendor') }), { status: 403 });
     }
 
     // Merge incoming changes with existing vendor data
@@ -59,6 +61,7 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
       logoIcon: logoIcon !== undefined ? logoIcon : vendor.logoIcon,
       logo: logo !== undefined ? logo : vendor.logo,
       theme: theme !== undefined ? theme : vendor.theme,
+      locale: locale !== undefined ? (locale === '' ? null : locale) : vendor.locale,
     };
 
     // Perform update
@@ -70,9 +73,9 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
     // Purge CDN cache for this vendor so changes are immediately visible
     purgeVendorCache(slug).catch(() => {});
 
-    return new Response(JSON.stringify({ success: true, message: 'اطلاعات با موفقیت به‌روزرسانی شد' }), { status: 200 });
+    return new Response(JSON.stringify({ success: true, message: t('successSettingsSaved') }), { status: 200 });
   } catch (error) {
     console.error(error);
-    return new Response(JSON.stringify({ success: false, message: 'خطای سرور' }), { status: 500 });
+    return new Response(JSON.stringify({ success: false, message: t('serverError') }), { status: 500 });
   }
 };

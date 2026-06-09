@@ -3,11 +3,15 @@ import AdminLayout from '../../../layouts/AdminLayout.astro';
 import { db } from '../../../db/db';
 import { vendors as vendorsTable } from '../../../db/schema';
 import { eq } from 'drizzle-orm';
+import { useTranslations } from '../../../utils/i18n';
+import { DEFAULT_LOCALE } from '../../../config/region';
 
 const vendorSlug = Astro.params.vendor;
 if (!vendorSlug) {
   return Astro.redirect('/admin');
 }
+
+const { t, locale, dir } = useTranslations(Astro.cookies, Astro.request);
 
 // Fetch vendor settings
 const vendorList = await db
@@ -17,15 +21,17 @@ const vendorList = await db
   .limit(1);
 
 if (vendorList.length === 0) {
-  return new Response("مجموعه یافت نشد.", { status: 404 });
+  return new Response(t('vendorNotFound'), { status: 404 });
 }
 const vendor = vendorList[0];
 
 // Use slogan as the unified description since they are the same
 const unifiedSlogan = vendor.slogan || vendor.description;
+
+const systemDefaultLabel = DEFAULT_LOCALE === 'fa' ? 'فارسی (Persian)' : DEFAULT_LOCALE === 'en' ? 'English' : 'Türkçe (Turkish)';
 ---
 
-<AdminLayout title="اطلاعات پایه مجموعه" activeTab="settings" vendorSlug={vendorSlug}>
+<AdminLayout title={t('editInfo')} activeTab="settings" vendorSlug={vendorSlug}>
   <!-- Onboarding banner -->
   <div class="onboarding-banner">
     <div class="onboarding-icon-box">
@@ -36,36 +42,42 @@ const unifiedSlogan = vendor.slogan || vendor.description;
       </svg>
     </div>
     <div class="onboarding-text-box">
-      <span class="onboarding-title">راهنمای بهینه‌سازی شناسنامه مجموعه</span>
-      <p class="onboarding-desc">شعار و توضیحات کوتاه مجموعه به عنوان زیرعنوان اصلی در هدر کاتالوگ ظاهر می‌شود. برای حفظ زیبایی بصری کاتالوگ دیجیتال مجموعه، از جملات کوتاه، تاثیرگذار و متمرکز (حداکثر ۱۰۰ کاراکتر) استفاده کنید.</p>
+      <span class="onboarding-title">{t('onboardingTitle')}</span>
+      <p class="onboarding-desc">{t('onboardingDesc')}</p>
     </div>
   </div>
 
   <div class="admin-page-actions">
-    <h1 class="page-title-bold">اطلاعات پایه مجموعه</h1>
+    <h1 class="page-title-bold">{t('editInfo')}</h1>
   </div>
 
   <div class="admin-card">
-    <form id="general-settings-form" style="display: flex; flex-direction: column; gap: 1.25rem;">
+    <form 
+      id="general-settings-form" 
+      style="display: flex; flex-direction: column; gap: 1.25rem;"
+      data-success-msg={t('successSettingsSaved')}
+      data-error-msg={t('errorSavingSettings')}
+      data-conn-error-msg={t('errorServerConnection')}
+    >
       <div class="form-group">
-        <label class="form-label">نام مجموعه *</label>
+        <label class="form-label">{t('shopName')}</label>
         <input type="text" name="name" class="form-input" value={vendor.name} required />
       </div>
 
       <div class="form-group">
-        <label class="form-label">نوع مجموعه *</label>
+        <label class="form-label">{t('shopType')}</label>
         <select name="type" class="form-select" required>
-          <option value="کافه" selected={vendor.type === 'کافه' || vendor.type === 'کافه تخصصی' || vendor.type === 'کافه گالری'}>کافه</option>
-          <option value="رستوران" selected={vendor.type === 'رستوران' || vendor.type === 'رستوران مدرن'}>رستوران</option>
-          <option value="کافه رستوران" selected={vendor.type === 'کافه رستوران' || vendor.type === 'رستوران مدرن فرانسوی-ایرانی'}>کافه رستوران</option>
-          <option value="نان و شیرینی" selected={vendor.type === 'نان و شیرینی' || vendor.type === 'بوتیک قنادی فرانسوی' || vendor.type === 'قنادی و بوتیک شیرینی'}>نان و شیرینی</option>
-          <option value="پوشاک و اکسسوری" selected={vendor.type === 'پوشاک و اکسسوری'}>پوشاک و اکسسوری</option>
-          <option value="گالری و آثار هنری" selected={vendor.type === 'گالری و آثار هنری'}>گالری و آثار هنری</option>
-          <option value="فروشگاه دیجیتال" selected={vendor.type === 'فروشگاه دیجیتال'}>فروشگاه دیجیتال</option>
-          <option value="آرایشی و بهداشتی" selected={vendor.type === 'آرایشی و بهداشتی'}>آرایشی و بهداشتی</option>
-          <option value="آجیل و خشکبار" selected={vendor.type === 'آجیل و خشکبار'}>آجیل و خشکبار</option>
-          <option value="آبمیوه بستنی" selected={vendor.type === 'آبمیوه بستنی'}>آبمیوه بستنی</option>
-          <option value="سایر" selected={vendor.type === 'سایر'}>سایر</option>
+          <option value="کافه" selected={vendor.type === 'کافه' || vendor.type === 'کافه تخصصی' || vendor.type === 'کافه گالری'}>{t('typeCafe')}</option>
+          <option value="رستوران" selected={vendor.type === 'رستوران' || vendor.type === 'رستوران مدرن'}>{t('typeRestaurant')}</option>
+          <option value="کافه رستوران" selected={vendor.type === 'کافه رستوران' || vendor.type === 'رستوران مدرن فرانسوی-ایرانی'}>{t('typeCafeRestaurant')}</option>
+          <option value="نان و شیرینی" selected={vendor.type === 'نان و شیرینی' || vendor.type === 'بوتیک قنادی فرانسوی' || vendor.type === 'قنادی و بوتیک شیرینی'}>{t('typeBakery')}</option>
+          <option value="پوشاک و اکسسوری" selected={vendor.type === 'پوشاک و اکسسوری'}>{t('typeClothing')}</option>
+          <option value="گالری و آثار هنری" selected={vendor.type === 'گالری و آثار هنری'}>{t('typeGallery')}</option>
+          <option value="فروشگاه دیجیتال" selected={vendor.type === 'فروشگاه دیجیتال'}>{t('typeDigital')}</option>
+          <option value="آرایشی و بهداشتی" selected={vendor.type === 'آرایشی و بهداشتی'}>{t('typeCosmetics')}</option>
+          <option value="آجیل و خشکبار" selected={vendor.type === 'آجیل و خشکبار'}>{t('typeNuts')}</option>
+          <option value="آبمیوه بستنی" selected={vendor.type === 'آبمیوه بستنی'}>{t('typeIceCream')}</option>
+          <option value="سایر" selected={vendor.type === 'سایر'}>{t('typeOther')}</option>
           {vendor.type && !['کافه', 'کافه تخصصی', 'کافه گالری', 'رستوران', 'رستوران مدرن', 'کافه رستوران', 'رستوران مدرن فرانسوی-ایرانی', 'نان و شیرینی', 'بوتیک قنادی فرانسوی', 'قنادی و بوتیک شیرینی', 'پوشاک و اکسسوری', 'گالری و آثار هنری', 'فروشگاه دیجیتال', 'آرایشی و بهداشتی', 'آجیل و خشکبار', 'آبمیوه بستنی', 'سایر'].includes(vendor.type) && (
             <option value={vendor.type} selected>{vendor.type}</option>
           )}
@@ -73,28 +85,38 @@ const unifiedSlogan = vendor.slogan || vendor.description;
       </div>
 
       <div class="form-group">
-        <label class="form-label">شعار و توضیح کوتاه مجموعه *</label>
+        <label class="form-label">{t('customerLanguage')}</label>
+        <select name="locale" class="form-select">
+          <option value="" selected={!vendor.locale}>{t('systemDefault')} ({systemDefaultLabel})</option>
+          <option value="fa" selected={vendor.locale === 'fa'}>{t('langFa')}</option>
+          <option value="en" selected={vendor.locale === 'en'}>{t('langEn')}</option>
+          <option value="tr" selected={vendor.locale === 'tr'}>{t('langTr')}</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">{t('sloganLabel')}</label>
         <input 
           type="text" 
           name="slogan" 
           class="form-input" 
           value={unifiedSlogan} 
-          placeholder="شعار یا توضیح کوتاهی که در هدر کاتالوگ نمایش داده می‌شود..." 
+          placeholder={t('sloganPlaceholder')} 
           required 
         />
       </div>
 
       <div class="form-group">
-        <label class="form-label">لوگوی مجموعه *</label>
+        <label class="form-label">{t('shopLogo')}</label>
         <div class="image-upload-wrapper">
           <input type="file" id="logo-file-input" accept="image/*" style="display: none;" />
           <input type="hidden" name="logo" id="logo-url-hidden" value={vendor.logo} />
           <div class="image-preview-container" id="logo-preview-container">
             <img src={vendor.logo} id="logo-preview" class="image-preview-box" style={vendor.logo ? 'display: block;' : 'display: none;'} />
             <div style="display: flex; flex-direction: column; gap: 0.375rem; align-items: flex-start;">
-              <button type="button" class="btn btn-secondary" id="btn-select-logo">انتخاب تصویر لوگو</button>
-              <button type="button" class="btn btn-danger" id="btn-remove-logo" style={vendor.logo ? 'display: block; font-size: 0.75rem; padding: 0.4rem 0.8rem;' : 'display: none; font-size: 0.75rem; padding: 0.4rem 0.8rem;'}>حذف لوگو</button>
-              <span style="font-size: 0.6875rem; color: #737373;">ابعاد مربع (۱:۱)</span>
+              <button type="button" class="btn btn-secondary" id="btn-select-logo">{t('selectLogo')}</button>
+              <button type="button" class="btn btn-danger" id="btn-remove-logo" style={vendor.logo ? 'display: block; font-size: 0.75rem; padding: 0.4rem 0.8rem;' : 'display: none; font-size: 0.75rem; padding: 0.4rem 0.8rem;'}>{t('removeLogo')}</button>
+              <span style="font-size: 0.6875rem; color: #737373;">{t('squareAspect')}</span>
             </div>
           </div>
         </div>
@@ -104,7 +126,7 @@ const unifiedSlogan = vendor.slogan || vendor.description;
       <div id="cropper-modal" class="modal-overlay" style="display: none;">
         <div class="modal-content">
           <div class="modal-header">
-            <span class="modal-title">برش و بهینه‌سازی لوگو</span>
+            <span class="modal-title">{t('cropLogo')}</span>
             <button type="button" class="modal-close" id="btn-close-cropper">✕</button>
           </div>
           <div class="modal-body modal-body-cropper">
@@ -113,14 +135,14 @@ const unifiedSlogan = vendor.slogan || vendor.description;
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-primary" id="btn-crop-save">برش و آپلود</button>
-            <button type="button" class="btn btn-secondary" id="btn-crop-cancel">انصراف</button>
+            <button type="button" class="btn btn-primary" id="btn-crop-save" data-uploading-text={t('uploading')} data-crop-text={t('cropUpload')} data-process-error={t('errorImageProcess')} data-upload-error={t('errorUploadLogo')}>{t('cropUpload')}</button>
+            <button type="button" class="btn btn-secondary" id="btn-crop-cancel">{t('cancel')}</button>
           </div>
         </div>
       </div>
 
       <button type="submit" class="btn btn-primary btn-full" style="margin-top: 1.5rem; padding: 0.9rem;">
-        ذخیره اطلاعات پایه مجموعه
+        {t('saveSettings')}
       </button>
     </form>
   </div>
@@ -152,7 +174,7 @@ const unifiedSlogan = vendor.slogan || vendor.description;
   const cropperImage = document.getElementById('cropper-image') as HTMLImageElement;
   const closeCropperBtn = document.getElementById('btn-close-cropper');
   const cropCancelBtn = document.getElementById('btn-crop-cancel');
-  const cropSaveBtn = document.getElementById('btn-crop-save');
+  const cropSaveBtn = document.getElementById('btn-crop-save') as HTMLButtonElement;
 
   let cropper: any = null;
 
@@ -207,14 +229,19 @@ const unifiedSlogan = vendor.slogan || vendor.description;
       imageSmoothingQuality: 'high',
     });
 
+    const uploadingText = cropSaveBtn.getAttribute('data-uploading-text') || 'Uploading...';
+    const cropText = cropSaveBtn.getAttribute('data-crop-text') || 'Crop & Upload';
+    const processError = cropSaveBtn.getAttribute('data-process-error') || 'Error processing image';
+    const uploadErrorStr = cropSaveBtn.getAttribute('data-upload-error') || 'Error uploading logo';
+
     cropSaveBtn.setAttribute('disabled', 'true');
-    cropSaveBtn.textContent = 'در حال آپلود...';
+    cropSaveBtn.textContent = uploadingText;
 
     canvas.toBlob(async (blob) => {
       if (!blob) {
-        alert('خطا در پردازش تصویر');
+        alert(processError);
         cropSaveBtn.removeAttribute('disabled');
-        cropSaveBtn.textContent = 'برش و آپلود';
+        cropSaveBtn.textContent = cropText;
         return;
       }
 
@@ -237,14 +264,14 @@ const unifiedSlogan = vendor.slogan || vendor.description;
           }
           closeCropper();
         } else {
-          alert('خطا در آپلود لوگو: ' + (data.message || 'خطای نامشخص'));
+          alert(uploadErrorStr + ': ' + (data.message || ''));
         }
       } catch (err) {
         console.error(err);
-        alert('خطا در ارتباط با سرور.');
+        alert(uploadErrorStr);
       } finally {
         cropSaveBtn.removeAttribute('disabled');
-        cropSaveBtn.textContent = 'برش و آپلود';
+        cropSaveBtn.textContent = cropText;
       }
     }, 'image/webp', 0.85);
   });
@@ -259,22 +286,27 @@ const unifiedSlogan = vendor.slogan || vendor.description;
     const type = (formData.get('type') as string).trim();
     const slogan = (formData.get('slogan') as string).trim();
     const logo = (formData.get('logo') as string).trim();
+    const locale = (formData.get('locale') as string).trim();
+
+    const successMsg = form.getAttribute('data-success-msg') || 'Saved';
+    const errorMsg = form.getAttribute('data-error-msg') || 'Error';
+    const connError = form.getAttribute('data-conn-error-msg') || 'Connection Error';
 
     // Dynamically assign logoIcon based on the selected vendor type
     let logoIcon = 'store';
-    if (type.includes('کافه') || type.toLowerCase().includes('cafe')) {
+    if (type.includes('کافه') || type.toLowerCase().includes('cafe') || type.toLowerCase().includes('kafe')) {
       logoIcon = 'coffee';
-    } else if (type.includes('رستوران') || type.toLowerCase().includes('restaurant')) {
+    } else if (type.includes('رستوران') || type.toLowerCase().includes('restaurant') || type.toLowerCase().includes('restoran')) {
       logoIcon = 'utensils';
     } else if (type.includes('قنادی') || type.includes('شیرینی') || type.toLowerCase().includes('pastry') || type.toLowerCase().includes('bakery')) {
       logoIcon = 'cake';
-    } else if (type.includes('پوشاک') || type.includes('لباس')) {
+    } else if (type.includes('پوشاک') || type.includes('لباس') || type.toLowerCase().includes('clothing')) {
       logoIcon = 'shirt';
-    } else if (type.includes('گالری') || type.includes('هنر')) {
+    } else if (type.includes('گالری') || type.includes('هنر') || type.toLowerCase().includes('gallery')) {
       logoIcon = 'palette';
-    } else if (type.includes('دیجیتال')) {
+    } else if (type.includes('دیجیتال') || type.toLowerCase().includes('digital')) {
       logoIcon = 'laptop';
-    } else if (type.includes('آرایشی')) {
+    } else if (type.includes('آرایشی') || type.toLowerCase().includes('cosmetics')) {
       logoIcon = 'sparkles';
     }
 
@@ -286,7 +318,8 @@ const unifiedSlogan = vendor.slogan || vendor.description;
       slogan,
       description: slogan, // Save same value to description in DB
       logoIcon,
-      logo
+      logo,
+      locale
     };
 
     try {
@@ -297,13 +330,13 @@ const unifiedSlogan = vendor.slogan || vendor.description;
       });
 
       if (response.ok) {
-        alert('اطلاعات پایه مجموعه با موفقیت ذخیره شد.');
+        alert(successMsg);
         window.location.reload();
       } else {
-        alert('خطا در ذخیره‌سازی اطلاعات.');
+        alert(errorMsg);
       }
     } catch {
-      alert('ارتباط با سرور برقرار نشد.');
+      alert(connError);
     }
   });
 
@@ -312,3 +345,4 @@ const unifiedSlogan = vendor.slogan || vendor.description;
     return parts[2]; // /admin/[vendorSlug]/settings
   }
 </script>
+

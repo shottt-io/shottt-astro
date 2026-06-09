@@ -3,19 +3,21 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { getSession } from '../../../utils/auth';
+import { useTranslations } from '../../../utils/i18n';
 
 export const POST: APIRoute = async ({ request, cookies }) => {
+  const { t } = useTranslations(cookies, request);
   // Authenticate user before allowing upload
   const session = getSession(cookies);
   if (!session) {
-    return new Response(JSON.stringify({ success: false, message: 'عدم احراز هویت' }), { status: 401 });
+    return new Response(JSON.stringify({ success: false, message: t('unauthorized') }), { status: 401 });
   }
 
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File;
     if (!file) {
-      return new Response(JSON.stringify({ success: false, message: 'فایلی یافت نشد' }), { status: 400 });
+      return new Response(JSON.stringify({ success: false, message: t('fileNotFound') }), { status: 400 });
     }
 
     const arrayBuffer = await file.arrayBuffer();
@@ -86,6 +88,6 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     }
   } catch (error: any) {
     console.error('Ticket upload error:', error);
-    return new Response(JSON.stringify({ success: false, message: error.message || 'خطا در آپلود فایل' }), { status: 500 });
+    return new Response(JSON.stringify({ success: false, message: error.message || t('uploadErrorApi') }), { status: 500 });
   }
 };

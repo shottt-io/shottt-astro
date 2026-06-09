@@ -4,6 +4,7 @@ import { db } from '../../../db/db';
 import { vendors as vendorsTable } from '../../../db/schema';
 import { eq } from 'drizzle-orm';
 import { SITE_URL } from '../../../config/region';
+import { useTranslations } from '../../../utils/i18n';
 
 const vendorSlug = Astro.params.vendor;
 if (!vendorSlug) {
@@ -17,8 +18,10 @@ const vendorList = await db
   .where(eq(vendorsTable.slug, vendorSlug))
   .limit(1);
 
+const { t, locale, dir } = useTranslations(Astro.cookies, Astro.request);
+
 if (vendorList.length === 0) {
-  return new Response("مجموعه یافت نشد.", { status: 404 });
+  return new Response(t('vendorNotFound'), { status: 404 });
 }
 const vendor = vendorList[0];
 
@@ -32,7 +35,7 @@ if (!SITE_URL && Astro.url.hostname !== 'localhost' && Astro.url.hostname !== '1
 }
 ---
 
-<AdminLayout title="دانلود کیوآر و لینک مشتری" activeTab="qr" vendorSlug={vendorSlug}>
+<AdminLayout title={t('qrPageTitle')} activeTab="qr" vendorSlug={vendorSlug}>
   <!-- Local QRCode library -->
   <script src="/js/qrcode.min.js" is:inline></script>
 
@@ -46,13 +49,13 @@ if (!SITE_URL && Astro.url.hostname !== 'localhost' && Astro.url.hostname !== '1
       </svg>
     </div>
     <div class="onboarding-text-box">
-      <span class="onboarding-title">راهنمای استفاده از کد QR و لینک مستقیم</span>
-      <p class="onboarding-desc">شما با قرار دادن لینک مستقیم کاتالوگ در شبکه‌های اجتماعی خود، به مشتریان آنلاین کمک می‌کنید تا سریع‌تر به منوی شما دسترسی پیدا کنند. همچنین می‌توانید تصویر باکیفیت کد QR را دانلود کرده، چاپ کنید و بر روی میزها، کانتر پذیرش یا شیشه مغازه بچسبانید تا مشتریان حضوری با اسکن آن، فوراً منو را ببینند.</p>
+      <span class="onboarding-title">{t('qrOnboardingTitle')}</span>
+      <p class="onboarding-desc">{t('qrOnboardingDesc')}</p>
     </div>
   </div>
 
   <div class="admin-page-actions">
-    <h1 class="page-title-bold">دانلود کیوآر و لینک مشتری</h1>
+    <h1 class="page-title-bold">{t('qrPageTitle')}</h1>
   </div>
 
   <div class="qr-grid-container">
@@ -64,16 +67,16 @@ if (!SITE_URL && Astro.url.hostname !== 'localhost' && Astro.url.hostname !== '1
             <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
             <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
           </svg>
-          <span>لینک مستقیم مشتری</span>
+          <span>{t('directLinkTitle')}</span>
         </h2>
-        <p class="card-section-desc">این آدرس اختصاصی کاتالوگ دیجیتال مجموعه شماست. می‌توانید آن را در بیو اینستاگرام، کانال‌های ارتباطی یا پیامک‌های تبلیغاتی خود قرار دهید.</p>
+        <p class="card-section-desc">{t('directLinkDesc')}</p>
       </div>
 
       <div class="form-group" style="margin-top: 1.5rem; margin-bottom: 0; width: 100%;">
-        <label class="form-label">آدرس کاتالوگ دیجیتال</label>
+        <label class="form-label">{t('catalogUrlLabel')}</label>
         <div class="copy-url-wrapper">
           <input type="text" id="customer-url-input" class="form-input ltr-input" value={customerUrl} readonly />
-          <button type="button" id="btn-copy-url" class="btn btn-primary btn-full" style="padding: 0.85rem; font-weight: 500;">کپی لینک کاتالوگ</button>
+          <button type="button" id="btn-copy-url" class="btn btn-primary btn-full" style="padding: 0.85rem; font-weight: 500;">{t('copyLinkBtn')}</button>
         </div>
       </div>
     </div>
@@ -90,15 +93,15 @@ if (!SITE_URL && Astro.url.hostname !== 'localhost' && Astro.url.hostname !== '1
             <path d="M21 14h-3v3h3z" />
             <path d="M14 21h7v-4h-7z" />
           </svg>
-          <span>کد QR اختصاصی کاتالوگ</span>
+          <span>{t('qrCodeTitle')}</span>
         </h2>
-        <p class="card-section-desc">با قرار دادن این کد روی میزها یا پیشخوان، مشتریان با اسکن آن توسط دوربین موبایل خود فوراً منو را باز می‌کنند.</p>
+        <p class="card-section-desc">{t('qrCodeDesc')}</p>
       </div>
 
       <!-- High-res QR Render Container -->
       <div class="qr-render-box">
         <img id="qr-preview" style="width: 100%; height: 100%; display: none; border-radius: 0.5rem;" alt="QR Code Preview" />
-        <div id="qr-loading" class="qr-loading-text">در حال تولید کد QR...</div>
+        <div id="qr-loading" class="qr-loading-text">{t('generatingQr')}</div>
       </div>
 
       <button type="button" id="btn-download-qr" class="btn btn-primary btn-full" style="padding: 0.85rem; font-weight: 500;">
@@ -107,13 +110,19 @@ if (!SITE_URL && Astro.url.hostname !== 'localhost' && Astro.url.hostname !== '1
           <polyline points="7 10 12 15 17 10" />
           <line x1="12" y1="15" x2="12" y2="3" />
         </svg>
-        <span>دانلود کیو‌آر کد با کیفیت بالا (PNG)</span>
+        <span>{t('downloadQrBtn')}</span>
       </button>
     </div>
   </div>
 </AdminLayout>
 
-<script>
+<script define:vars={{ locale, clientTranslations: {
+  copied: t('copied'),
+  linkCopiedAlert: t('linkCopiedAlert'),
+  ok: t('ok'),
+  linkCopyErrorAlert: t('linkCopyErrorAlert'),
+  qrGenError: t('qrGenError')
+} }}>
   const copyBtn = document.getElementById('btn-copy-url');
   const urlInput = document.getElementById('customer-url-input') as HTMLInputElement;
 
@@ -123,16 +132,16 @@ if (!SITE_URL && Astro.url.hostname !== 'localhost' && Astro.url.hostname !== '1
       await navigator.clipboard.writeText(urlInput.value);
       
       const originalText = copyBtn.innerText;
-      copyBtn.innerText = 'کپی شد! ✓';
+      copyBtn.innerText = clientTranslations.copied;
       copyBtn.style.backgroundColor = '#16a34a';
       
       // Custom visual alert dialog defined in layout
       // @ts-ignore
       if (window.showAlertDialog) {
         // @ts-ignore
-        await window.showAlertDialog('لینک مستقیم کاتالوگ با موفقیت در حافظه کپی شد.', {
+        await window.showAlertDialog(clientTranslations.linkCopiedAlert, {
           type: 'success',
-          okText: 'باشه'
+          okText: clientTranslations.ok
         });
       }
       
@@ -146,9 +155,9 @@ if (!SITE_URL && Astro.url.hostname !== 'localhost' && Astro.url.hostname !== '1
       // @ts-ignore
       if (window.showAlertDialog) {
         // @ts-ignore
-        await window.showAlertDialog('خطا در کپی کردن لینک. لطفا آدرس را به صورت دستی کپی کنید.', {
+        await window.showAlertDialog(clientTranslations.linkCopyErrorAlert, {
           type: 'error',
-          okText: 'باشه'
+          okText: clientTranslations.ok
         });
       }
     }
@@ -174,7 +183,7 @@ if (!SITE_URL && Astro.url.hostname !== 'localhost' && Astro.url.hostname !== '1
       }, (err: any, dataUrl: string) => {
         if (err) {
           console.error(err);
-          if (qrLoading) qrLoading.textContent = 'خطا در تولید کد QR';
+          if (qrLoading) qrLoading.textContent = clientTranslations.qrGenError;
           return;
         }
         if (qrPreview) {
@@ -218,18 +227,17 @@ if (!SITE_URL && Astro.url.hostname !== 'localhost' && Astro.url.hostname !== '1
     grid-template-columns: 1.2fr 1fr;
     gap: 1.5rem;
     margin-top: 1.5rem;
-    direction: rtl;
   }
 
   .text-right-align {
-    text-align: right;
+    text-align: start;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
   }
 
   .qr-card-align {
-    text-align: right;
+    text-align: start;
     display: flex;
     flex-direction: column;
     align-items: center;

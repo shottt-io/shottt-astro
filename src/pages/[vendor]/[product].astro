@@ -5,6 +5,7 @@ import { vendors as vendorsTable, menuItems as menuItemsTable, categories as cat
 import { eq } from 'drizzle-orm';
 import { formatPriceWithUnit } from '../../utils/price';
 import { SITE_URL } from '../../config/region';
+import { useTranslations } from '../../utils/i18n';
 
 const vendorSlug = Astro.params.vendor;
 const productIdStr = Astro.params.product;
@@ -24,6 +25,8 @@ if (vendorList.length === 0) {
   return new Response("Vendor Not Found", { status: 404 });
 }
 const vendor = vendorList[0];
+
+const { t } = useTranslations(Astro.cookies, Astro.request, vendor.locale || undefined);
 
 let dbProduct;
 const isNumeric = /^\d+$/.test(productIdStr);
@@ -100,18 +103,19 @@ const canonicalUrl = `${base}${canonicalPath}`;
 
 <Layout 
   title={`${product.name} — ${vendor.name}`} 
-  description={product.description || `جزئیات محصول ${product.name} در کاتالوگ دیجیتال ${vendor.name}`}
+  description={product.description || t('productDetailDesc').replace('{productName}', product.name).replace('{vendorName}', vendor.name)}
   ogImage={product.image || vendor.logo}
   canonicalUrl={canonicalUrl}
   favicon={vendor.logo}
   theme={vendor.theme}
   twitterCard={product.image ? 'summary_large_image' : 'summary'}
+  localeOverride={vendor.locale || undefined}
 >
   <main class="product-page-main">
     <div class="product-content-card">
       
       <!-- Minimalist Back Navigation Button (Floating top corner) -->
-      <a href={`/${vendor.slug}`} class="back-nav-btn" aria-label="بازگشت به کاتالوگ اصلی">
+      <a href={`/${vendor.slug}`} class="back-nav-btn" aria-label={t('backToCatalog')}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="back-arrow-svg">
           <!-- RTL Go Back Arrow (Points Right) -->
           <line x1="5" y1="12" x2="19" y2="12" />
@@ -155,7 +159,7 @@ const canonicalUrl = `${base}${canonicalPath}`;
           <div style="display: flex; align-items: center; gap: 0.75rem;">
             <h1 class="product-detail-title">{product.name}</h1>
             {product.status === 'unavailable' && (
-              <span class="detail-unavailable-badge">ناموجود</span>
+              <span class="detail-unavailable-badge">{t('outOfStock')}</span>
             )}
           </div>
           
@@ -203,7 +207,7 @@ const canonicalUrl = `${base}${canonicalPath}`;
     <footer class="product-page-footer animate-fade-in" style="animation-delay: 0.15s;">
       <div class="footer-divider"></div>
       <a href="/" class="footer-platform-link">
-        توسعه پیدا کرده با
+        {t('developedWith')}
         <img src="/logo.png" alt="shottt" class="footer-logo-img" />
       </a>
     </footer>
@@ -231,7 +235,7 @@ const canonicalUrl = `${base}${canonicalPath}`;
     display: flex;
     flex-direction: column;
     padding: 2rem 1rem;
-    direction: rtl;
+    direction: inherit;
     transition: background-color 0.3s ease;
   }
 
@@ -248,7 +252,7 @@ const canonicalUrl = `${base}${canonicalPath}`;
   .back-nav-btn {
     position: absolute;
     top: 1.5rem;
-    right: 1.5rem;
+    inset-inline-end: 1.5rem;
     width: 2.5rem;
     height: 2.5rem;
     border-radius: 50%;
@@ -271,6 +275,10 @@ const canonicalUrl = `${base}${canonicalPath}`;
   .back-arrow-svg {
     width: 1.125rem;
     height: 1.125rem;
+  }
+
+  [dir="ltr"] .back-arrow-svg {
+    transform: scaleX(-1);
   }
 
   /* Image container supporting natural aspect ratio */

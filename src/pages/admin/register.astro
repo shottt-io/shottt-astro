@@ -1,41 +1,81 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import { useTranslations } from '../../utils/i18n';
 import '../../styles/admin.css';
 
 const domainName = Astro.url.host;
+const { t, locale, dir } = useTranslations(Astro.cookies, Astro.request);
 ---
 
-<Layout title="ثبت‌نام مجموعه جدید در شات" description="ایجاد کاتالوگ دیجیتال و منوی آنلاین اختصاصی به صورت رایگان">
-  <main class="login-wrapper" id="register-container">
+<Layout title={t('registerSeoTitle')} description={t('registerSeoDesc')}>
+  <div class="auth-page-container" style={`direction: ${dir};`}>
+    <!-- Language & Home Navigation Top Bar -->
+    <nav class="auth-top-nav">
+      <div class="lang-dropdown-container">
+        <button type="button" class="lang-dropdown-trigger" id="login-lang-trigger" aria-haspopup="listbox" aria-expanded="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="globe-icon">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="2" y1="12" x2="22" y2="12"></line>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+          </svg>
+          <span>{locale === 'fa' ? 'فارسی' : locale === 'en' ? 'English' : 'Türkçe'}</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="chevron-icon">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+        <div class="lang-dropdown-menu" id="login-lang-menu">
+          <button type="button" class={`lang-dropdown-item ${locale === 'fa' ? 'active' : ''}`} data-lang="fa">فارسی</button>
+          <button type="button" class={`lang-dropdown-item ${locale === 'en' ? 'active' : ''}`} data-lang="en">English</button>
+          <button type="button" class={`lang-dropdown-item ${locale === 'tr' ? 'active' : ''}`} data-lang="tr">Türkçe</button>
+        </div>
+      </div>
+      <a href="/" class="auth-top-btn">
+        <span>{t('backToHome')}</span>
+      </a>
+    </nav>
+
+    <main class="login-wrapper" id="register-container">
     <div class="login-container animate-slide-up">
       <header class="login-header">
         <div class="login-logo-container">
           <img src="/logo.png" alt="shottt" class="login-logo-img" />
         </div>
-        <h1 class="login-title">ثبت‌نام مجموعه جدید</h1>
-        <p class="login-subtitle">اطلاعات کاتالوگ و حساب کاربری خود را وارد کنید</p>
+        <h1 class="login-title">{t('registerTitle')}</h1>
+        <p class="login-subtitle">{t('registerSubtitle')}</p>
       </header>
 
       <div class="admin-card">
         <div id="error-banner" class="error-banner"></div>
         
-        <form id="register-form" class="login-form">
+        <form 
+          id="register-form" 
+          class="login-form"
+          data-registering-text={t('registering')}
+          data-register-text={t('registerBtn')}
+          data-reserved-slug-msg={t('errorReservedSlug')}
+          data-reserved-username-msg={t('errorReservedUsername')}
+          data-mismatch-msg={t('errorPasswordMismatch')}
+          data-failed-msg={t('errorRegisterFailed')}
+          data-error-msg={t('loginError')}
+          data-show-text={t('show')}
+          data-hide-text={t('hide')}
+        >
           <div class="form-group">
-            <label for="name" class="form-label">نام مجموعه *</label>
+            <label for="name" class="form-label">{t('shopName')}</label>
             <input 
               type="text" 
               id="name" 
               name="name" 
               class="form-input" 
-              placeholder="مثال: کافه لومیر" 
+              placeholder={t('shopNamePlaceholder')} 
               required 
             />
           </div>
 
           <div class="form-group">
-            <label for="slug" class="form-label">آدرس اینترنتی مجموعه (شناسه انگلیسی) *</label>
+            <label for="slug" class="form-label">{t('shopUrlSlug')}</label>
             <div style="position: relative; display: flex; align-items: center; width: 100%;">
-              <span class="slug-prefix" style="direction: ltr; display: inline-block; text-align: left; position: absolute; left: 1rem; font-size: 0.875rem; color: #a3a3a3; user-select: none;">{domainName}/</span>
+              <span class="slug-prefix" style={`direction: ltr; display: inline-block; text-align: left; position: absolute; ${dir === 'rtl' ? 'left: 1rem;' : 'right: 1rem;'} font-size: 0.875rem; color: #a3a3a3; user-select: none;`}>{domainName}/</span>
               <input 
                 type="text" 
                 id="slug" 
@@ -43,57 +83,57 @@ const domainName = Astro.url.host;
                 class="form-input" 
                 placeholder="lumiere" 
                 required 
-                style={`direction: ltr; padding-left: ${(domainName.length + 1) * 0.5 + 0.75}rem; text-align: left; width: 100%;`}
+                style={`direction: ltr; padding-left: ${dir === 'rtl' ? ((domainName.length + 1) * 0.5 + 0.75) + 'rem;' : '1rem;'} padding-right: ${dir === 'ltr' ? ((domainName.length + 1) * 0.5 + 0.75) + 'rem;' : '1rem;'} text-align: left; width: 100%;`}
               />
             </div>
             <span style="font-size: 0.75rem; color: #737373; margin-top: 0.5rem; line-height: 1.6; display: block; text-align: justify;">
-              آدرس کاتالوگ شما در بستر شات خواهد بود. به عنوان مثال اگر عبارت <strong style="color: #171717; font-weight: 600;">lumiere</strong> را وارد کنید، آدرس کاتالوگ شما <strong style="direction: ltr; display: inline-block; color: #171717; font-weight: 600;">{domainName}/lumiere</strong> خواهد شد. (فقط حروف انگلیسی کوچک، اعداد و خط تیره -)
+              {t('shopUrlSlugDesc').replace('{domain}', domainName + '/lumiere')}
             </span>
           </div>
 
           <div class="form-group">
-            <label for="type" class="form-label">نوع فعالیت مجموعه *</label>
-            <select name="type" id="type" class="form-select" required>
-              <option value="" disabled selected>انتخاب کنید...</option>
-              <option value="کافه">کافه</option>
-              <option value="رستوران">رستوران</option>
-              <option value="کافه رستوران">کافه رستوران</option>
-              <option value="نان و شیرینی">نان و شیرینی (قنادی)</option>
-              <option value="پوشاک و اکسسوری">پوشاک و اکسسوری</option>
-              <option value="گالری و آثار هنری">گالری و آثار هنری</option>
-              <option value="فروشگاه دیجیتال">فروشگاه دیجیتال (موبایل و لپ‌تاپ)</option>
-              <option value="آرایشی و بهداشتی">آرایشی و بهداشتی</option>
-              <option value="آبمیوه بستنی">آبمیوه بستنی</option>
-              <option value="سایر">سایر موارد</option>
+            <label for="type" class="form-label">{t('shopType')}</label>
+            <select name="type" id="type" class="form-select" required style={dir === 'ltr' ? 'background-position: right 1rem center; padding-right: 2.5rem; padding-left: 1rem;' : ''}>
+              <option value="" disabled selected>{t('selectOption')}</option>
+              <option value="کافه">{t('typeCafe')}</option>
+              <option value="رستوران">{t('typeRestaurant')}</option>
+              <option value="کافه رستوران">{t('typeCafeRestaurant')}</option>
+              <option value="نان و شیرینی">{t('typeBakery')}</option>
+              <option value="پوشاک و اکسسوری">{t('typeClothing')}</option>
+              <option value="گالری و آثار هنری">{t('typeGallery')}</option>
+              <option value="فروشگاه دیجیتال">{t('typeDigital')}</option>
+              <option value="آرایشی و بهداشتی">{t('typeCosmetics')}</option>
+              <option value="آبمیوه بستنی">{t('typeIceCream')}</option>
+              <option value="سایر">{t('typeOther')}</option>
             </select>
           </div>
 
           <div class="form-group">
-            <label for="city" class="form-label">شهر فعالیت مجموعه *</label>
+            <label for="city" class="form-label">{t('shopCity')}</label>
             <input 
               type="text" 
               id="city" 
               name="city" 
               class="form-input" 
-              placeholder="مثال: تهران" 
+              placeholder={t('cityPlaceholder')} 
               required 
             />
           </div>
 
           <div class="form-group" style="margin-top: 1.5rem; border-top: 1px solid #f5f5f5; padding-top: 1.25rem;">
-            <label for="userName" class="form-label">نام و نام خانوادگی مدیر *</label>
+            <label for="userName" class="form-label">{t('managerName')}</label>
             <input 
               type="text" 
               id="userName" 
               name="userName" 
               class="form-input" 
-              placeholder="مثال: مهدی کتابدار" 
+              placeholder={t('managerNamePlaceholder')} 
               required 
             />
           </div>
 
           <div class="form-group">
-            <label for="phone" class="form-label">تلفن همراه *</label>
+            <label for="phone" class="form-label">{t('managerPhone')}</label>
             <input 
               type="tel" 
               id="phone" 
@@ -106,7 +146,7 @@ const domainName = Astro.url.host;
           </div>
 
           <div class="form-group">
-            <label for="username" class="form-label">نام کاربری مدیر (برای ورود) *</label>
+            <label for="username" class="form-label">{t('managerUsername')}</label>
             <input 
               type="text" 
               id="username" 
@@ -120,7 +160,7 @@ const domainName = Astro.url.host;
           </div>
 
           <div class="form-group">
-            <label for="password" class="form-label">رمز عبور *</label>
+            <label for="password" class="form-label">{t('passwordLabel')}</label>
             <div style="position: relative; display: flex; align-items: center; width: 100%;">
               <input 
                 type="password" 
@@ -129,17 +169,17 @@ const domainName = Astro.url.host;
                 class="form-input" 
                 placeholder="••••••••" 
                 required 
-                style="direction: ltr; padding-right: 3.5rem; text-align: left; width: 100%;"
+                style={`direction: ltr; padding-left: 1rem; padding-right: 3.5rem; text-align: left; width: 100%;`}
                 autocomplete="new-password"
               />
-              <button type="button" class="toggle-password-btn" data-target="password" style="position: absolute; right: 0.75rem; background: none; border: none; cursor: pointer; color: #737373; font-size: 0.75rem; font-weight: 500; user-select: none;">
-                نمایش
+              <button type="button" class="toggle-password-btn" data-target="password" style={`position: absolute; ${dir === 'rtl' ? 'right: 0.75rem;' : 'left: 0.75rem;'} background: none; border: none; cursor: pointer; color: #737373; font-size: 0.75rem; font-weight: 500; user-select: none;`}>
+                {t('show')}
               </button>
             </div>
           </div>
 
           <div class="form-group">
-            <label for="passwordConfirm" class="form-label">تکرار رمز عبور *</label>
+            <label for="passwordConfirm" class="form-label">{t('passwordConfirmLabel')}</label>
             <div style="position: relative; display: flex; align-items: center; width: 100%;">
               <input 
                 type="password" 
@@ -148,17 +188,17 @@ const domainName = Astro.url.host;
                 class="form-input" 
                 placeholder="••••••••" 
                 required 
-                style="direction: ltr; padding-right: 3.5rem; text-align: left; width: 100%;"
+                style={`direction: ltr; padding-left: 1rem; padding-right: 3.5rem; text-align: left; width: 100%;`}
                 autocomplete="new-password"
               />
-              <button type="button" class="toggle-password-btn" data-target="passwordConfirm" style="position: absolute; right: 0.75rem; background: none; border: none; cursor: pointer; color: #737373; font-size: 0.75rem; font-weight: 500; user-select: none;">
-                نمایش
+              <button type="button" class="toggle-password-btn" data-target="passwordConfirm" style={`position: absolute; ${dir === 'rtl' ? 'right: 0.75rem;' : 'left: 0.75rem;'} background: none; border: none; cursor: pointer; color: #737373; font-size: 0.75rem; font-weight: 500; user-select: none;`}>
+                {t('show')}
               </button>
             </div>
           </div>
 
           <button type="submit" id="submit-btn" class="btn btn-primary btn-full" style="margin-top: 1rem;">
-            <span id="btn-text">ایجاد مجموعه و ورود</span>
+            <span id="btn-text">{t('registerBtn')}</span>
             <svg id="loading-spinner" class="spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none; width: 1rem; height: 1rem; animation: rotate 1.5s linear infinite;">
               <circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle>
               <path d="M4 12a8 8 0 0 1 8-8"></path>
@@ -169,7 +209,7 @@ const domainName = Astro.url.host;
 
       <div class="login-footer">
         <a href="/admin/login" class="back-link">
-          <span>قبلاً ثبت‌نام کرده‌اید؟ ورود به مدیریت</span>
+          <span>{t('alreadyRegistered')}</span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="back-icon" style="transform: scaleX(-1);">
             <line x1="19" y1="12" x2="5" y2="12" />
             <polyline points="12 5 19 12 12 19" />
@@ -178,6 +218,7 @@ const domainName = Astro.url.host;
       </div>
     </div>
   </main>
+  </div>
 </Layout>
 
 <script>
@@ -201,6 +242,9 @@ const domainName = Astro.url.host;
   });
 
   // Password visibility toggle logic
+  const showText = form?.getAttribute('data-show-text') || 'Show';
+  const hideText = form?.getAttribute('data-hide-text') || 'Hide';
+
   document.querySelectorAll('.toggle-password-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const targetId = btn.getAttribute('data-target');
@@ -210,10 +254,10 @@ const domainName = Astro.url.host;
 
       if (input.type === 'password') {
         input.type = 'text';
-        btn.textContent = 'مخفی‌سازی';
+        btn.textContent = hideText;
       } else {
         input.type = 'password';
-        btn.textContent = 'نمایش';
+        btn.textContent = showText;
       }
     });
   });
@@ -221,11 +265,19 @@ const domainName = Astro.url.host;
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
     
+    const registeringText = form.getAttribute('data-registering-text') || 'Registering...';
+    const registerText = form.getAttribute('data-register-text') || 'Register';
+    const reservedSlugMsg = form.getAttribute('data-reserved-slug-msg') || 'Reserved URL slug';
+    const reservedUsernameMsg = form.getAttribute('data-reserved-username-msg') || 'Reserved username';
+    const mismatchMsg = form.getAttribute('data-mismatch-msg') || 'Passwords do not match';
+    const failedMsg = form.getAttribute('data-failed-msg') || 'Registration failed';
+    const errorMsg = form.getAttribute('data-error-msg') || 'Server error';
+
     // Reset state
     errorBanner.style.display = 'none';
     errorBanner.textContent = '';
     submitBtn.disabled = true;
-    btnText.textContent = 'در حال ثبت‌نام...';
+    btnText.textContent = registeringText;
     spinner.style.display = 'inline-block';
 
     const formData = new FormData(form);
@@ -244,19 +296,19 @@ const domainName = Astro.url.host;
     const username = (document.getElementById('username') as HTMLInputElement).value.trim().toLowerCase();
 
     if (RESERVED_KEYWORDS.includes(slug)) {
-      errorBanner.textContent = 'این آدرس اینترنتی (شناسه) مجاز نیست و جزو کلمات رزرو شده سیستم است.';
+      errorBanner.textContent = reservedSlugMsg;
       errorBanner.style.display = 'block';
       submitBtn.disabled = false;
-      btnText.textContent = 'ایجاد مجموعه و ورود';
+      btnText.textContent = registerText;
       spinner.style.display = 'none';
       return;
     }
 
     if (RESERVED_KEYWORDS.includes(username)) {
-      errorBanner.textContent = 'این نام کاربری مجاز نیست و جزو کلمات رزرو شده سیستم است.';
+      errorBanner.textContent = reservedUsernameMsg;
       errorBanner.style.display = 'block';
       submitBtn.disabled = false;
-      btnText.textContent = 'ایجاد مجموعه و ورود';
+      btnText.textContent = registerText;
       spinner.style.display = 'none';
       return;
     }
@@ -266,10 +318,10 @@ const domainName = Astro.url.host;
     const passwordConfirm = (document.getElementById('passwordConfirm') as HTMLInputElement).value;
 
     if (password !== passwordConfirm) {
-      errorBanner.textContent = 'رمز عبور و تکرار آن با یکدیگر مطابقت ندارند.';
+      errorBanner.textContent = mismatchMsg;
       errorBanner.style.display = 'block';
       submitBtn.disabled = false;
-      btnText.textContent = 'ایجاد مجموعه و ورود';
+      btnText.textContent = registerText;
       spinner.style.display = 'none';
       return;
     }
@@ -287,31 +339,61 @@ const domainName = Astro.url.host;
         // Redirect to admin landing
         window.location.href = '/admin';
       } else {
-        errorBanner.textContent = result.message || 'ثبت‌نام ناموفق بود.';
+        errorBanner.textContent = result.message || failedMsg;
         errorBanner.style.display = 'block';
         submitBtn.disabled = false;
-        btnText.textContent = 'ایجاد مجموعه و ورود';
+        btnText.textContent = registerText;
         spinner.style.display = 'none';
       }
     } catch (err) {
-      errorBanner.textContent = 'خطا در ارتباط با سرور. لطفاً دوباره تلاش کنید.';
+      errorBanner.textContent = errorMsg;
       errorBanner.style.display = 'block';
       submitBtn.disabled = false;
-      btnText.textContent = 'ایجاد مجموعه و ورود';
+      btnText.textContent = registerText;
       spinner.style.display = 'none';
     }
+  });
+
+  // Language Switcher Logic
+  const langTrigger = document.getElementById('login-lang-trigger');
+  const langMenu = document.getElementById('login-lang-menu');
+  const langItems = document.querySelectorAll('#login-lang-menu .lang-dropdown-item');
+
+  langTrigger?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const isExpanded = langTrigger.getAttribute('aria-expanded') === 'true';
+    langTrigger.setAttribute('aria-expanded', !isExpanded ? 'true' : 'false');
+    langMenu?.classList.toggle('show');
+  });
+
+  document.addEventListener('click', (e) => {
+    if (langTrigger && langMenu && !langTrigger.contains(e.target as Node) && !langMenu.contains(e.target as Node)) {
+      langTrigger.setAttribute('aria-expanded', 'false');
+      langMenu.classList.remove('show');
+    }
+  });
+
+  langItems.forEach(item => {
+    item.addEventListener('click', () => {
+      const targetLang = item.getAttribute('data-lang');
+      if (targetLang) {
+        document.cookie = `lang=${targetLang}; path=/; max-age=31536000`;
+        window.location.reload();
+      }
+    });
   });
 </script>
 
 <style>
   .login-wrapper {
     background-color: #ffffff;
-    min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 1.5rem;
-    direction: rtl;
+    width: 100%;
+    box-sizing: border-box;
+    flex: 1;
   }
 
   .login-container {

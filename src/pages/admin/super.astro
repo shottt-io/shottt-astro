@@ -8,6 +8,7 @@ import {
   vendorUsers as vendorUsersTable 
 } from '../../db/schema';
 import { eq, desc } from 'drizzle-orm';
+import { useTranslations } from '../../utils/i18n';
 import '../../styles/admin.css';
 
 // 1. Session verification
@@ -16,6 +17,8 @@ if (!session || session.username !== 'super') {
   return Astro.redirect('/admin/login');
 }
 
+const { t, locale, dir } = useTranslations(Astro.cookies, Astro.request);
+
 // 2. Fetch all vendors
 const vendorsList = await db
   .select()
@@ -23,14 +26,25 @@ const vendorsList = await db
   .orderBy(desc(vendorsTable.createdAt));
 
 const formatPersianDate = (date: Date | null | undefined) => {
-  if (!date) return 'نامشخص';
-  return new Date(date).toLocaleDateString('fa-IR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
+  if (!date) return t('unknownDate');
+  // Format based on locale!
+  if (locale === 'fa') {
+    return new Date(date).toLocaleDateString('fa-IR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  } else {
+    return new Date(date).toLocaleDateString(locale === 'tr' ? 'tr-TR' : 'en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
 };
 
 // 3. Fetch all users and map their assigned vendor IDs
@@ -62,18 +76,18 @@ const usersData = await Promise.all(
 const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
 ---
 
-<Layout title="پنل سازمانی — مدیریت کل" description="مدیریت همه‌جانبه مجموعه‌ها، کاربران و هماهنگ‌سازی">
-  <div class="admin-layout-container" style="direction: rtl;">
+<Layout title={`${t('superAdminPanel')} — ${t('dashboard')}`} description={t('superSubTitle')}>
+  <div class="admin-layout-container" style={`direction: ${dir};`}>
     <!-- Mobile Header -->
     <header class="admin-mobile-header">
-      <button class="hamburger-btn" id="mobile-nav-toggle" aria-label="منوی ناوبری">
+      <button class="hamburger-btn" id="mobile-nav-toggle" aria-label={t('dashboard')}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="nav-icon-svg">
           <line x1="4" y1="12" x2="20" y2="12" />
           <line x1="4" y1="6" x2="20" y2="6" />
           <line x1="4" y1="18" x2="20" y2="18" />
         </svg>
       </button>
-      <span class="mobile-page-title">مدیریت سازمان</span>
+      <span class="mobile-page-title">{t('superTitle')}</span>
       <div class="mobile-header-avatar">
         {session.name.substring(0, 1)}
       </div>
@@ -91,49 +105,49 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
       <div class="sidenav-header">
         <div class="brand-badge-wrapper">
           <div class="brand-avatar" style="background-color: #be123c;">
-            س
+            {t('superTitle').substring(0, 1)}
           </div>
           <div class="brand-meta">
-            <h2 class="brand-title-name">پنل سازمانی</h2>
-            <p class="brand-sub-title">مدیریت کل سیستم</p>
+            <h2 class="brand-title-name">{t('superTitle')}</h2>
+            <p class="brand-sub-title">{t('superSubTitle')}</p>
           </div>
         </div>
-        <button class="btn-icon mobile-close-nav-btn" id="mobile-nav-close" aria-label="بستن منو">✕</button>
+        <button class="btn-icon mobile-close-nav-btn" id="mobile-nav-close" aria-label={t('cancel')}>✕</button>
       </div>
 
       <nav class="sidenav-menu">
-        <button class="sidenav-link active" id="tab-btn-vendors" style="background: none; border: none; text-align: right; width: 100%; cursor: pointer;">
+        <button class="sidenav-link active" id="tab-btn-vendors" style="background: none; border: none; text-align: inherit; width: 100%; cursor: pointer;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="menu-icon-svg">
             <rect x="3" y="3" width="7" height="9" />
             <rect x="14" y="3" width="7" height="5" />
             <rect x="14" y="12" width="7" height="9" />
             <rect x="3" y="16" width="7" height="5" />
           </svg>
-          <span>مجموعه‌ها ({vendorsList.length})</span>
+          <span>{t('vendors')} ({vendorsList.length})</span>
         </button>
 
-        <button class="sidenav-link" id="tab-btn-users" style="background: none; border: none; text-align: right; width: 100%; cursor: pointer;">
+        <button class="sidenav-link" id="tab-btn-users" style="background: none; border: none; text-align: inherit; width: 100%; cursor: pointer;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="menu-icon-svg">
             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
             <circle cx="9" cy="7" r="4" />
             <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
             <path d="M16 3.13a4 4 0 0 1 0 7.75" />
           </svg>
-          <span>کاربران ({usersData.length})</span>
+          <span>{t('users')} ({usersData.length})</span>
         </button>
 
-        <button class="sidenav-link" id="tab-btn-analytics" style="background: none; border: none; text-align: right; width: 100%; cursor: pointer;">
+        <button class="sidenav-link" id="tab-btn-analytics" style="background: none; border: none; text-align: inherit; width: 100%; cursor: pointer;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="menu-icon-svg">
             <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
           </svg>
-          <span>آنالیتیکس سراسری</span>
+          <span>{t('globalAnalytics')}</span>
         </button>
 
         <a id="sidenav-tickets-link" href="/admin/super/tickets" class="sidenav-link">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="menu-icon-svg">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
           </svg>
-          <span>تیکت‌های پشتیبانی</span>
+          <span>{t('supportTickets')}</span>
         </a>
 
         <div class="menu-divider"></div>
@@ -144,18 +158,43 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
             <polyline points="16 17 21 12 16 7" />
             <line x1="21" y1="12" x2="9" y2="12" />
           </svg>
-          <span>بازگشت به داشبورد فردی</span>
+          <span>{t('backToPersonalDashboard')}</span>
         </a>
       </nav>
 
       <div class="sidenav-footer">
+        <!-- Language Switcher in Sidenav Footer -->
+        <div class="sidenav-lang-switcher">
+          <span class="sidenav-lang-label">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width: 0.9rem; height: 0.9rem; display: inline-block; vertical-align: middle; margin-inline-end: 0.25rem;">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="2" y1="12" x2="22" y2="12"></line>
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+            </svg>
+            {t('languageLabel')}
+          </span>
+          <div class="lang-dropdown-container">
+            <button type="button" class="lang-dropdown-trigger" id="sidenav-lang-trigger" aria-haspopup="listbox" aria-expanded="false">
+              {locale === 'fa' ? 'فارسی' : locale === 'en' ? 'English' : 'Türkçe'}
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 0.65rem; height: 0.65rem; transition: transform 0.2s; margin-inline-start: 0.25rem;">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+            <div class="lang-dropdown-menu" id="sidenav-lang-menu">
+              <button type="button" class={`lang-dropdown-item ${locale === 'fa' ? 'active' : ''}`} data-lang="fa">فارسی</button>
+              <button type="button" class={`lang-dropdown-item ${locale === 'en' ? 'active' : ''}`} data-lang="en">English</button>
+              <button type="button" class={`lang-dropdown-item ${locale === 'tr' ? 'active' : ''}`} data-lang="tr">Türkçe</button>
+            </div>
+          </div>
+        </div>
+
         <div class="user-meta-badge">
           <div class="user-avatar" style="background-color: #e5e5e5; color: #171717;">
             {session.name.substring(0, 1)}
           </div>
           <div class="user-text-info">
             <span class="user-name-bold">{session.name}</span>
-            <span class="user-role-label">مدیر ارشد سیستم</span>
+            <span class="user-role-label">{t('superAdminLabel')}</span>
           </div>
         </div>
 
@@ -165,7 +204,7 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
             <polyline points="16 17 21 12 16 7" />
             <line x1="21" y1="12" x2="9" y2="12" />
           </svg>
-          <span>خروج از حساب</span>
+          <span>{t('logout')}</span>
         </a>
       </div>
     </aside>
@@ -176,9 +215,9 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
       <!-- TAB 1: VENDORS/COLLECTIONS -->
       <div id="tab-content-vendors" class="tab-content">
         <div class="admin-page-actions">
-          <h1 class="page-title-bold">مدیریت مجموعه‌ها</h1>
+          <h1 class="page-title-bold">{t('manageVendors')}</h1>
           <button class="btn btn-primary" id="btn-open-new-vendor">
-            <span>ایجاد مجموعه جدید</span>
+            <span>{t('createVendor')}</span>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 1rem; height: 1rem;">
               <line x1="12" y1="5" x2="12" y2="19"></line>
               <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -189,27 +228,27 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
         <div class="vendors-table-container">
           {vendorsList.length === 0 ? (
             <div style="text-align: center; color: #737373; padding: 3rem 1rem;">
-              هیچ مجموعه‌ای یافت نشد. برای شروع یک مجموعه جدید ایجاد کنید.
+              {t('noVendors')}
             </div>
           ) : (
             <table class="vendors-table">
               <thead>
                 <tr>
-                  <th style="width: 50px;">تصویر</th>
+                  <th style="width: 50px;">{t('logoLabel')}</th>
                   <th class="sortable-header" data-sort="name" data-dir="" style="cursor: pointer; position: relative;">
-                    نام مجموعه <span class="sort-icon">⇅</span>
+                    {t('shopNameCol')} <span class="sort-icon">⇅</span>
                   </th>
                   <th class="sortable-header" data-sort="slug" data-dir="" style="cursor: pointer; position: relative;">
-                    نوع و شناسه <span class="sort-icon">⇅</span>
+                    {t('typeSlugCol')} <span class="sort-icon">⇅</span>
                   </th>
-                  <th>شهر</th>
+                  <th>{t('cityCol')}</th>
                   <th class="sortable-header" data-sort="created" data-dir="desc" style="cursor: pointer; position: relative;">
-                    تاریخ ثبت‌نام <span class="sort-icon">▼</span>
+                    {t('registerDateCol')} <span class="sort-icon">▼</span>
                   </th>
                   <th class="sortable-header" data-sort="active" data-dir="" style="cursor: pointer; position: relative;">
-                    آخرین فعالیت <span class="sort-icon">⇅</span>
+                    {t('lastActiveCol')} <span class="sort-icon">⇅</span>
                   </th>
-                  <th style="width: 240px; text-align: center;">عملیات</th>
+                  <th style="width: 240px; text-align: center;">{t('actionsCol')}</th>
                 </tr>
               </thead>
               <tbody id="vendors-table-body">
@@ -243,12 +282,12 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
                     <td style="text-align: center;">
                       <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
                         <a href={`/admin/${v.slug}/products`} class="btn btn-secondary" style="font-size: 0.75rem; padding: 0.3rem 0.6rem;">
-                          پنل مجموعه
+                          {t('shopPanelBtn')}
                         </a>
                         <a href={`/${v.slug}`} target="_blank" class="btn btn-secondary" style="font-size: 0.75rem; padding: 0.3rem 0.6rem;">
-                          نمایش کاتالوگ
+                          {t('viewCatalogBtn')}
                         </a>
-                        <button class="btn-icon btn-icon-danger btn-delete-vendor" data-id={v.id} data-name={v.name} title="حذف مجموعه">
+                        <button class="btn-icon btn-icon-danger btn-delete-vendor" data-id={v.id} data-name={v.name} title={t('deleteVendorTooltip')}>
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="list-icon-svg">
                             <polyline points="3 6 5 6 21 6" />
                             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
@@ -269,9 +308,9 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
       <!-- TAB 2: USERS -->
       <div id="tab-content-users" class="tab-content" style="display: none;">
         <div class="admin-page-actions">
-          <h1 class="page-title-bold">مدیریت دسترسی کاربران</h1>
+          <h1 class="page-title-bold">{t('manageUserAccess')}</h1>
           <button class="btn btn-primary" id="btn-open-new-user">
-            <span>ایجاد کاربر جدید</span>
+            <span>{t('createUser')}</span>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 1rem; height: 1rem;">
               <line x1="12" y1="5" x2="12" y2="19"></line>
               <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -281,7 +320,7 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
 
         <div class="admin-list-container">
           {usersData.map((u) => {
-            const userVendorsText = u.vendorIds.map((id) => vendorMap.get(id)).filter(Boolean).join('، ');
+            const userVendorsText = u.vendorIds.map((id) => vendorMap.get(id)).filter(Boolean).join(locale === 'fa' ? '، ' : ', ');
             const isSuperUser = u.username === 'super';
             
             return (
@@ -293,12 +332,12 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
                   <div class="item-title-desc">
                     <div style="display: flex; align-items: center; gap: 0.5rem;">
                       <span class="item-name-bold">{u.name}</span>
-                      {isSuperUser && <span style="font-size: 0.625rem; background-color: #ffe4e6; color: #9f1239; padding: 0.1rem 0.4rem; border-radius: 9999px; font-weight: 500;">مدیر کل</span>}
+                      {isSuperUser && <span style="font-size: 0.625rem; background-color: #ffe4e6; color: #9f1239; padding: 0.1rem 0.4rem; border-radius: 9999px; font-weight: 500;">{t('superAdminBadge')}</span>}
                     </div>
                     <span class="item-desc-sub">
-                      نام کاربری: <code>{u.username}</code> 
-                      {u.phone && ` • تلفن: ${u.phone}`}
-                      {userVendorsText ? ` • دسترسی‌ها: ${userVendorsText}` : ' • فاقد دسترسی به مجموعه‌ها'}
+                      {t('usernameColon')}<code>{u.username}</code> 
+                      {u.phone && ` • ${t('phoneColon')}${u.phone}`}
+                      {userVendorsText ? ` • ${t('accessColon')}${userVendorsText}` : ` • ${t('noAccess')}`}
                     </span>
                   </div>
                 </div>
@@ -313,11 +352,11 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
                     data-vendors={JSON.stringify(u.vendorIds)}
                     style="font-size: 0.75rem; padding: 0.4rem 0.8rem;"
                   >
-                    ویرایش
+                    {t('editBtn')}
                   </button>
                   
                   {!isSuperUser && (
-                    <button class="btn-icon btn-icon-danger btn-delete-user" data-id={u.id} data-name={u.name} title="حذف کاربر">
+                    <button class="btn-icon btn-icon-danger btn-delete-user" data-id={u.id} data-name={u.name} title={t('deleteUserTooltip')}>
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="list-icon-svg">
                         <polyline points="3 6 5 6 21 6" />
                         <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
@@ -338,12 +377,12 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
         <!-- CDN for ApexCharts -->
         <script is:inline src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
-        <div class="admin-page-actions" style="direction: rtl; margin-bottom: 2rem;">
-          <h1 class="page-title-bold">آنالیتیکس سراسری</h1>
+        <div class="admin-page-actions" style="margin-bottom: 2rem;">
+          <h1 class="page-title-bold">{t('globalAnalytics')}</h1>
           <div class="range-selector">
-            <button class="range-btn" data-range="today">امروز</button>
-            <button class="range-btn active" data-range="7">۷ روز گذشته</button>
-            <button class="range-btn" data-range="30">۳۰ روز گذشته</button>
+            <button class="range-btn" data-range="today">{t('today')}</button>
+            <button class="range-btn active" data-range="7">{t('last7days')}</button>
+            <button class="range-btn" data-range="30">{t('last30days')}</button>
           </div>
         </div>
 
@@ -357,7 +396,7 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
               </svg>
             </div>
             <div class="super-kpi-content">
-              <span class="super-kpi-label">بازدید صفحه اصلی</span>
+              <span class="super-kpi-label">{t('hpViews')}</span>
               <h3 class="super-kpi-value" id="s-kpi-hp-views">-</h3>
             </div>
           </div>
@@ -370,7 +409,7 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
               </svg>
             </div>
             <div class="super-kpi-content">
-              <span class="super-kpi-label">بازدیدکننده یکتای صفحه اصلی</span>
+              <span class="super-kpi-label">{t('hpUnique')}</span>
               <h3 class="super-kpi-value" id="s-kpi-hp-unique">-</h3>
             </div>
           </div>
@@ -383,7 +422,7 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
               </svg>
             </div>
             <div class="super-kpi-content">
-              <span class="super-kpi-label">کل بازدید کاتالوگ‌ها</span>
+              <span class="super-kpi-label">{t('catalogViews')}</span>
               <h3 class="super-kpi-value" id="s-kpi-vendor-views">-</h3>
             </div>
           </div>
@@ -398,45 +437,45 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
               </svg>
             </div>
             <div class="super-kpi-content">
-              <span class="super-kpi-label">بازدیدکننده یکتای کاتالوگ‌ها</span>
+              <span class="super-kpi-label">{t('catalogUnique')}</span>
               <h3 class="super-kpi-value" id="s-kpi-vendor-unique">-</h3>
             </div>
           </div>
         </div>
 
         <!-- Loading Skeleton -->
-        <div id="super-analytics-skeleton" style="display:flex;flex-direction:column;gap:1.5rem;direction:rtl;">
+        <div id="super-analytics-skeleton">
           <div style="height:350px;background:linear-gradient(90deg,#f5f5f5 25%,#fafafa 50%,#f5f5f5 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:1.25rem;border:1px solid #f5f5f5;"></div>
           <div style="height:320px;background:linear-gradient(90deg,#f5f5f5 25%,#fafafa 50%,#f5f5f5 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:1.25rem;border:1px solid #f5f5f5;"></div>
           <div style="height:300px;background:linear-gradient(90deg,#f5f5f5 25%,#fafafa 50%,#f5f5f5 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:1.25rem;border:1px solid #f5f5f5;"></div>
         </div>
 
         <!-- Charts -->
-        <div id="super-analytics-content" style="display:none;flex-direction:column;gap:1.5rem;direction:rtl;">
+        <div id="super-analytics-content" style="display:none;flex-direction:column;gap:1.5rem;">
 
           <!-- Homepage Visits Line Chart -->
           <div class="admin-card" style="padding:1.75rem;">
-            <div style="text-align:right;margin-bottom:1.5rem;">
-              <h3 style="font-size:1.125rem;font-weight:600;color:#171717;">روند بازدید صفحه اصلی</h3>
-              <p style="font-size:0.8125rem;color:#a3a3a3;margin-top:0.25rem;">تعداد کل بازدید در مقابل بازدیدکنندگان یکتا</p>
+            <div style="margin-bottom:1.5rem;">
+              <h3 style="font-size:1.125rem;font-weight:600;color:#171717;">{t('hpTrend')}</h3>
+              <p style="font-size:0.8125rem;color:#a3a3a3;margin-top:0.25rem;">{t('totalVsUnique')}</p>
             </div>
             <div id="s-chart-homepage"></div>
           </div>
 
           <!-- Vendor Visits Area Chart -->
           <div class="admin-card" style="padding:1.75rem;">
-            <div style="text-align:right;margin-bottom:1.5rem;">
-              <h3 style="font-size:1.125rem;font-weight:600;color:#171717;">روند بازدید کل کاتالوگ‌ها</h3>
-              <p style="font-size:0.8125rem;color:#a3a3a3;margin-top:0.25rem;">مجموع بازدید از همه مجموعه‌ها در بازه زمانی انتخابی</p>
+            <div style="margin-bottom:1.5rem;">
+              <h3 style="font-size:1.125rem;font-weight:600;color:#171717;">{t('catalogTrend')}</h3>
+              <p style="font-size:0.8125rem;color:#a3a3a3;margin-top:0.25rem;">{t('totalViewsAllShops')}</p>
             </div>
             <div id="s-chart-vendors"></div>
           </div>
 
           <!-- Top Vendors Bar Chart -->
           <div class="admin-card" style="padding:1.75rem;">
-            <div style="text-align:right;margin-bottom:1.5rem;">
-              <h3 style="font-size:1.125rem;font-weight:600;color:#171717;">۱۰ مجموعه پربازدید</h3>
-              <p style="font-size:0.8125rem;color:#a3a3a3;margin-top:0.25rem;">مجموعه‌هایی که بیشترین بازدید را در بازه انتخابی داشته‌اند</p>
+            <div style="margin-bottom:1.5rem;">
+              <h3 style="font-size:1.125rem;font-weight:600;color:#171717;">{t('top10Shops')}</h3>
+              <p style="font-size:0.8125rem;color:#a3a3a3;margin-top:0.25rem;">{t('topShopsDesc')}</p>
             </div>
             <div id="s-chart-top-vendors"></div>
           </div>
@@ -451,7 +490,7 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
   <div id="modal-new-vendor" class="modal-overlay" style="display: none;">
     <div class="modal-content" style="max-width: 28rem;">
       <div class="modal-header">
-        <span class="modal-title">ایجاد مجموعه جدید</span>
+        <span class="modal-title">{t('createVendor')}</span>
         <button type="button" class="modal-close btn-close-modal-vendor">✕</button>
       </div>
       <form id="form-new-vendor">
@@ -459,64 +498,64 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
           <div id="error-vendor-form" class="error-banner"></div>
 
           <div class="form-group">
-            <label class="form-label">نام مجموعه *</label>
-            <input type="text" name="name" class="form-input" placeholder="مثال: کافه لومیر" required />
+            <label class="form-label">{t('shopNameInput')}</label>
+            <input type="text" name="name" class="form-input" placeholder={t('shopNamePlaceholder')} required />
           </div>
 
           <div class="form-group">
-            <label class="form-label">آیدی انگلیسی مجموعه (URL Slug) *</label>
-            <input type="text" name="slug" class="form-input" placeholder="مثال: cafe-lumiere" required style="direction: ltr; text-align: left;" />
-            <span style="font-size: 0.65rem; color: #737373;">حروف کوچک انگلیسی، بدون فاصله و کاراکترهای خاص</span>
+            <label class="form-label">{t('englishSlugInput')}</label>
+            <input type="text" name="slug" class="form-input" placeholder="cafe-lumiere" required style="direction: ltr; text-align: left;" />
+            <span style="font-size: 0.65rem; color: #737373;">{t('englishSlugDesc')}</span>
           </div>
 
           <div class="form-group">
-            <label class="form-label">نوع مجموعه *</label>
+            <label class="form-label">{t('typeInput')}</label>
             <select name="type" class="form-select" required>
-              <option value="کافه">کافه</option>
-              <option value="رستوران">رستوران</option>
-              <option value="کافه رستوران">کافه رستوران</option>
-              <option value="نان و شیرینی">نان و شیرینی (قنادی)</option>
-              <option value="پوشاک و اکسسوری">پوشاک و اکسسوری</option>
-              <option value="فروشگاه دیجیتال">فروشگاه دیجیتال</option>
-              <option value="سایر">سایر موارد</option>
+              <option value="کافه">{t('typeCafe')}</option>
+              <option value="رستوران">{t('typeRestaurant')}</option>
+              <option value="کافه رستوران">{t('typeCafeRestaurant')}</option>
+              <option value="نان و شیرینی">{t('typeBakery')}</option>
+              <option value="پوشاک و اکسسوری">{t('typeClothing')}</option>
+              <option value="فروشگاه دیجیتال">{t('typeDigital')}</option>
+              <option value="سایر">{t('typeOther')}</option>
             </select>
           </div>
 
           <div class="form-group">
-            <label class="form-label">شهر (اختیاری)</label>
-            <input type="text" name="city" class="form-input" placeholder="مثال: تهران" />
+            <label class="form-label">{t('cityInput')}</label>
+            <input type="text" name="city" class="form-input" placeholder={t('cityPlaceholder')} />
           </div>
 
           <div class="form-group">
-            <label class="form-label">حالت پر کردن محتوا *</label>
+            <label class="form-label">{t('fillModeInput')}</label>
             <select name="mode" id="select-vendor-mode" class="form-select" required>
-              <option value="empty">خام (بدون منو و محصول)</option>
-              <option value="package">پکیج آماده محصولات پیش‌فرض</option>
-              <option value="menno">درون‌ریزی خودکار از menno.pro</option>
+              <option value="empty">{t('emptyMode')}</option>
+              <option value="package">{t('packageMode')}</option>
+              <option value="menno">{t('mennoMode')}</option>
             </select>
           </div>
 
           <!-- Mode package selector -->
           <div class="form-group" id="group-package-type" style="display: none;">
-            <label class="form-label">انتخاب پکیج محصولات آماده *</label>
+            <label class="form-label">{t('selectPackage')}</label>
             <select name="packageType" class="form-select">
-              <option value="cafe">محصولات آماده کافه گالری</option>
-              <option value="restaurant">محصولات آماده رستوران فرانسوی</option>
-              <option value="pastry">محصولات آماده بوتیک قنادی</option>
+              <option value="cafe">{t('packageCafe')}</option>
+              <option value="restaurant">{t('packageRestaurant')}</option>
+              <option value="pastry">{t('packagePastry')}</option>
             </select>
           </div>
 
           <!-- Mode Menno.pro selector -->
           <div class="form-group" id="group-menno-vendor" style="display: none;">
-            <label class="form-label">شناسه مجموعه در menno.pro *</label>
-            <input type="text" name="mennoVendor" class="form-input" placeholder="مثال: maghzook" style="direction: ltr; text-align: left;" />
-            <span style="font-size: 0.65rem; color: #737373;">سرور به طور خودکار اطلاعات را دریافت و عکس‌ها را بر روی سرور خودمان ذخیره می‌کند.</span>
+            <label class="form-label">{t('mennoId')}</label>
+            <input type="text" name="mennoVendor" class="form-input" placeholder="maghzook" style="direction: ltr; text-align: left;" />
+            <span style="font-size: 0.65rem; color: #737373;">{t('mennoDesc')}</span>
           </div>
 
           <!-- Progress Bar Container -->
           <div class="form-group" id="group-vendor-progress" style="display: none; margin-top: 1rem; padding: 1rem; background: #fafafa; border: 1px solid #e5e5e5; border-radius: 0.75rem;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; font-size: 0.8125rem;">
-              <span id="txt-vendor-progress-step" style="font-weight: 500; color: #171717;">در حال برقراری ارتباط با سرور...</span>
+              <span id="txt-vendor-progress-step" style="font-weight: 500; color: #171717;">{t('connectingServer')}</span>
               <span id="txt-vendor-progress-percent" style="color: #737373; font-weight: 600;">0%</span>
             </div>
             <div style="width: 100%; height: 6px; background-color: #e5e5e5; border-radius: 9999px; overflow: hidden;">
@@ -526,13 +565,13 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
         </div>
         <div class="modal-footer" style="padding-top: 1rem;">
           <button type="submit" class="btn btn-primary" id="btn-submit-vendor" style="min-width: 8rem;">
-            <span id="txt-submit-vendor">ایجاد مجموعه</span>
+            <span id="txt-submit-vendor">{t('btnSubmitVendor')}</span>
             <svg id="spinner-submit-vendor" class="spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none; width: 0.875rem; height: 0.875rem; animation: rotate 1.5s linear infinite;">
               <circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle>
               <path d="M4 12a8 8 0 0 1 8-8"></path>
             </svg>
           </button>
-          <button type="button" class="btn btn-secondary btn-close-modal-vendor">انصراف</button>
+          <button type="button" class="btn btn-secondary btn-close-modal-vendor">{t('btnCancel')}</button>
         </div>
       </form>
     </div>
@@ -542,7 +581,7 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
   <div id="modal-user" class="modal-overlay" style="display: none;">
     <div class="modal-content" style="max-width: 28rem;">
       <div class="modal-header">
-        <span class="modal-title" id="txt-user-modal-title">ایجاد کاربر جدید</span>
+        <span class="modal-title" id="txt-user-modal-title">{t('createUser')}</span>
         <button type="button" class="modal-close btn-close-modal-user">✕</button>
       </div>
       <form id="form-user">
@@ -551,50 +590,80 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
           <div id="error-user-form" class="error-banner"></div>
 
           <div class="form-group">
-            <label class="form-label">نام کاربر *</label>
-            <input type="text" name="name" id="input-user-name" class="form-input" placeholder="مثال: علی احمدی" required />
+            <label class="form-label">{t('userInputName')}</label>
+            <input type="text" name="name" id="input-user-name" class="form-input" placeholder={t('managerNamePlaceholder')} required />
           </div>
 
           <div class="form-group">
-            <label class="form-label">نام کاربری *</label>
-            <input type="text" name="username" id="input-user-username" class="form-input" placeholder="مثال: ahmadi" required style="direction: ltr; text-align: left;" />
-            <span style="font-size: 0.65rem; color: #737373;">حروف انگلیسی، عدد و کاراکترهای مجاز</span>
+            <label class="form-label">{t('userInputUsername')}</label>
+            <input type="text" name="username" id="input-user-username" class="form-input" placeholder="ahmadi" required style="direction: ltr; text-align: left;" />
+            <span style="font-size: 0.65rem; color: #737373;">{t('usernameDesc')}</span>
           </div>
 
           <div class="form-group">
-            <label class="form-label">شماره تلفن (اختیاری)</label>
-            <input type="text" name="phone" id="input-user-phone" class="form-input" placeholder="مثال: ۰۹۱۲۳۴۵۶۷۸۹" style="direction: ltr; text-align: left;" />
+            <label class="form-label">{t('phoneInput')}</label>
+            <input type="text" name="phone" id="input-user-phone" class="form-input" placeholder="09123456789" style="direction: ltr; text-align: left;" />
           </div>
 
           <div class="form-group">
-            <label class="form-label" id="label-user-password">رمز عبور *</label>
+            <label class="form-label" id="label-user-password">{t('passwordInput')}</label>
             <input type="password" name="password" id="input-user-password" class="form-input" placeholder="••••••••" required />
-            <span style="font-size: 0.65rem; color: #737373;" id="tip-user-password">حداقل ۶ کاراکتر</span>
+            <span style="font-size: 0.65rem; color: #737373;" id="tip-user-password">{t('passwordDesc')}</span>
           </div>
 
           <div class="form-group">
-            <label class="form-label">دسترسی به مجموعه‌ها</label>
-            <div style="max-height: 10rem; overflow-y: auto; border: 1px solid #e5e5e5; border-radius: 0.75rem; padding: 0.75rem; background-color: #fafafa; display: flex; flex-direction: column; gap: 0.5rem; text-align: right;">
+            <label class="form-label">{t('shopAccess')}</label>
+            <div style="max-height: 10rem; overflow-y: auto; border: 1px solid #e5e5e5; border-radius: 0.75rem; padding: 0.75rem; background-color: #fafafa; display: flex; flex-direction: column; gap: 0.5rem;">
               {vendorsList.map((v) => (
                 <label class="checkbox-group" style="margin: 0; font-size: 0.8125rem;">
                   <input type="checkbox" name="vendorIds" value={v.id} class="checkbox-input user-vendor-checkbox" />
                   <span>{v.name} ({v.type})</span>
                 </label>
               ))}
-              {vendorsList.length === 0 && <span style="font-size: 0.75rem; color: #a3a3a3; text-align: center;">هیچ مجموعه‌ای برای تخصیص یافت نشد</span>}
+              {vendorsList.length === 0 && <span style="font-size: 0.75rem; color: #a3a3a3; text-align: center;">{t('noShopsFound')}</span>}
             </div>
           </div>
         </div>
         <div class="modal-footer" style="padding-top: 1rem;">
-          <button type="submit" class="btn btn-primary" id="btn-submit-user">ذخیره کاربر</button>
-          <button type="button" class="btn btn-secondary btn-close-modal-user">انصراف</button>
+          <button type="submit" class="btn btn-primary" id="btn-submit-user">{t('btnSaveUser')}</button>
+          <button type="button" class="btn btn-secondary btn-close-modal-user">{t('btnCancel')}</button>
         </div>
       </form>
     </div>
   </div>
 </Layout>
 
-<script>
+<script define:vars={{
+  locale: locale,
+  hpViewsLabel: t('hpViews'),
+  hpUniqueLabel: t('hpUnique'),
+  catalogViewsLabel: t('catalogViews'),
+  catalogUniqueLabel: t('catalogUnique'),
+  totalViewsAllShopsLabel: t('totalViewsAllShops'),
+  txtSubmitVendorCreating: t('txtSubmitVendorCreating'),
+  btnSubmitVendorLabel: t('btnSubmitVendor'),
+  connectingServer: t('connectingServer'),
+  vendorCreatedSuccess: t('vendorCreatedSuccess'),
+  deleteVendorConfirm: t('deleteVendorConfirm'),
+  deleteBtn: t('deleteBtn'),
+  btnCancel: t('btnCancel'),
+  vendorDeletedSuccess: t('vendorDeletedSuccess'),
+  errorDelete: t('errorDelete'),
+  errorServerConnection: t('errorServerConnection'),
+  userModalCreateTitle: t('userModalCreateTitle'),
+  passwordLabelCreate: t('passwordLabelCreate'),
+  passwordDescCreate: t('passwordDescCreate'),
+  userModalEditTitle: t('userModalEditTitle'),
+  passwordLabelEdit: t('passwordLabelEdit'),
+  passwordPlaceholderEdit: t('passwordPlaceholderEdit'),
+  passwordDescEdit: t('passwordDescEdit'),
+  userUpdatedSuccess: t('userUpdatedSuccess'),
+  userCreatedSuccess: t('userCreatedSuccess'),
+  errorUserSave: t('errorUserSave'),
+  deleteUserConfirm: t('deleteUserConfirm'),
+  userDeletedSuccess: t('userDeletedSuccess'),
+  chartTotalViewsFormat: t('chartTotalViewsFormat')
+}}>
   // Mobile navigation drawer toggle logic
   const mobileNavToggle = document.getElementById('mobile-nav-toggle');
   const mobileNavClose = document.getElementById('mobile-nav-close');
@@ -627,11 +696,11 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
 
   let analyticsLoaded = false;
   let activeAnalyticsRange = '7';
-  let sHomepageChart: any = null;
-  let sVendorsChart: any = null;
-  let sTopVendorsChart: any = null;
+  let sHomepageChart = null;
+  let sVendorsChart = null;
+  let sTopVendorsChart = null;
 
-  function switchTab(activeTab: 'vendors' | 'users' | 'analytics') {
+  function switchTab(activeTab) {
     tabBtnVendors?.classList.remove('active');
     tabBtnUsers?.classList.remove('active');
     tabBtnAnalytics?.classList.remove('active');
@@ -672,33 +741,33 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
     });
   });
 
-  function formatPersianDateSuper(dateStr: string): string {
+  function formatDateSuper(dateStr) {
     try {
       const parts = dateStr.split('-');
       const dateObj = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-      return new Intl.DateTimeFormat('fa-IR', { month: 'numeric', day: 'numeric' }).format(dateObj);
+      return new Intl.DateTimeFormat(locale === 'fa' ? 'fa-IR' : locale === 'tr' ? 'tr-TR' : 'en-US', { month: 'numeric', day: 'numeric' }).format(dateObj);
     } catch(e) {
       return dateStr;
     }
   }
 
-  function animateValue(id: string, end: number) {
+  function animateValue(id, end) {
     const el = document.getElementById(id);
     if (!el) return;
     const duration = 700;
     const start = 0;
     const startTime = performance.now();
-    function tick(now: number) {
+    function tick(now) {
       const elapsed = now - startTime;
       const progress = Math.min(elapsed / duration, 1);
       const eased = 1 - Math.pow(1 - progress, 3);
-      el.textContent = Math.round(start + (end - start) * eased).toLocaleString('fa-IR');
+      el.textContent = Math.round(start + (end - start) * eased).toLocaleString(locale);
       if (progress < 1) requestAnimationFrame(tick);
     }
     requestAnimationFrame(tick);
   }
 
-  async function loadSuperAnalytics(range: string) {
+  async function loadSuperAnalytics(range) {
     const skeleton = document.getElementById('super-analytics-skeleton');
     const content = document.getElementById('super-analytics-content');
     if (skeleton) skeleton.style.display = 'flex';
@@ -712,25 +781,25 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
       const { homepage, vendors: vendorData, vendorSummary } = json.data;
 
       // KPIs
-      const hpViews = homepage.reduce((a: number, d: any) => a + d.pageViews, 0);
-      const hpUnique = homepage.reduce((a: number, d: any) => a + d.uniqueVisits, 0);
-      const vViews = vendorData.reduce((a: number, d: any) => a + d.pageViews, 0);
-      const vUnique = vendorData.reduce((a: number, d: any) => a + d.uniqueVisits, 0);
+      const hpViews = homepage.reduce((a, d) => a + d.pageViews, 0);
+      const hpUnique = homepage.reduce((a, d) => a + d.uniqueVisits, 0);
+      const vViews = vendorData.reduce((a, d) => a + d.pageViews, 0);
+      const vUnique = vendorData.reduce((a, d) => a + d.uniqueVisits, 0);
       animateValue('s-kpi-hp-views', hpViews);
       animateValue('s-kpi-hp-unique', hpUnique);
       animateValue('s-kpi-vendor-views', vViews);
       animateValue('s-kpi-vendor-unique', vUnique);
 
       const isSingleDay = range === 'today';
-      const hpCategories = homepage.map((d: any) => formatPersianDateSuper(d.date));
-      const hpViewing = homepage.map((d: any) => d.pageViews);
-      const hpUniqueArr = homepage.map((d: any) => d.uniqueVisits);
+      const hpCategories = homepage.map((d) => formatDateSuper(d.date));
+      const hpViewing = homepage.map((d) => d.pageViews);
+      const hpUniqueArr = homepage.map((d) => d.uniqueVisits);
       const hpMax = Math.max(...hpViewing, ...hpUniqueArr, 1);
 
-      const homepageOptions: any = {
+      const homepageOptions = {
         series: [
-          { name: 'کل بازدید صفحه اصلی', data: hpViewing },
-          { name: 'بازدیدکننده یکتا', data: hpUniqueArr }
+          { name: hpViewsLabel, data: hpViewing },
+          { name: hpUniqueLabel, data: hpUniqueArr }
         ],
         chart: { height: 320, type: 'area', fontFamily: 'Estedad, sans-serif', toolbar: { show: false }, zoom: { enabled: false } },
         colors: ['#4f46e5', '#059669'],
@@ -739,7 +808,7 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
         stroke: { curve: 'smooth', width: 2 },
         markers: { size: isSingleDay ? 5 : 0, hover: { size: 7 } },
         xaxis: { categories: hpCategories, labels: { style: { colors: '#737373', fontSize: '11px' } }, axisBorder: { show: false }, axisTicks: { show: false } },
-        yaxis: { opposite: true, min: 0, tickAmount: Math.min(4, hpMax), labels: { formatter: (v: number) => Math.round(v).toLocaleString('fa-IR'), style: { colors: '#737373', fontSize: '11px' } } },
+        yaxis: { opposite: locale === 'fa', min: 0, tickAmount: Math.min(4, hpMax), labels: { formatter: (v) => Math.round(v).toLocaleString(locale), style: { colors: '#737373', fontSize: '11px' } } },
         grid: { borderColor: '#f5f5f5', strokeDashArray: 4 },
         tooltip: { inverseOrder: true, style: { fontSize: '12px', fontFamily: 'Estedad, sans-serif' } },
         legend: { position: 'top', horizontalAlign: 'right', fontFamily: 'Estedad, sans-serif', labels: { colors: '#171717' } }
@@ -747,20 +816,20 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
       if (sHomepageChart) {
         sHomepageChart.updateOptions(homepageOptions);
       } else {
-        sHomepageChart = new (window as any).ApexCharts(document.querySelector('#s-chart-homepage'), homepageOptions);
+        sHomepageChart = new window.ApexCharts(document.querySelector('#s-chart-homepage'), homepageOptions);
         sHomepageChart.render();
       }
 
       // Vendor visits chart
-      const vCategories = vendorData.map((d: any) => formatPersianDateSuper(d.date));
-      const vViewArr = vendorData.map((d: any) => d.pageViews);
-      const vUniqueArr = vendorData.map((d: any) => d.uniqueVisits);
+      const vCategories = vendorData.map((d) => formatDateSuper(d.date));
+      const vViewArr = vendorData.map((d) => d.pageViews);
+      const vUniqueArr = vendorData.map((d) => d.uniqueVisits);
       const vMax = Math.max(...vViewArr, ...vUniqueArr, 1);
 
-      const vendorsOptions: any = {
+      const vendorsOptions = {
         series: [
-          { name: 'کل بازدید کاتالوگ‌ها', data: vViewArr },
-          { name: 'بازدیدکننده یکتا', data: vUniqueArr }
+          { name: catalogViewsLabel, data: vViewArr },
+          { name: catalogUniqueLabel, data: vUniqueArr }
         ],
         chart: { height: 320, type: 'area', fontFamily: 'Estedad, sans-serif', toolbar: { show: false }, zoom: { enabled: false } },
         colors: ['#f59e0b', '#9333ea'],
@@ -769,7 +838,7 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
         stroke: { curve: 'smooth', width: 2 },
         markers: { size: isSingleDay ? 5 : 0, hover: { size: 7 } },
         xaxis: { categories: vCategories, labels: { style: { colors: '#737373', fontSize: '11px' } }, axisBorder: { show: false }, axisTicks: { show: false } },
-        yaxis: { opposite: true, min: 0, tickAmount: Math.min(4, vMax), labels: { formatter: (v: number) => Math.round(v).toLocaleString('fa-IR'), style: { colors: '#737373', fontSize: '11px' } } },
+        yaxis: { opposite: locale === 'fa', min: 0, tickAmount: Math.min(4, vMax), labels: { formatter: (v) => Math.round(v).toLocaleString(locale), style: { colors: '#737373', fontSize: '11px' } } },
         grid: { borderColor: '#f5f5f5', strokeDashArray: 4 },
         tooltip: { inverseOrder: true, style: { fontSize: '12px', fontFamily: 'Estedad, sans-serif' } },
         legend: { position: 'top', horizontalAlign: 'right', fontFamily: 'Estedad, sans-serif', labels: { colors: '#171717' } }
@@ -777,41 +846,41 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
       if (sVendorsChart) {
         sVendorsChart.updateOptions(vendorsOptions);
       } else {
-        sVendorsChart = new (window as any).ApexCharts(document.querySelector('#s-chart-vendors'), vendorsOptions);
+        sVendorsChart = new window.ApexCharts(document.querySelector('#s-chart-vendors'), vendorsOptions);
         sVendorsChart.render();
       }
 
       // Top vendors bar chart
-      const topNames = vendorSummary.map((v: any) => v.name);
-      const topViews = vendorSummary.map((v: any) => v.totalPageViews);
+      const topNames = vendorSummary.map((v) => v.name);
+      const topViews = vendorSummary.map((v) => v.totalPageViews);
       const topMax = Math.max(...topViews, 1);
 
-      const topVendorsOptions: any = {
-        series: [{ name: 'کل بازدید', data: topViews }],
+      const topVendorsOptions = {
+        series: [{ name: totalViewsAllShopsLabel, data: topViews }],
         chart: { type: 'bar', height: Math.max(220, vendorSummary.length * 40), fontFamily: 'Estedad, sans-serif', toolbar: { show: false } },
         plotOptions: { bar: { borderRadius: 5, horizontal: true, barHeight: '55%', distributed: false } },
         colors: ['#6366f1'],
         dataLabels: {
           enabled: true, textAnchor: 'start',
           style: { colors: ['#ffffff'], fontSize: '11px', fontFamily: 'Estedad, sans-serif' },
-          formatter: (val: number) => val.toLocaleString('fa-IR') + ' بار',
+          formatter: (val) => val.toLocaleString(locale) + ' ' + chartTotalViewsFormat,
           offsetX: 10
         },
         xaxis: {
           categories: topNames,
           min: 0,
           tickAmount: Math.min(5, topMax),
-          labels: { formatter: (v: number) => Math.round(v).toLocaleString('fa-IR'), style: { colors: '#737373', fontSize: '11px' } },
+          labels: { formatter: (v) => Math.round(v).toLocaleString(locale), style: { colors: '#737373', fontSize: '11px' } },
           axisBorder: { show: false }, axisTicks: { show: false }
         },
-        yaxis: { opposite: true, labels: { style: { colors: '#171717', fontSize: '11px', fontWeight: 500 } } },
+        yaxis: { opposite: locale === 'fa', labels: { style: { colors: '#171717', fontSize: '11px', fontWeight: 500 } } },
         grid: { borderColor: '#f5f5f5', strokeDashArray: 4, xaxis: { lines: { show: true } }, yaxis: { lines: { show: false } } },
         tooltip: { style: { fontSize: '12px', fontFamily: 'Estedad, sans-serif' } }
       };
       if (sTopVendorsChart) {
         sTopVendorsChart.updateOptions(topVendorsOptions);
       } else {
-        sTopVendorsChart = new (window as any).ApexCharts(document.querySelector('#s-chart-top-vendors'), topVendorsOptions);
+        sTopVendorsChart = new window.ApexCharts(document.querySelector('#s-chart-top-vendors'), topVendorsOptions);
         sTopVendorsChart.render();
       }
 
@@ -823,9 +892,9 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
   }
 
   // Vendor Mode Fields Toggle
-  const selectVendorMode = document.getElementById('select-vendor-mode') as HTMLSelectElement;
-  const groupPackageType = document.getElementById('group-package-type') as HTMLDivElement;
-  const groupMennoVendor = document.getElementById('group-menno-vendor') as HTMLDivElement;
+  const selectVendorMode = document.getElementById('select-vendor-mode');
+  const groupPackageType = document.getElementById('group-package-type');
+  const groupMennoVendor = document.getElementById('group-menno-vendor');
 
   selectVendorMode?.addEventListener('change', () => {
     const val = selectVendorMode.value;
@@ -842,15 +911,15 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
   });
 
   // Open/Close Vendor Modal
-  const modalNewVendor = document.getElementById('modal-new-vendor') as HTMLDivElement;
+  const modalNewVendor = document.getElementById('modal-new-vendor');
   const btnOpenNewVendor = document.getElementById('btn-open-new-vendor');
   const btnCloseModalVendors = document.querySelectorAll('.btn-close-modal-vendor');
-  const formNewVendor = document.getElementById('form-new-vendor') as HTMLFormElement;
-  const errorVendorForm = document.getElementById('error-vendor-form') as HTMLDivElement;
+  const formNewVendor = document.getElementById('form-new-vendor');
+  const errorVendorForm = document.getElementById('error-vendor-form');
 
-  const btnSubmitVendor = document.getElementById('btn-submit-vendor') as HTMLButtonElement;
-  const txtSubmitVendor = document.getElementById('txt-submit-vendor') as HTMLSpanElement;
-  const spinnerSubmitVendor = document.getElementById('spinner-submit-vendor') as SVGElement;
+  const btnSubmitVendor = document.getElementById('btn-submit-vendor');
+  const txtSubmitVendor = document.getElementById('txt-submit-vendor');
+  const spinnerSubmitVendor = document.getElementById('spinner-submit-vendor');
 
   btnOpenNewVendor?.addEventListener('click', () => {
     formNewVendor.reset();
@@ -864,10 +933,10 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
   }));
 
   // Progress DOM References
-  const groupVendorProgress = document.getElementById('group-vendor-progress') as HTMLDivElement;
-  const txtVendorProgressStep = document.getElementById('txt-vendor-progress-step') as HTMLSpanElement;
-  const txtVendorProgressPercent = document.getElementById('txt-vendor-progress-percent') as HTMLSpanElement;
-  const barVendorProgress = document.getElementById('bar-vendor-progress') as HTMLDivElement;
+  const groupVendorProgress = document.getElementById('group-vendor-progress');
+  const txtVendorProgressStep = document.getElementById('txt-vendor-progress-step');
+  const txtVendorProgressPercent = document.getElementById('txt-vendor-progress-percent');
+  const barVendorProgress = document.getElementById('bar-vendor-progress');
 
   // Create Vendor Submit Handler
   formNewVendor?.addEventListener('submit', async (e) => {
@@ -876,12 +945,12 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
 
     // Show loading spinner and disable submit buttons
     btnSubmitVendor.disabled = true;
-    txtSubmitVendor.textContent = 'در حال ایجاد...';
+    txtSubmitVendor.textContent = txtSubmitVendorCreating;
     spinnerSubmitVendor.style.display = 'inline-block';
 
     // Initialize progress bar
     if (groupVendorProgress) groupVendorProgress.style.display = 'block';
-    if (txtVendorProgressStep) txtVendorProgressStep.textContent = 'در حال برقراری ارتباط با سرور...';
+    if (txtVendorProgressStep) txtVendorProgressStep.textContent = connectingServer;
     if (txtVendorProgressPercent) txtVendorProgressPercent.textContent = '0%';
     if (barVendorProgress) {
       barVendorProgress.style.width = '0%';
@@ -889,7 +958,7 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
     }
 
     const formData = new FormData(formNewVendor);
-    const slug = (formData.get('slug') as string).toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').trim();
+    const slug = formData.get('slug').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').trim();
     const payload = {
       name: formData.get('name'),
       slug,
@@ -909,12 +978,12 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
 
       if (!response.ok) {
         const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.message || 'خطا در ارتباط با سرور');
+        throw new Error(errData.message || errorServerConnection);
       }
 
       const reader = response.body?.getReader();
       if (!reader) {
-        throw new Error('سیستم جریان داده توسط مرورگر پشتیبانی نمی‌شود.');
+        throw new Error('Streaming not supported');
       }
 
       const decoder = new TextDecoder();
@@ -942,27 +1011,27 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
               throw new Error(data.message);
             } else if (data.status === 'success') {
               if (txtVendorProgressStep) txtVendorProgressStep.textContent = data.message;
-              if (txtVendorProgressPercent) txtVendorProgressPercent.textContent = '۱۰۰٪';
+              if (txtVendorProgressPercent) txtVendorProgressPercent.textContent = locale === 'fa' ? '۱۰۰٪' : '100%';
               if (barVendorProgress) {
                 barVendorProgress.style.width = '100%';
                 barVendorProgress.style.backgroundColor = '#16a34a'; // Green color for success
               }
-              alert('مجموعه جدید با موفقیت ثبت شد.');
+              alert(vendorCreatedSuccess);
               window.location.reload();
               return;
             }
-          } catch (err: any) {
-            throw new Error(err.message || 'خطا در پردازش اطلاعات دریافتی');
+          } catch (err) {
+            throw new Error(err.message || 'Error processing data');
           }
         }
       }
-    } catch (err: any) {
-      errorVendorForm.textContent = err.message || 'خطا در برقراری ارتباط با سرور. لطفاً دوباره تلاش کنید.';
+    } catch (err) {
+      errorVendorForm.textContent = err.message || errorServerConnection;
       errorVendorForm.style.display = 'block';
       if (groupVendorProgress) groupVendorProgress.style.display = 'none';
     } finally {
       btnSubmitVendor.disabled = false;
-      txtSubmitVendor.textContent = 'ایجاد مجموعه';
+      txtSubmitVendor.textContent = btnSubmitVendorLabel;
       spinnerSubmitVendor.style.display = 'none';
     }
   });
@@ -974,55 +1043,55 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
       const id = btn.getAttribute('data-id');
       const name = btn.getAttribute('data-name');
       const confirmed = await window.showConfirmDialog(
-        `آیا از حذف کامل مجموعه "${name}" به همراه تمام محصولات و دسته‌بندی‌های آن مطمئن هستید؟ این عمل غیرقابل بازگشت است.`,
-        { okText: 'حذف شود', cancelText: 'انصراف', okClass: 'confirm-btn-danger' }
+        deleteVendorConfirm.replace('{name}', name),
+        { okText: deleteBtn, cancelText: btnCancel, okClass: 'confirm-btn-danger' }
       );
       if (confirmed) {
         try {
           const res = await fetch(`/api/super/vendors?id=${id}`, { method: 'DELETE' });
           const data = await res.json();
           if (res.ok && data.success) {
-            alert('مجموعه با موفقیت حذف شد.');
+            alert(vendorDeletedSuccess);
             window.location.reload();
           } else {
-            alert(data.message || 'خطا در حذف مجموعه');
+            alert(data.message || errorDelete);
           }
         } catch {
-          alert('خطا در ارتباط با سرور.');
+          alert(errorServerConnection);
         }
       }
     });
   });
 
   // User Modal Management
-  const modalUser = document.getElementById('modal-user') as HTMLDivElement;
+  const modalUser = document.getElementById('modal-user');
   const btnOpenNewUser = document.getElementById('btn-open-new-user');
   const btnCloseModalUsers = document.querySelectorAll('.btn-close-modal-user');
-  const formUser = document.getElementById('form-user') as HTMLFormElement;
-  const errorUserForm = document.getElementById('error-user-form') as HTMLDivElement;
+  const formUser = document.getElementById('form-user');
+  const errorUserForm = document.getElementById('error-user-form');
 
-  const txtUserModalTitle = document.getElementById('txt-user-modal-title') as HTMLSpanElement;
-  const inputUserId = document.getElementById('input-user-id') as HTMLInputElement;
-  const inputUserName = document.getElementById('input-user-name') as HTMLInputElement;
-  const inputUserUsername = document.getElementById('input-user-username') as HTMLInputElement;
-  const inputUserPhone = document.getElementById('input-user-phone') as HTMLInputElement;
-  const inputUserPassword = document.getElementById('input-user-password') as HTMLInputElement;
-  const labelUserPassword = document.getElementById('label-user-password') as HTMLLabelElement;
-  const tipUserPassword = document.getElementById('tip-user-password') as HTMLSpanElement;
+  const txtUserModalTitle = document.getElementById('txt-user-modal-title');
+  const inputUserId = document.getElementById('input-user-id');
+  const inputUserName = document.getElementById('input-user-name');
+  const inputUserUsername = document.getElementById('input-user-username');
+  const inputUserPhone = document.getElementById('input-user-phone');
+  const inputUserPassword = document.getElementById('input-user-password');
+  const labelUserPassword = document.getElementById('label-user-password');
+  const tipUserPassword = document.getElementById('tip-user-password');
 
   btnOpenNewUser?.addEventListener('click', () => {
     formUser.reset();
     inputUserId.value = '';
     if (inputUserPhone) inputUserPhone.value = '';
-    txtUserModalTitle.textContent = 'ایجاد کاربر جدید';
-    labelUserPassword.textContent = 'رمز عبور *';
+    txtUserModalTitle.textContent = userModalCreateTitle;
+    labelUserPassword.textContent = passwordLabelCreate;
     inputUserPassword.required = true;
     inputUserPassword.placeholder = '••••••••';
-    tipUserPassword.textContent = 'حداقل ۶ کاراکتر';
+    tipUserPassword.textContent = passwordDescCreate;
     errorUserForm.style.display = 'none';
 
     // Uncheck all vendor checkboxes
-    document.querySelectorAll('.user-vendor-checkbox').forEach((cb: any) => {
+    document.querySelectorAll('.user-vendor-checkbox').forEach((cb) => {
       cb.checked = false;
     });
 
@@ -1051,14 +1120,14 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
       inputUserUsername.value = username;
       if (inputUserPhone) inputUserPhone.value = phone;
       
-      txtUserModalTitle.textContent = 'ویرایش کاربر';
-      labelUserPassword.textContent = 'رمز عبور جدید (اختیاری)';
+      txtUserModalTitle.textContent = userModalEditTitle;
+      labelUserPassword.textContent = passwordLabelEdit;
       inputUserPassword.required = false;
-      inputUserPassword.placeholder = 'خالی بگذارید تا تغییر نکند';
-      tipUserPassword.textContent = 'در صورت عدم تمایل به تغییر، خالی بگذارید';
+      inputUserPassword.placeholder = passwordPlaceholderEdit;
+      tipUserPassword.textContent = passwordDescEdit;
 
       // Select checkboxes based on vendorIds
-      document.querySelectorAll('.user-vendor-checkbox').forEach((cb: any) => {
+      document.querySelectorAll('.user-vendor-checkbox').forEach((cb) => {
         cb.checked = vendorIds.includes(parseInt(cb.value, 10));
       });
 
@@ -1077,8 +1146,8 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
     const formData = new FormData(formUser);
     
     // Collect vendorIds
-    const vendorIds: number[] = [];
-    document.querySelectorAll('.user-vendor-checkbox:checked').forEach((cb: any) => {
+    const vendorIds = [];
+    document.querySelectorAll('.user-vendor-checkbox:checked').forEach((cb) => {
       vendorIds.push(parseInt(cb.value, 10));
     });
 
@@ -1102,14 +1171,14 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
 
       const result = await response.json();
       if (response.ok && result.success) {
-        alert(isEdit ? 'اطلاعات کاربر با موفقیت به‌روزرسانی شد.' : 'کاربر جدید با موفقیت ایجاد شد.');
+        alert(isEdit ? userUpdatedSuccess : userCreatedSuccess);
         window.location.reload();
       } else {
-        errorUserForm.textContent = result.message || 'خطا در ذخیره‌سازی اطلاعات کاربر';
+        errorUserForm.textContent = result.message || errorUserSave;
         errorUserForm.style.display = 'block';
       }
     } catch {
-      errorUserForm.textContent = 'خطا در ارتباط با سرور. لطفاً دوباره تلاش کنید.';
+      errorUserForm.textContent = errorServerConnection;
       errorUserForm.style.display = 'block';
     }
   });
@@ -1121,21 +1190,21 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
       const id = btn.getAttribute('data-id');
       const name = btn.getAttribute('data-name');
       const confirmed = await window.showConfirmDialog(
-        `آیا از حذف کامل حساب کاربری "${name}" مطمئن هستید؟`,
-        { okText: 'حذف شود', cancelText: 'انصراف', okClass: 'confirm-btn-danger' }
+        deleteUserConfirm.replace('{name}', name),
+        { okText: deleteBtn, cancelText: btnCancel, okClass: 'confirm-btn-danger' }
       );
       if (confirmed) {
         try {
           const res = await fetch(`/api/super/users?id=${id}`, { method: 'DELETE' });
           const data = await res.json();
           if (res.ok && data.success) {
-            alert('کاربر با موفقیت حذف شد.');
+            alert(userDeletedSuccess);
             window.location.reload();
           } else {
-            alert(data.message || 'خطا در حذف کاربر');
+            alert(data.message || errorDelete);
           }
         } catch {
-          alert('خطا در ارتباط با سرور.');
+          alert(errorServerConnection);
         }
       }
     });
@@ -1179,7 +1248,7 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
         if (sortBy === 'name' || sortBy === 'slug') {
           valA = (a.getAttribute(`data-${sortBy}`) || '').toLowerCase();
           valB = (b.getAttribute(`data-${sortBy}`) || '').toLowerCase();
-          return newDir === 'asc' ? valA.localeCompare(valB, 'fa') : valB.localeCompare(valA, 'fa');
+          return newDir === 'asc' ? valA.localeCompare(valB, locale) : valB.localeCompare(valA, locale);
         } else {
           valA = parseInt(a.getAttribute(`data-${sortBy}`) || '0', 10);
           valB = parseInt(b.getAttribute(`data-${sortBy}`) || '0', 10);
@@ -1211,18 +1280,57 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
   }
 
   // Localize dates to system timezone
-  document.querySelectorAll('.local-date').forEach((el: any) => {
+  document.querySelectorAll('.local-date').forEach((el) => {
     const dateStr = el.getAttribute('data-date');
     if (dateStr) {
       const date = new Date(dateStr);
-      el.textContent = date.toLocaleDateString('fa-IR', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
+      if (locale === 'fa') {
+        el.textContent = date.toLocaleDateString('fa-IR', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      } else {
+        el.textContent = date.toLocaleDateString(locale === 'tr' ? 'tr-TR' : 'en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      }
     }
+  });
+
+  // Language Switcher Logic
+  const langTrigger = document.getElementById('sidenav-lang-trigger');
+  const langMenu = document.getElementById('sidenav-lang-menu');
+  const langItems = document.querySelectorAll('#sidenav-lang-menu .lang-dropdown-item');
+
+  langTrigger?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const isExpanded = langTrigger.getAttribute('aria-expanded') === 'true';
+    langTrigger.setAttribute('aria-expanded', !isExpanded ? 'true' : 'false');
+    langMenu?.classList.toggle('show');
+  });
+
+  document.addEventListener('click', (e) => {
+    if (langTrigger && langMenu && !langTrigger.contains(e.target) && !langMenu.contains(e.target)) {
+      langTrigger.setAttribute('aria-expanded', 'false');
+      langMenu.classList.remove('show');
+    }
+  });
+
+  langItems.forEach(item => {
+    item.addEventListener('click', () => {
+      const targetLang = item.getAttribute('data-lang');
+      if (targetLang) {
+        document.cookie = `lang=${targetLang}; path=/; max-age=31536000`;
+        window.location.reload();
+      }
+    });
   });
 </script>
 

@@ -3,6 +3,7 @@ import AdminLayout from '../../../layouts/AdminLayout.astro';
 import { db } from '../../../db/db';
 import { vendors as vendorsTable, categories as categoriesTable, menuItems as menuItemsTable } from '../../../db/schema';
 import { eq, inArray } from 'drizzle-orm';
+import { useTranslations } from '../../../utils/i18n';
 
 const vendorSlug = Astro.params.vendor;
 if (!vendorSlug) {
@@ -16,8 +17,10 @@ const vendorList = await db
   .where(eq(vendorsTable.slug, vendorSlug))
   .limit(1);
 
+const { t, locale, dir } = useTranslations(Astro.cookies, Astro.request);
+
 if (vendorList.length === 0) {
-  return new Response("مجموعه یافت نشد.", { status: 404 });
+  return new Response(t('vendorNotFound'), { status: 404 });
 }
 const vendor = vendorList[0];
 
@@ -44,7 +47,7 @@ const imagePercent = totalItems > 0 ? Math.round((itemsWithImage / totalItems) *
 const descPercent = totalItems > 0 ? Math.round((itemsWithDesc / totalItems) * 100) : 0;
 ---
 
-<AdminLayout title="طراحی و قالب کاتالوگ" activeTab="design" vendorSlug={vendorSlug}>
+<AdminLayout title={t('designPageTitle')} activeTab="design" vendorSlug={vendorSlug}>
   <!-- Onboarding banner -->
   <div class="onboarding-banner">
     <div class="onboarding-icon-box">
@@ -55,13 +58,13 @@ const descPercent = totalItems > 0 ? Math.round((itemsWithDesc / totalItems) * 1
       </svg>
     </div>
     <div class="onboarding-text-box">
-      <span class="onboarding-title">راهنمای انتخاب قالب مناسب</span>
-      <p class="onboarding-desc">چیدمان کاتالوگ هویت بصری کسب‌وکار شما را شکل می‌دهد. اگر کیفیت عکاسی محصولات بالا است و تصاویر حرف اول را می‌زنند (مانند بوتیک‌ها، گالری‌های هنری و مجموعه‌های لوکس)، حالت پینترستی بهترین انتخاب است. اگر کاتالوگی طولانی با تنوع محصول زیاد دارید، حالت ساده دسترسی را سریع‌تر می‌کند.</p>
+      <span class="onboarding-title">{t('designOnboardingTitle')}</span>
+      <p class="onboarding-desc">{t('designOnboardingDesc')}</p>
     </div>
   </div>
 
   <div class="admin-page-actions">
-    <h1 class="page-title-bold">چیدمان و قالب نمایش کاتالوگ</h1>
+    <h1 class="page-title-bold">{t('designPageTitle')}</h1>
   </div>
 
   <div class="admin-card">
@@ -69,7 +72,7 @@ const descPercent = totalItems > 0 ? Math.round((itemsWithDesc / totalItems) * 1
       <input type="hidden" id="selected-layout" name="defaultLayout" value={vendor.defaultLayout} />
       
       <div class="form-group">
-        <label class="form-label">قالب نمایش محصولات را انتخاب کنید:</label>
+        <label class="form-label">{t('selectProductLayout')}</label>
         
         <div class="layout-radio-group">
           <!-- Option A: Pinterest (Masonry) -->
@@ -80,9 +83,9 @@ const descPercent = totalItems > 0 ? Math.round((itemsWithDesc / totalItems) * 1
               class="layout-radio-input" 
               checked={vendor.defaultLayout === 'pinterest'} 
             />
-            <span class="layout-card-title">کاتالوگ عکس‌محور (ماسونری)</span>
+            <span class="layout-card-title">{t('layoutPinterestTitle')}</span>
             <div class="layout-card-body-row">
-              <p class="layout-card-desc">اگر عکاسی و تصاویر باکیفیت برای شما اهمیت بالایی دارد و مایلید عکس‌های محصولات کاتالوگ شما بیشترین میزان خودنمایی را داشته باشند.</p>
+              <p class="layout-card-desc">{t('layoutPinterestDesc')}</p>
               <!-- Graphic Mockup -->
               <div class="layout-preview-mockup">
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 85%; height: 90%;">
@@ -103,9 +106,9 @@ const descPercent = totalItems > 0 ? Math.round((itemsWithDesc / totalItems) * 1
               class="layout-radio-input" 
               checked={vendor.defaultLayout === 'simple'} 
             />
-            <span class="layout-card-title">ساده و متنی (کامپکت)</span>
+            <span class="layout-card-title">{t('layoutSimpleTitle')}</span>
             <div class="layout-card-body-row">
-              <p class="layout-card-desc">نمایش منظم، متنی و جمع‌وجور؛ مناسب برای کاتالوگ‌های شلوغ یا زمانی که دسترسی سریع مشتری به نام و قیمت محصولات اولویت اول است.</p>
+              <p class="layout-card-desc">{t('layoutSimpleDesc')}</p>
               <!-- Graphic Mockup -->
               <div class="layout-preview-mockup">
                 <div style="display: flex; flex-direction: column; gap: 8px; width: 85%; height: 90%; justify-content: center;">
@@ -125,9 +128,9 @@ const descPercent = totalItems > 0 ? Math.round((itemsWithDesc / totalItems) * 1
               class="layout-radio-input" 
               checked={vendor.defaultLayout === 'card'} 
             />
-            <span class="layout-card-title">نمایش کارتی</span>
+            <span class="layout-card-title">{t('layoutCardTitle')}</span>
             <div class="layout-card-body-row">
-              <p class="layout-card-desc">نمایش کامل جزئیات در دید اول؛ در این حالت تصاویر محصولات کمی بزرگ‌تر بوده و عنوان، قیمت و توضیحات متنی محصول به صورت یکجا نمایش داده می‌شوند.</p>
+              <p class="layout-card-desc">{t('layoutCardDesc')}</p>
               <!-- Graphic Mockup -->
               <div class="layout-preview-mockup">
                 <div style="display: flex; flex-direction: column; gap: 8px; width: 85%; height: 90%; justify-content: center;">
@@ -167,7 +170,7 @@ const descPercent = totalItems > 0 ? Math.round((itemsWithDesc / totalItems) * 1
             </svg>
           </div>
           <div class="suggestion-text-box">
-            <span class="suggestion-title">پیشنهاد بهبود طراحی کاتالوگ</span>
+            <span class="suggestion-title">{t('designSuggestionTitle')}</span>
             <p id="layout-suggestion-text" class="suggestion-desc"></p>
           </div>
         </div>
@@ -175,7 +178,7 @@ const descPercent = totalItems > 0 ? Math.round((itemsWithDesc / totalItems) * 1
 
       <!-- Theme Selection Group -->
       <div class="form-group" style="margin-top: 1rem; border-top: 1px solid #f5f5f5; padding-top: 1.5rem;">
-        <label class="form-label">تم رنگی کاتالوگ را انتخاب کنید:</label>
+        <label class="form-label">{t('selectTheme')}</label>
         <input type="hidden" id="selected-theme" name="theme" value={vendor.theme} />
         
         <div class="theme-radio-group">
@@ -187,9 +190,9 @@ const descPercent = totalItems > 0 ? Math.round((itemsWithDesc / totalItems) * 1
               class="theme-radio-input" 
               checked={vendor.theme === 'light'} 
             />
-            <span class="theme-card-title">تم روشن (Light)</span>
+            <span class="theme-card-title">{t('themeLightTitle')}</span>
             <div class="theme-card-body-row">
-              <p class="theme-card-desc">طراحی کلاسیک، روشن و تمیز با پس‌زمینه سفید. گزینه‌ای عالی برای خوانایی حداکثری در محیط‌های پرنور.</p>
+              <p class="theme-card-desc">{t('themeLightDesc')}</p>
               <!-- Theme Preview Mockup -->
               <div class="theme-preview-mockup">
                 <div class="phone-frame-mockup light-preview-theme">
@@ -221,9 +224,9 @@ const descPercent = totalItems > 0 ? Math.round((itemsWithDesc / totalItems) * 1
               class="theme-radio-input" 
               checked={vendor.theme === 'dark'} 
             />
-            <span class="theme-card-title">تم تاریک (Dark)</span>
+            <span class="theme-card-title">{t('themeDarkTitle')}</span>
             <div class="theme-card-body-row">
-              <p class="theme-card-desc">طراحی تیره، مدرن و لوکس با رنگ زمینه مشکی. فوق‌العاده برای فضاهای مدرن، نمایش در شب و کاهش خستگی چشم خریداران.</p>
+              <p class="theme-card-desc">{t('themeDarkDesc')}</p>
               <!-- Theme Preview Mockup -->
               <div class="theme-preview-mockup">
                 <div class="phone-frame-mockup dark-preview-theme">
@@ -250,13 +253,22 @@ const descPercent = totalItems > 0 ? Math.round((itemsWithDesc / totalItems) * 1
       </div>
 
       <button type="submit" class="btn btn-primary btn-full" style="margin-top: 1.5rem; padding: 0.9rem;">
-        ذخیره تغییرات قالب نمایش
+        {t('saveDesignBtn')}
       </button>
     </form>
   </div>
 </AdminLayout>
 
-<script>
+<script define:vars={{ locale, clientTranslations: {
+  pinterestSuggestion: t('pinterestSuggestion'),
+  cardSuggestion: t('cardSuggestion'),
+  cardReasonBoth: t('cardReasonBoth'),
+  cardReasonImg: t('cardReasonImg'),
+  cardReasonDesc: t('cardReasonDesc'),
+  designSavedSuccess: t('designSavedSuccess'),
+  errorSavingSettings: t('errorSavingSettings'),
+  errorServerConnection: t('errorServerConnection'),
+} }}>
   // UI interaction for layout radio cards
   const layoutCards = document.querySelectorAll('.layout-radio-card');
   const layoutInputHidden = document.getElementById('selected-layout') as HTMLInputElement;
@@ -272,7 +284,7 @@ const descPercent = totalItems > 0 ? Math.round((itemsWithDesc / totalItems) * 1
 
     if (layout === 'pinterest') {
       if (imagePercent < 60) {
-        suggestionText.textContent = `با توجه به اینکه تنها ${imagePercent}٪ از محصولات شما دارای عکس هستند، پیشنهاد می‌شود از قالب «ساده و متنی (کامپکت)» استفاده کنید. در قالب پینترستی (ماسونری)، عدم وجود عکس برای اکثر محصولات باعث ایجاد فضاهای خالی بزرگ و نامنظم و در نتیجه افت کیفیت بصری کاتالوگ می‌شود.`;
+        suggestionText.textContent = clientTranslations.pinterestSuggestion.replace('{percent}', imagePercent.toLocaleString(locale));
         suggestionBanner.style.display = 'flex';
       } else {
         suggestionBanner.style.display = 'none';
@@ -281,13 +293,15 @@ const descPercent = totalItems > 0 ? Math.round((itemsWithDesc / totalItems) * 1
       if (imagePercent < 40 || descPercent < 40) {
         let reason = '';
         if (imagePercent < 40 && descPercent < 40) {
-          reason = `تنها ${imagePercent}٪ محصولات شما دارای عکس و ${descPercent}٪ دارای توضیحات هستند.`;
+          reason = clientTranslations.cardReasonBoth
+            .replace('{img}', imagePercent.toLocaleString(locale))
+            .replace('{desc}', descPercent.toLocaleString(locale));
         } else if (imagePercent < 40) {
-          reason = `تنها ${imagePercent}٪ محصولات شما دارای عکس هستند.`;
+          reason = clientTranslations.cardReasonImg.replace('{img}', imagePercent.toLocaleString(locale));
         } else {
-          reason = `تنها ${descPercent}٪ محصولات شما دارای توضیحات هستند.`;
+          reason = clientTranslations.cardReasonDesc.replace('{desc}', descPercent.toLocaleString(locale));
         }
-        suggestionText.textContent = `با توجه به اینکه ${reason} پیشنهاد می‌شود از قالب «ساده و متنی (کامپکت)» استفاده کنید. قالب کارتی برای داشتن ظاهر شکیل نیاز به وجود عکس و توضیحات متنی در اکثر محصولات دارد، در غیر این صورت فضاها خالی و رها شده به نظر می‌رسند.`;
+        suggestionText.textContent = clientTranslations.cardSuggestion.replace('{reason}', reason);
         suggestionBanner.style.display = 'flex';
       } else {
         suggestionBanner.style.display = 'none';
@@ -360,13 +374,13 @@ const descPercent = totalItems > 0 ? Math.round((itemsWithDesc / totalItems) * 1
       });
 
       if (response.ok) {
-        alert('طراحی و چیدمان کاتالوگ با موفقیت به‌روزرسانی شد.');
+        alert(clientTranslations.designSavedSuccess);
         window.location.reload();
       } else {
-        alert('خطا در ذخیره‌سازی اطلاعات.');
+        alert(clientTranslations.errorSavingSettings);
       }
     } catch {
-      alert('ارتباط با سرور برقرار نشد.');
+      alert(clientTranslations.errorServerConnection);
     }
   });
 
@@ -382,7 +396,6 @@ const descPercent = totalItems > 0 ? Math.round((itemsWithDesc / totalItems) * 1
     grid-template-columns: 1fr !important; /* Stacked under each other on small mobile screens */
     gap: 1rem !important;
     margin-top: 0.5rem !important;
-    direction: rtl !important;
     width: 100% !important;
   }
 
@@ -418,7 +431,7 @@ const descPercent = totalItems > 0 ? Math.round((itemsWithDesc / totalItems) * 1
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
     background: #ffffff !important;
     position: relative !important;
-    text-align: right !important;
+    text-align: start !important;
     width: 100% !important;
     box-sizing: border-box !important;
   }
@@ -436,8 +449,8 @@ const descPercent = totalItems > 0 ? Math.round((itemsWithDesc / totalItems) * 1
   .layout-radio-input, .theme-radio-input {
     position: absolute !important;
     top: 1.25rem !important;
-    right: 1.25rem !important; /* Move radio dot to top-right */
-    left: auto !important;
+    inset-inline-start: 1.25rem !important; /* Move radio dot to start */
+    inset-inline-end: auto !important;
     margin: 0 !important;
   }
 
@@ -445,7 +458,7 @@ const descPercent = totalItems > 0 ? Math.round((itemsWithDesc / totalItems) * 1
     font-size: 0.875rem !important;
     font-weight: 600 !important;
     color: #171717 !important;
-    padding-right: 1.75rem !important; /* Space for radio dot */
+    padding-inline-start: 1.75rem !important; /* Space for radio dot */
     display: block !important;
     width: 100% !important;
   }
@@ -749,7 +762,6 @@ const descPercent = totalItems > 0 ? Math.round((itemsWithDesc / totalItems) * 1
     border: 1px solid #fde68a; /* Amber 200 */
     border-radius: 0.75rem;
     margin-top: 1rem;
-    direction: rtl;
     animation: fadeInSuggestion 0.25s ease-out;
   }
 

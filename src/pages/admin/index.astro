@@ -4,6 +4,7 @@ import { getSession } from '../../utils/auth';
 import { db } from '../../db/db';
 import { vendors as vendorsTable, vendorUsers as vendorUsersTable } from '../../db/schema';
 import { eq } from 'drizzle-orm';
+import { useTranslations } from '../../utils/i18n';
 import '../../styles/admin.css';
 
 // 1. Get Session
@@ -11,6 +12,8 @@ const session = getSession(Astro.cookies);
 if (!session) {
   return Astro.redirect('/admin/login');
 }
+
+const { t, locale, dir } = useTranslations(Astro.cookies, Astro.request);
 
 // 2. Query vendors linked to this user
 const userVendors = await db
@@ -42,61 +45,63 @@ if (userVendors.length === 0) {
 return Astro.redirect(`/admin/${userVendors[0].slug}`);
 ---
 
-<Layout title="پنل مدیریت مجموعه‌ها" description="داشبورد انتخاب مجموعه جهت مدیریت کاتالوگ">
-  <!-- Administrative Glass Header -->
-  <header class="admin-header">
-    <div class="admin-user-profile">
-      <div class="admin-avatar">
-        {session.name.substring(0, 1)}
+<Layout title={`${t('selectVendorToManage')} — ${t('dashboard')}`} description={t('selectVendorDesc').replace('{count}', userVendors.length.toString())}>
+  <div class="admin-layout-container" style={`direction: ${dir}; --arrow-hover-transform: ${dir === 'rtl' ? 'translateX(-4px)' : 'translateX(4px)'}; min-height: 100vh;`}>
+    <!-- Administrative Glass Header -->
+    <header class="admin-header">
+      <div class="admin-user-profile">
+        <div class="admin-avatar">
+          {session.name.substring(0, 1)}
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 0.125rem;">
+          <span class="admin-username">{session.name}</span>
+          <span style="font-size: 0.625rem; color: #a3a3a3;">{t('vendorManager')}</span>
+        </div>
       </div>
-      <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 0.125rem;">
-        <span class="admin-username">{session.name}</span>
-        <span style="font-size: 0.625rem; color: #a3a3a3;">مدیر ارشد سیستم</span>
-      </div>
-    </div>
-    
-    <div style="display: flex; gap: 0.5rem; align-items: center;">
-      {session.username === 'super' && (
-        <a href="/admin/super" class="btn btn-primary" style="font-size: 0.75rem; padding: 0.5rem 1rem;">
-          پنل سازمانی (مدیریت کل)
+      
+      <div style="display: flex; gap: 0.5rem; align-items: center;">
+        {session.username === 'super' && (
+          <a href="/admin/super" class="btn btn-primary" style="font-size: 0.75rem; padding: 0.5rem 1rem;">
+            {t('superAdminPanel')}
+          </a>
+        )}
+        <a href="/api/auth/logout" class="btn btn-secondary" style="font-size: 0.75rem; padding: 0.5rem 1rem;">
+          {t('logout')}
         </a>
-      )}
-      <a href="/api/auth/logout" class="btn btn-secondary" style="font-size: 0.75rem; padding: 0.5rem 1rem;">
-        خروج از حساب
-      </a>
-    </div>
-  </header>
+      </div>
+    </header>
 
-  <main class="admin-dashboard-main">
-    <div class="dashboard-header">
-      <h1 class="dashboard-title">انتخاب مجموعه برای مدیریت</h1>
-      <p class="dashboard-subtitle">شما به {userVendors.length} مجموعه دسترسی دارید. یکی را برای ویرایش کاتالوگ و تنظیمات انتخاب کنید.</p>
-    </div>
+    <main class="admin-dashboard-main">
+      <div class="dashboard-header">
+        <h1 class="dashboard-title">{t('selectVendorToManage')}</h1>
+        <p class="dashboard-subtitle">{t('selectVendorDesc').replace('{count}', userVendors.length.toString())}</p>
+      </div>
 
-    <div class="vendor-grid">
-      {userVendors.map((vendor) => (
-        <a href={`/admin/${vendor.slug}`} class="vendor-admin-card-link">
-          <div class="vendor-admin-card">
-            <div class="vendor-cover-wrapper">
-              <img src={vendor.logo} alt={vendor.name} class="vendor-cover-img" />
-              <span class="vendor-type-badge">{vendor.type}</span>
-            </div>
-            <div class="vendor-info">
-              <h2 class="vendor-name">{vendor.name}</h2>
-              <p class="vendor-slogan">{vendor.slogan}</p>
-              <div class="manage-action">
-                <span>ورود به پنل ویرایش</span>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="action-arrow">
-                  <line x1="19" y1="12" x2="5" y2="12" />
-                  <polyline points="12 19 5 12 12 5" />
-                </svg>
+      <div class="vendor-grid">
+        {userVendors.map((vendor) => (
+          <a href={`/admin/${vendor.slug}`} class="vendor-admin-card-link">
+            <div class="vendor-admin-card">
+              <div class="vendor-cover-wrapper">
+                <img src={vendor.logo} alt={vendor.name} class="vendor-cover-img" />
+                <span class="vendor-type-badge">{vendor.type}</span>
+              </div>
+              <div class="vendor-info">
+                <h2 class="vendor-name">{vendor.name}</h2>
+                <p class="vendor-slogan">{vendor.slogan}</p>
+                <div class="manage-action">
+                  <span>{t('enterEditPanel')}</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="action-arrow" style={dir === 'ltr' ? 'transform: scaleX(-1);' : ''}>
+                    <line x1="19" y1="12" x2="5" y2="12" />
+                    <polyline points="12 19 5 12 12 5" />
+                  </svg>
+                </div>
               </div>
             </div>
-          </div>
-        </a>
-      ))}
-    </div>
-  </main>
+          </a>
+        ))}
+      </div>
+    </main>
+  </div>
 </Layout>
 
 <style>
@@ -104,7 +109,6 @@ return Astro.redirect(`/admin/${userVendors[0].slug}`);
     max-width: 42rem;
     margin: 0 auto;
     padding: 3rem 1.5rem;
-    direction: rtl;
     width: 100%;
     box-sizing: border-box;
   }
@@ -178,6 +182,11 @@ return Astro.redirect(`/admin/${userVendors[0].slug}`);
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
   }
 
+  [dir="ltr"] .vendor-type-badge {
+    right: auto;
+    left: 1rem;
+  }
+
   .vendor-info {
     padding: 1.25rem;
     display: flex;
@@ -213,6 +222,6 @@ return Astro.redirect(`/admin/${userVendors[0].slug}`);
   }
 
   .vendor-admin-card-link:hover .action-arrow {
-    transform: translateX(-4px); /* RTL moves left */
+    transform: var(--arrow-hover-transform);
   }
 </style>

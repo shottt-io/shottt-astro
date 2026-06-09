@@ -7,6 +7,7 @@ import {
 } from '../../../db/schema';
 import { getSession } from '../../../utils/auth';
 import { gte, asc, sum } from 'drizzle-orm';
+import { useTranslations } from '../../../utils/i18n';
 
 // Helper to calculate date offsets in Tehran timezone
 const getTehranDateOffsetString = (offsetDays: number): string => {
@@ -21,9 +22,10 @@ const getTehranDateOffsetString = (offsetDays: number): string => {
 };
 
 export const GET: APIRoute = async ({ request, cookies }) => {
+  const { t } = useTranslations(cookies, request);
   const session = getSession(cookies);
   if (!session || session.username !== 'super') {
-    return new Response(JSON.stringify({ success: false, message: 'عدم دسترسی' }), {
+    return new Response(JSON.stringify({ success: false, message: t('noAccessSuper') }), {
       status: 403,
       headers: { 'Content-Type': 'application/json' },
     });
@@ -101,7 +103,7 @@ export const GET: APIRoute = async ({ request, cookies }) => {
     const vendorSummary = vendorSummaryRaw
       .map(v => ({
         vendorId: v.vendorId,
-        name: vendorNameMap.get(v.vendorId)?.name || 'نامشخص',
+        name: vendorNameMap.get(v.vendorId)?.name || t('unknownDate'),
         slug: vendorNameMap.get(v.vendorId)?.slug || '',
         totalPageViews: parseInt(v.totalPageViews || '0', 10),
         totalUniqueVisits: parseInt(v.totalUniqueVisits || '0', 10),
@@ -123,7 +125,7 @@ export const GET: APIRoute = async ({ request, cookies }) => {
 
   } catch (error) {
     console.error('Super analytics fetch error:', error);
-    return new Response(JSON.stringify({ success: false, message: 'خطای سرور' }), {
+    return new Response(JSON.stringify({ success: false, message: t('serverError') }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });

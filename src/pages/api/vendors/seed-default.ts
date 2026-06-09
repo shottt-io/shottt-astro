@@ -4,6 +4,7 @@ import { vendors as vendorsTable, categories as categoriesTable, menuItems as me
 import { getSession } from '../../../utils/auth';
 import { eq, and } from 'drizzle-orm';
 import { purgeVendorCache } from '../../../utils/purge';
+import { useTranslations } from '../../../utils/i18n';
 
 // Helper to check user access to a vendor ID
 async function checkVendorAccess(userId: number, vendorId: number): Promise<boolean> {
@@ -16,15 +17,16 @@ async function checkVendorAccess(userId: number, vendorId: number): Promise<bool
 }
 
 export const POST: APIRoute = async ({ request, cookies }) => {
+  const { t } = useTranslations(cookies, request);
   const session = getSession(cookies);
   if (!session) {
-    return new Response(JSON.stringify({ success: false, message: 'عدم احراز هویت' }), { status: 401 });
+    return new Response(JSON.stringify({ success: false, message: t('unauthorized') }), { status: 401 });
   }
 
   try {
     const { vendorSlug } = await request.json();
     if (!vendorSlug) {
-      return new Response(JSON.stringify({ success: false, message: 'شناسه مجموعه الزامی است.' }), { status: 400 });
+      return new Response(JSON.stringify({ success: false, message: t('requiredFieldsMissing') }), { status: 400 });
     }
 
     // Lookup vendor
@@ -35,14 +37,14 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       .limit(1);
 
     if (vendorList.length === 0) {
-      return new Response(JSON.stringify({ success: false, message: 'مجموعه یافت نشد.' }), { status: 404 });
+      return new Response(JSON.stringify({ success: false, message: t('vendorNotFound') }), { status: 404 });
     }
     const vendor = vendorList[0];
 
     // Check access
     const hasAccess = await checkVendorAccess(session.userId, vendor.id);
     if (!hasAccess) {
-      return new Response(JSON.stringify({ success: false, message: 'عدم دسترسی به این مجموعه.' }), { status: 403 });
+      return new Response(JSON.stringify({ success: false, message: t('noAccessToVendor') }), { status: 403 });
     }
 
     // Define mock data templates based on vendor type
@@ -257,9 +259,9 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     // Purge CDN Cache
     purgeVendorCache(vendorSlug).catch(() => {});
 
-    return new Response(JSON.stringify({ success: true, message: 'کاتالوگ نمونه با موفقیت ساخته شد.' }), { status: 200 });
+    return new Response(JSON.stringify({ success: true, message: t('sampleMenuSuccess') }), { status: 200 });
   } catch (error: any) {
     console.error('Seed Default Data Error:', error);
-    return new Response(JSON.stringify({ success: false, message: 'خطای سرور در ایجاد منوی نمونه.' }), { status: 500 });
+    return new Response(JSON.stringify({ success: false, message: t('sampleMenuError') }), { status: 500 });
   }
 };

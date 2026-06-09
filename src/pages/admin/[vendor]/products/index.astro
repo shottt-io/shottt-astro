@@ -9,10 +9,15 @@ import {
 import { eq, asc } from 'drizzle-orm';
 import { formatPrice } from '../../../../utils/price';
 
+import { useTranslations } from '../../../../utils/i18n';
+
 const vendorSlug = Astro.params.vendor;
 if (!vendorSlug) {
   return Astro.redirect('/admin');
 }
+
+const { t, locale } = useTranslations(Astro.cookies, Astro.request);
+const isRtl = locale === 'fa';
 
 // Fetch vendor
 const vendorList = await db
@@ -22,7 +27,7 @@ const vendorList = await db
   .limit(1);
 
 if (vendorList.length === 0) {
-  return new Response("مجموعه یافت نشد.", { status: 404 });
+  return new Response(t('vendorNotFound'), { status: 404 });
 }
 const vendor = vendorList[0];
 
@@ -50,7 +55,7 @@ const items = await db
   .orderBy(asc(categoriesTable.sortOrder), asc(menuItemsTable.sortOrder), asc(menuItemsTable.id));
 ---
 
-<AdminLayout title="مدیریت محصولات" activeTab="products" vendorSlug={vendorSlug}>
+<AdminLayout title={t('productsPageTitle')} activeTab="products" vendorSlug={vendorSlug}>
   <!-- Onboarding / Marketing Banner -->
   <div class="onboarding-banner">
     <div class="onboarding-icon-box">
@@ -61,29 +66,29 @@ const items = await db
       </svg>
     </div>
     <div class="onboarding-text-box">
-      <span class="onboarding-title">راهنمای بهینه‌سازی فروش محصولات</span>
-      <p class="onboarding-desc">محصولات خود را با تصاویر باکیفیت و توضیحات وسوسه‌انگیز ثبت کنید. شما می‌توانید برای کالاها تخفیف ویژه تعریف کنید تا لیبل برجسته بخورند. آیتم‌های پرفروش‌تر خود را به صورت «دو ستونه» (بزرگتر در چیدمان پینترستی) تعریف کنید تا توجه بیشتری را به خود جلب کنند.</p>
+      <span class="onboarding-title">{t('productsOnboardingTitle')}</span>
+      <p class="onboarding-desc">{t('productsOnboardingDesc')}</p>
     </div>
   </div>
 
   <div class="admin-page-actions" style="flex-direction: column; align-items: stretch; gap: 1rem;">
-    <div style="display: flex; justify-content: space-between; align-items: center; direction: rtl; width: 100%;">
-      <h1 class="page-title-bold">محصولات مجموعه</h1>
+    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+      <h1 class="page-title-bold">{t('productsPageTitle')}</h1>
       
       <a href={`/admin/${vendorSlug}/products/new`} class="btn btn-primary">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 0.875rem; height: 0.875rem;">
           <line x1="12" y1="5" x2="12" y2="19" />
           <line x1="5" y1="12" x2="19" y2="12" />
         </svg>
-        <span>افزودن محصول جدید</span>
+        <span>{t('addProduct')}</span>
       </a>
     </div>
 
     {dbCategories.length > 0 && (
-      <div style="display: flex; gap: 0.5rem; align-items: center; justify-content: flex-start; direction: rtl;">
-        <span style="font-size: 0.75rem; color: #737373; font-weight: 500;">فیلتر بر اساس گروه:</span>
-        <select id="category-filter" class="form-select" style="max-width: 15rem; padding: 0.5rem 2rem 0.5rem 1rem; font-size: 0.8125rem; border-radius: 0.5rem; background-position: left 0.75rem center;">
-          <option value="all">همه دسته‌بندی‌ها</option>
+      <div style="display: flex; gap: 0.5rem; align-items: center; justify-content: flex-start;">
+        <span style="font-size: 0.75rem; color: #737373; font-weight: 500;">{t('filterByGroup')}</span>
+        <select id="category-filter" class="form-select" style={`max-width: 15rem; padding: 0.5rem 2rem 0.5rem 1rem; font-size: 0.8125rem; border-radius: 0.5rem; background-position: ${isRtl ? 'left' : 'right'} 0.75rem center;`}>
+          <option value="all">{t('allCategoriesOption')}</option>
           {dbCategories.map(cat => (
             <option value={cat.id}>{cat.name}</option>
           ))}
@@ -95,7 +100,7 @@ const items = await db
   <div id="products-list-wrapper">
     {items.length === 0 ? (
       <div class="admin-card" style="text-align: center; color: #a3a3a3; padding: 4rem 0; font-size: 0.875rem;">
-        هنوز هیچ محصولی ثبت نکرده‌اید. با کلیک بر روی دکمه فوق، اولین محصول خود را ایجاد کنید.
+        {t('noProductsYet')}
       </div>
     ) : (
       dbCategories.map(cat => {
@@ -122,13 +127,13 @@ const items = await db
                       <div style="display: flex; gap: 0.5rem; align-items: center;">
                         <span class="item-name-bold">{item.name}</span>
                         {item.status === 'unavailable' && (
-                          <span class="status-badge status-badge-unavailable">ناموجود</span>
+                          <span class="status-badge status-badge-unavailable">{t('statusUnavailable')}</span>
                         )}
                         {item.status === 'inactive' && (
-                          <span class="status-badge status-badge-inactive">غیرفعال</span>
+                          <span class="status-badge status-badge-inactive">{t('statusInactive')}</span>
                         )}
                       </div>
-                      <span class="item-desc-sub">{formatPrice(item.price)} هزار تومان {item.span2 && ' • دو ستونه'}</span>
+                      <span class="item-desc-sub">{formatPrice(item.price)} {t('thousandTomanUnit')}{item.span2 && ` • ${t('twoColumnsLabel')}`}</span>
                     </div>
                   </div>
                   
@@ -140,7 +145,7 @@ const items = await db
                       data-direction="up" 
                       disabled={idx === 0}
                       style={idx === 0 ? "opacity: 0.3; cursor: not-allowed;" : ""}
-                      title="انتقال به بالا"
+                      title={t('moveUp')}
                     >
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="list-icon-svg">
                         <polyline points="18 15 12 9 6 15" />
@@ -154,15 +159,15 @@ const items = await db
                       data-direction="down" 
                       disabled={idx === catItems.length - 1}
                       style={idx === catItems.length - 1 ? "opacity: 0.3; cursor: not-allowed;" : ""}
-                      title="انتقال به پایین"
+                      title={t('moveDown')}
                     >
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="list-icon-svg">
                         <polyline points="6 9 12 15 18 9" />
                       </svg>
                     </button>
-
+ 
                     <!-- Edit Button (Links to edit page) -->
-                    <a href={`/admin/${vendorSlug}/products/${item.id}`} class="btn-icon" title="ویرایش محصول">
+                    <a href={`/admin/${vendorSlug}/products/${item.id}`} class="btn-icon" title={t('editProductTooltip')}>
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="list-icon-svg">
                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                         <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4z" />
@@ -170,7 +175,7 @@ const items = await db
                     </a>
                     
                     <!-- Delete Button -->
-                    <button class="btn-icon btn-icon-danger btn-delete-product" data-id={item.id} data-name={item.name} title="حذف">
+                    <button class="btn-icon btn-icon-danger btn-delete-product" data-id={item.id} data-name={item.name} title={t('deleteProductTooltip')}>
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="list-icon-svg">
                         <polyline points="3 6 5 6 21 6" />
                         <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
@@ -192,29 +197,29 @@ const items = await db
   <dialog id="onboarding-welcome-modal" class="custom-dialog">
     <div class="dialog-wrapper onboarding-dialog-wrapper">
       <header class="dialog-header">
-        <h2 class="dialog-title">به شات خوش آمدید! 🚀</h2>
+        <h2 class="dialog-title">{t('welcomeOnboardingTitle')}</h2>
       </header>
       
       <!-- Step 1: Choice Screen -->
       <div id="onboarding-step-1" class="onboarding-step">
         <p class="dialog-text" style="margin-bottom: 1.5rem;">
-          مجموعه شما با موفقیت ثبت شد. برای شروع چطور تمایل دارید کاتالوگ شما آماده شود؟
+          {t('welcomeOnboardingSubtitle')}
         </p>
 
         <div class="onboarding-choices">
           <button id="choice-seed-btn" class="choice-card" style="border: 2px solid #171717; background-color: #fafafa; padding: 1.25rem;">
             <div class="choice-icon" style="background-color: #171717; color: #ffffff;">🌱</div>
             <div class="choice-content">
-              <span class="choice-title" style="font-weight: 700; color: #171717;">پر کردن با داده‌های پیش‌فرض (پیشنهاد ما)</span>
-              <p class="choice-desc" style="color: #404040; font-weight: 500; line-height: 1.6; margin-top: 0.25rem;">پیشنهاد ما این است تا دقیق‌تر بتوانید امکانات و ظاهر کاتالوگ را بررسی کنید. بعداً خودتان می‌توانید این آیتم‌ها را پاک یا ویرایش کنید.</p>
+              <span class="choice-title" style="font-weight: 700; color: #171717;">{t('populateDefaultChoice')}</span>
+              <p class="choice-desc" style="color: #404040; font-weight: 500; line-height: 1.6; margin-top: 0.25rem;">{t('populateDefaultDesc')}</p>
             </div>
           </button>
 
           <button id="choice-empty-btn" class="choice-card" style="padding: 1.25rem;">
             <div class="choice-icon">✏️</div>
             <div class="choice-content">
-              <span class="choice-title">شروع با کاتالوگ خالی</span>
-              <p class="choice-desc" style="margin-top: 0.25rem;">کاتالوگ شما خالی خواهد ماند و یک دسته‌بندی پیش‌فرض ایجاد می‌شود تا خودتان دسته‌بندی‌ها و محصولات را به صورت دستی اضافه کنید.</p>
+              <span class="choice-title">{t('emptyCatalogChoice')}</span>
+              <p class="choice-desc" style="margin-top: 0.25rem;">{t('emptyCatalogDesc')}</p>
             </div>
           </button>
         </div>
@@ -225,7 +230,7 @@ const items = await db
         <div class="ai-progress-bar" style="height: 8px; margin-bottom: 0.75rem; background-color: #f5f5f5; border-radius: 9999px; overflow: hidden; width: 100%;">
           <div id="onboarding-progress-fill" class="ai-progress-fill" style="width: 0%; height: 100%; background-color: #171717; transition: width 0.3s ease; border-radius: 9999px;"></div>
         </div>
-        <span id="onboarding-progress-status" style="font-size: 0.8125rem; color: #737373;">در حال شروع فرآیند...</span>
+        <span id="onboarding-progress-status" style="font-size: 0.8125rem; color: #737373;">{t('onboardingProgressStart')}</span>
       </div>
 
       <div id="onboarding-error-banner" class="error-banner" style="margin-top: 1rem; display: none;"></div>
@@ -258,7 +263,6 @@ const items = await db
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
-    direction: rtl;
     font-family: 'Estedad', system-ui, -apple-system, sans-serif;
   }
 
@@ -305,7 +309,7 @@ const items = await db
     background-color: #ffffff;
     border: 1px solid #e5e5e5;
     border-radius: 1rem;
-    text-align: right;
+    text-align: start;
     transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
@@ -352,9 +356,25 @@ const items = await db
   }
 </style>
 
-<script>
+<script define:vars={{
+  onboardingCreatingDefaultCat: t('onboardingCreatingDefaultCat'),
+  defaultCategoryName: t('defaultCategoryName'),
+  onboardingReady: t('onboardingReady'),
+  errorCreatingDefaultCat: t('errorCreatingDefaultCat'),
+  errorServerConnection: t('errorServerConnection'),
+  onboardingInitMenu: t('onboardingInitMenu'),
+  onboardingSampleMenu: t('onboardingSampleMenu'),
+  onboardingSampleMenuDone: t('onboardingSampleMenuDone'),
+  errorCreatingSampleMenu: t('errorCreatingSampleMenu'),
+  errorMovingProduct: t('errorMovingProduct'),
+  errorDelete: t('errorDelete'),
+  deleteProductConfirm: t('deleteProductConfirm'),
+  deleteBtn: t('deleteBtn'),
+  btnCancel: t('btnCancel'),
+  txtVendorProgressStepDefault: t('txtVendorProgressStepDefault')
+}}>
   // Onboarding script
-  const welcomeModal = document.getElementById('onboarding-welcome-modal') as HTMLDialogElement;
+  const welcomeModal = document.getElementById('onboarding-welcome-modal');
   const choiceSeedBtn = document.getElementById('choice-seed-btn');
   const choiceEmptyBtn = document.getElementById('choice-empty-btn');
   
@@ -380,7 +400,7 @@ const items = await db
     if (stepProgress) stepProgress.style.display = 'block';
   }
 
-  function updateProgressBar(percent: number, statusText: string) {
+  function updateProgressBar(percent, statusText) {
     if (progressFill) progressFill.style.width = `${percent}%`;
     if (progressStatus) progressStatus.textContent = statusText;
   }
@@ -388,30 +408,30 @@ const items = await db
   // 2. Start with Empty Catalog
   choiceEmptyBtn?.addEventListener('click', async () => {
     showProgress();
-    updateProgressBar(20, 'در حال ایجاد دسته‌بندی پیش‌فرض...');
+    updateProgressBar(20, onboardingCreatingDefaultCat);
 
     try {
       const response = await fetch('/api/categories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: 'دسته‌بندی عمومی', vendorSlug })
+        body: JSON.stringify({ name: defaultCategoryName, vendorSlug })
       });
 
       if (response.ok) {
-        updateProgressBar(100, 'آماده شد!');
+        updateProgressBar(100, onboardingReady);
         setTimeout(() => {
           window.location.reload();
         }, 800);
       } else {
         const result = await response.json();
-        throw new Error(result.message || 'خطا در ایجاد دسته‌بندی پیش‌فرض.');
+        throw new Error(result.message || errorCreatingDefaultCat);
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
       if (stepProgress) stepProgress.style.display = 'none';
       if (step1) step1.style.display = 'block';
       if (onboardingError) {
-        onboardingError.textContent = err.message || 'ارتباط با سرور برقرار نشد.';
+        onboardingError.textContent = err.message || errorServerConnection;
         onboardingError.style.display = 'block';
       }
     }
@@ -420,13 +440,13 @@ const items = await db
   // 3. Seed Sample Data
   choiceSeedBtn?.addEventListener('click', async () => {
     showProgress();
-    updateProgressBar(10, 'در حال راه‌اندازی منو...');
+    updateProgressBar(10, onboardingInitMenu);
 
     let progress = 10;
     const progressInterval = setInterval(() => {
       if (progress < 95) {
         progress += 5;
-        updateProgressBar(progress, 'در حال ساخت کاتالوگ نمونه...');
+        updateProgressBar(progress, onboardingSampleMenu);
       }
     }, 100);
 
@@ -441,38 +461,45 @@ const items = await db
       const result = await response.json();
 
       if (response.ok && result.success) {
-        updateProgressBar(100, 'ساخت منوی نمونه به پایان رسید!');
+        updateProgressBar(100, onboardingSampleMenuDone);
         setTimeout(() => {
           window.location.reload();
         }, 800);
       } else {
-        throw new Error(result.message || 'خطا در ایجاد محصولات نمونه.');
+        throw new Error(result.message || errorCreatingSampleMenu);
       }
-    } catch (err: any) {
+    } catch (err) {
       clearInterval(progressInterval);
       console.error(err);
       if (stepProgress) stepProgress.style.display = 'none';
       if (step1) step1.style.display = 'block';
       if (onboardingError) {
-        onboardingError.textContent = err.message || 'ارتباط با سرور برقرار نشد.';
+        onboardingError.textContent = err.message || errorServerConnection;
         onboardingError.style.display = 'block';
       }
     }
   });
 </script>
 
-<script>
+<script define:vars={{
+  errorMovingProduct: t('errorMovingProduct'),
+  errorServerConnection: t('errorServerConnection'),
+  deleteProductConfirm: t('deleteProductConfirm'),
+  deleteBtn: t('deleteBtn'),
+  btnCancel: t('btnCancel'),
+  errorDelete: t('errorDelete')
+}}>
   // Filter products by category
-  const filterSelect = document.getElementById('category-filter') as HTMLSelectElement;
+  const filterSelect = document.getElementById('category-filter');
   filterSelect?.addEventListener('change', () => {
     const selectedCat = filterSelect.value;
     const groups = document.querySelectorAll('.category-products-group');
     groups.forEach(group => {
       const catId = group.getAttribute('data-category-id');
       if (selectedCat === 'all' || catId === selectedCat) {
-        (group as HTMLElement).style.display = 'block';
+        group.style.display = 'block';
       } else {
-        (group as HTMLElement).style.display = 'none';
+        group.style.display = 'none';
       }
     });
   });
@@ -492,10 +519,10 @@ const items = await db
         if (response.ok) {
           window.location.reload();
         } else {
-          alert('خطا در جابجایی محصول.');
+          alert(errorMovingProduct);
         }
       } catch {
-        alert('ارتباط با سرور برقرار نشد.');
+        alert(errorServerConnection);
       }
     });
   });
@@ -507,8 +534,8 @@ const items = await db
       const name = btn.getAttribute('data-name');
       
       const confirmed = await window.showConfirmDialog(
-        `آیا از حذف محصول «${name}» مطمئن هستید؟`,
-        { okText: 'حذف شود', cancelText: 'انصراف', okClass: 'confirm-btn-danger' }
+        deleteProductConfirm.replace('{name}', name),
+        { okText: deleteBtn, cancelText: btnCancel, okClass: 'confirm-btn-danger' }
       );
       if (!confirmed) return;
 
@@ -521,11 +548,11 @@ const items = await db
         if (response.ok) {
           window.location.reload();
         } else {
-          alert('خطا در حذف محصول.');
+          alert(errorDelete);
         }
       } catch {
-        alert('ارتباط با سرور برقرار نشد.');
+        alert(errorServerConnection);
       }
     });
-  });
+});
 </script>

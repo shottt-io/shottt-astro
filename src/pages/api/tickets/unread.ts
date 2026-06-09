@@ -3,11 +3,13 @@ import { db } from '../../../db/db';
 import { tickets, vendors, vendorUsers } from '../../../db/schema';
 import { getSession } from '../../../utils/auth';
 import { and, eq } from 'drizzle-orm';
+import { useTranslations } from '../../../utils/i18n';
 
 export const GET: APIRoute = async ({ request, cookies }) => {
+  const { t } = useTranslations(cookies, request);
   const session = getSession(cookies);
   if (!session) {
-    return new Response(JSON.stringify({ success: false, message: 'عدم احراز هویت' }), { status: 401 });
+    return new Response(JSON.stringify({ success: false, message: t('unauthorized') }), { status: 401 });
   }
 
   try {
@@ -98,6 +100,6 @@ export const GET: APIRoute = async ({ request, cookies }) => {
     return new Response(JSON.stringify({ success: true, hasUnread }), { status: 200 });
   } catch (error: any) {
     console.error('Error checking unread tickets count:', error);
-    return new Response(JSON.stringify({ success: false, message: 'خطای سرور' }), { status: 500 });
+    return new Response(JSON.stringify({ success: false, message: t('serverError') }), { status: 500 });
   }
 };

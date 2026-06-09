@@ -8,6 +8,7 @@ import {
   tickets as ticketsTable 
 } from '../../../db/schema';
 import { eq, desc } from 'drizzle-orm';
+import { useTranslations } from '../../../utils/i18n';
 import '../../../styles/admin.css';
 
 // 1. Session verification
@@ -36,20 +37,22 @@ const ticketsList = await db
   .innerJoin(vendorsTable, eq(ticketsTable.vendorId, vendorsTable.id))
   .innerJoin(usersTable, eq(ticketsTable.userId, usersTable.id))
   .orderBy(desc(ticketsTable.updatedAt));
+
+const { t, locale, dir } = useTranslations(Astro.cookies, Astro.request);
 ---
 
-<Layout title="تیکت‌های پشتیبانی — پنل سازمانی" description="مدیریت تیکت‌های پشتیبانی مجموعه‌ها">
-  <div class="admin-layout-container" style="direction: rtl;">
+<Layout title={`${t('ticketsTitle')}`} description={t('ticketsDesc')}>
+  <div class="admin-layout-container" style={`direction: ${dir};`}>
     <!-- Mobile Header -->
     <header class="admin-mobile-header">
-      <button class="hamburger-btn" id="mobile-nav-toggle" aria-label="منوی ناوبری">
+      <button class="hamburger-btn" id="mobile-nav-toggle" aria-label={t('navigationMenu')}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="nav-icon-svg">
           <line x1="4" y1="12" x2="20" y2="12" />
           <line x1="4" y1="6" x2="20" y2="6" />
           <line x1="4" y1="18" x2="20" y2="18" />
         </svg>
       </button>
-      <span class="mobile-page-title">پشتیبانی سیستم</span>
+      <span class="mobile-page-title">{t('systemSupport')}</span>
       <div class="mobile-header-avatar">
         {session.name.substring(0, 1)}
       </div>
@@ -67,14 +70,14 @@ const ticketsList = await db
       <div class="sidenav-header">
         <div class="brand-badge-wrapper">
           <div class="brand-avatar" style="background-color: #be123c;">
-            س
+            {t('superLetter')}
           </div>
           <div class="brand-meta">
-            <h2 class="brand-title-name">پنل سازمانی</h2>
-            <p class="brand-sub-title">مدیریت کل سیستم</p>
+            <h2 class="brand-title-name">{t('superTitle')}</h2>
+            <p class="brand-sub-title">{t('superSubTitle')}</p>
           </div>
         </div>
-        <button class="btn-icon mobile-close-nav-btn" id="mobile-nav-close" aria-label="بستن منو">✕</button>
+        <button class="btn-icon mobile-close-nav-btn" id="mobile-nav-close" aria-label={t('cancel')}>✕</button>
       </div>
 
       <nav class="sidenav-menu">
@@ -85,7 +88,7 @@ const ticketsList = await db
             <rect x="14" y="12" width="7" height="9" />
             <rect x="3" y="16" width="7" height="5" />
           </svg>
-          <span>مجموعه‌ها</span>
+          <span>{t('vendors')}</span>
         </a>
 
         <a href="/admin/super?tab=users" class="sidenav-link">
@@ -95,14 +98,14 @@ const ticketsList = await db
             <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
             <path d="M16 3.13a4 4 0 0 1 0 7.75" />
           </svg>
-          <span>کاربران</span>
+          <span>{t('users')}</span>
         </a>
 
         <a id="sidenav-tickets-link" href="/admin/super/tickets" class="sidenav-link active">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="menu-icon-svg">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
           </svg>
-          <span>تیکت‌های پشتیبانی</span>
+          <span>{t('supportTickets')}</span>
         </a>
 
         <div class="menu-divider"></div>
@@ -113,18 +116,43 @@ const ticketsList = await db
             <polyline points="16 17 21 12 16 7" />
             <line x1="21" y1="12" x2="9" y2="12" />
           </svg>
-          <span>بازگشت به داشبورد فردی</span>
+          <span>{t('backToPersonalDashboard')}</span>
         </a>
       </nav>
 
       <div class="sidenav-footer">
+        <!-- Language Switcher in Sidenav Footer -->
+        <div class="sidenav-lang-switcher">
+          <span class="sidenav-lang-label">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width: 0.9rem; height: 0.9rem; display: inline-block; vertical-align: middle; margin-inline-end: 0.25rem;">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="2" y1="12" x2="22" y2="12"></line>
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+            </svg>
+            {t('languageLabel')}
+          </span>
+          <div class="lang-dropdown-container">
+            <button type="button" class="lang-dropdown-trigger" id="sidenav-lang-trigger" aria-haspopup="listbox" aria-expanded="false">
+              {locale === 'fa' ? 'فارسی' : locale === 'en' ? 'English' : 'Türkçe'}
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 0.65rem; height: 0.65rem; transition: transform 0.2s; margin-inline-start: 0.25rem;">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+            <div class="lang-dropdown-menu" id="sidenav-lang-menu">
+              <button type="button" class={`lang-dropdown-item ${locale === 'fa' ? 'active' : ''}`} data-lang="fa">فارسی</button>
+              <button type="button" class={`lang-dropdown-item ${locale === 'en' ? 'active' : ''}`} data-lang="en">English</button>
+              <button type="button" class={`lang-dropdown-item ${locale === 'tr' ? 'active' : ''}`} data-lang="tr">Türkçe</button>
+            </div>
+          </div>
+        </div>
+
         <div class="user-meta-badge">
           <div class="user-avatar" style="background-color: #e5e5e5; color: #171717;">
             {session.name.substring(0, 1)}
           </div>
           <div class="user-text-info">
             <span class="user-name-bold">{session.name}</span>
-            <span class="user-role-label">مدیر ارشد سیستم</span>
+            <span class="user-role-label">{t('superAdminLabel')}</span>
           </div>
         </div>
 
@@ -134,7 +162,7 @@ const ticketsList = await db
             <polyline points="16 17 21 12 16 7" />
             <line x1="21" y1="12" x2="9" y2="12" />
           </svg>
-          <span>خروج از حساب</span>
+          <span>{t('logout')}</span>
         </a>
       </div>
     </aside>
@@ -142,14 +170,14 @@ const ticketsList = await db
     <!-- Main Workspace Content -->
     <div class="admin-workspace" style="width: 100%; padding: 2.5rem 1.5rem;">
       <div class="admin-page-actions">
-        <h1 class="page-title-bold">مدیریت تیکت‌های پشتیبانی</h1>
+        <h1 class="page-title-bold">{t('manageTickets')}</h1>
         
         <!-- Filter Pills -->
         <div class="status-filter-pills" id="filter-pills-container">
-          <button class="filter-pill active" data-filter="all">همه</button>
-          <button class="filter-pill" data-filter="open">باز</button>
-          <button class="filter-pill" data-filter="answered">پاسخ داده شده</button>
-          <button class="filter-pill" data-filter="closed">بسته شده</button>
+          <button class="filter-pill active" data-filter="all">{t('filterAll')}</button>
+          <button class="filter-pill" data-filter="open">{t('filterOpen')}</button>
+          <button class="filter-pill" data-filter="answered">{t('filterAnswered')}</button>
+          <button class="filter-pill" data-filter="closed">{t('filterClosed')}</button>
         </div>
       </div>
 
@@ -163,24 +191,24 @@ const ticketsList = await db
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="empty-icon">
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                 </svg>
-                <span>هیچ تیکتی در سیستم یافت نشد.</span>
+                <span>{t('noTicketsFound')}</span>
               </div>
             ) : (
               ticketsList.map((t) => {
-                const formattedDate = new Date(t.updatedAt).toLocaleDateString('fa-IR', {
+                const formattedDate = new Date(t.updatedAt).toLocaleDateString(locale === 'fa' ? 'fa-IR' : (locale === 'tr' ? 'tr-TR' : 'en-US'), {
                   hour: '2-digit',
                   minute: '2-digit',
                   month: 'short',
                   day: 'numeric'
                 });
 
-                let statusText = 'باز';
+                let statusText = t('filterOpen');
                 let statusClass = 'status-open';
                 if (t.status === 'answered') {
-                  statusText = 'پاسخ داده شده';
+                  statusText = t('filterAnswered');
                   statusClass = 'status-answered';
                 } else if (t.status === 'closed') {
-                  statusText = 'بسته شده';
+                  statusText = t('filterClosed');
                   statusClass = 'status-closed';
                 }
 
@@ -191,7 +219,7 @@ const ticketsList = await db
                       <span class={`status-badge ${statusClass}`}>{statusText}</span>
                     </div>
                     <div style="font-size: 0.6875rem; color: #171717; margin-top: 0.125rem; font-weight: 500;">
-                      مجموعه: {t.vendorName} ({t.userName})
+                      {t('vendorLabel')}{t.vendorName} ({t.userName})
                     </div>
                     <div class="ticket-item-bottom" style="margin-top: 0.25rem;">
                        <span class="ticket-item-date local-ticket-date" data-date={t.updatedAt ? new Date(t.updatedAt).toISOString() : ''}>{formattedDate}</span>
@@ -213,14 +241,14 @@ const ticketsList = await db
               <circle cx="12" cy="12" r="10" />
               <path d="M12 8v4M12 16h.01" />
             </svg>
-            <span>برای شروع پاسخگویی، یکی از تیکت‌ها را از لیست انتخاب کنید.</span>
+            <span>{t('selectTicketPlaceholder')}</span>
           </div>
 
           <div class="active-chat-container" style="display: none;" id="chat-container">
             <!-- Chat Header -->
             <div class="chat-header">
               <div class="chat-header-right">
-                <button class="btn-icon mobile-back-btn" id="btn-chat-back" title="بازگشت به لیست">
+                <button class="btn-icon mobile-back-btn" id="btn-chat-back" title="Back">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 1.25rem; height: 1.25rem;">
                     <polyline points="9 18 15 12 9 6" />
                   </svg>
@@ -228,17 +256,17 @@ const ticketsList = await db
                 <div class="chat-title-info">
                   <h3 class="chat-title" id="active-ticket-title">-</h3>
                   <div class="chat-subtitle">
-                    <span>شناسه تیکت: </span><code id="active-ticket-id">#</code>
+                    <span>{t('ticketIdLabel')}</span><code id="active-ticket-id">#</code>
                     <span class="dot-separator">•</span>
-                    <span>مجموعه: </span><strong id="active-ticket-vendor">-</strong>
+                    <span>{t('vendorLabel')}</span><strong id="active-ticket-vendor">-</strong>
                   </div>
                 </div>
               </div>
               <div style="display: flex; align-items: center; gap: 0.5rem;">
                 <select id="select-active-status" class="form-select" style="font-size: 0.75rem; padding: 0.35rem 2rem 0.35rem 0.75rem; width: auto; border-radius: 0.5rem; height: auto; min-height: unset; background-position: left 0.5rem center;">
-                  <option value="open">باز</option>
-                  <option value="answered">پاسخ داده شده</option>
-                  <option value="closed">بسته شده</option>
+                  <option value="open">{t('filterOpen')}</option>
+                  <option value="answered">{t('filterAnswered')}</option>
+                  <option value="closed">{t('filterClosed')}</option>
                 </select>
               </div>
             </div>
@@ -250,13 +278,13 @@ const ticketsList = await db
             <form class="chat-input-footer" id="form-chat-reply">
               <div class="attachment-preview-bar" id="attachment-preview" style="display: none;">
                 <div class="preview-img-wrapper">
-                  <img id="img-preview-src" src="" alt="پیوست" />
-                  <button type="button" class="btn-remove-preview" id="btn-clear-attachment" title="حذف فایل">✕</button>
+                  <img id="img-preview-src" src="" alt="preview" />
+                  <button type="button" class="btn-remove-preview" id="btn-clear-attachment" title={t('errorAttachment')}>✕</button>
                 </div>
               </div>
 
               <div class="chat-input-wrapper">
-                <label class="btn-icon btn-attach" title="افزودن تصویر پیوست">
+                <label class="btn-icon btn-attach" title={t('attachmentLabel')}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width: 1.25rem; height: 1.25rem;">
                     <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
                     <circle cx="8.5" cy="8.5" r="1.5" />
@@ -267,13 +295,13 @@ const ticketsList = await db
                 
                 <textarea 
                   id="textarea-reply-message" 
-                  placeholder="پاسخ پشتیبانی را بنویسید..." 
+                  placeholder={t('typeReplyPlaceholder')} 
                   required 
                   rows="1"
                 ></textarea>
                 
                 <button type="submit" class="btn btn-primary btn-chat-send" id="btn-send-reply">
-                  <span>ارسال پاسخ</span>
+                  <span>{t('btnSendReply')}</span>
                   <svg class="spinner" id="reply-spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none; width: 0.875rem; height: 0.875rem; animation: rotate 1.5s linear infinite; margin-right: 0.25rem;">
                     <circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle>
                     <path d="M4 12a8 8 0 0 1 8-8"></path>
@@ -286,11 +314,11 @@ const ticketsList = await db
       </div>
     </div>
   </div>
-
+  
   <!-- LIGHTBOX: FULL IMAGE PREVIEW -->
   <div id="image-lightbox" class="lightbox-overlay" style="display: none;">
     <button type="button" class="lightbox-close" id="btn-close-lightbox">✕</button>
-    <img id="lightbox-img" src="" alt="پیوست بزرگ شده" />
+    <img id="lightbox-img" src="" alt={t('attachmentZoomed')} />
   </div>
 </Layout>
 
@@ -343,7 +371,6 @@ const ticketsList = await db
     border: 1px solid #f0f0f0;
     border-radius: 1.5rem;
     overflow: hidden;
-    direction: rtl;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.01);
     margin-top: 1rem;
   }
@@ -852,9 +879,57 @@ const ticketsList = await db
       margin-left: 0.5rem;
     }
   }
+
+  /* LTR overrides for super admin support panel */
+  [dir="ltr"] .tickets-workspace-container {
+    direction: ltr;
+  }
+  [dir="ltr"] .tickets-list-pane {
+    border-left: none;
+    border-right: 1px solid #f0f0f0;
+  }
+  [dir="ltr"] .ticket-list-item {
+    text-align: left;
+  }
+  [dir="ltr"] .chat-title-info {
+    text-align: left;
+  }
+  [dir="ltr"] .chat-msg-bubble {
+    text-align: left;
+  }
+  [dir="ltr"] .sent .chat-msg-bubble {
+    border-top-right-radius: 1.125rem;
+    border-top-left-radius: 0.25rem;
+  }
+  [dir="ltr"] .received .chat-msg-bubble {
+    border-top-left-radius: 1.125rem;
+    border-top-right-radius: 0.25rem;
+  }
+  [dir="ltr"] .chat-msg-row.sent {
+    justify-content: flex-end;
+  }
+  [dir="ltr"] .chat-msg-row.received {
+    justify-content: flex-start;
+  }
+  [dir="ltr"] .mobile-back-btn svg {
+    transform: rotate(180deg);
+  }
+  [dir="ltr"] .form-select {
+    background-position: right 0.5rem center;
+  }
 </style>
 
-<script>
+<script define:vars={{ locale, clientTranslations: {
+  ticketStatusOpen: t('ticketStatusOpen'),
+  ticketStatusAnswered: t('ticketStatusAnswered'),
+  ticketStatusClosed: t('ticketStatusClosed'),
+  systemSupport: t('systemSupport'),
+  uploadError: t('uploadError'),
+  errorServerConnection: t('errorServerConnection'),
+  replyError: t('replyError'),
+  errorTicketStatusUpdate: t('errorTicketStatusUpdate'),
+  ticketStatusUpdatedSuccess: t('ticketStatusUpdatedSuccess')
+} }}>
   // Script manages super admin ticket controls, message replies, status toggling, and client filters
   const workspace = document.getElementById('tickets-workspace');
   const chatPane = document.getElementById('chat-pane');
@@ -864,12 +939,21 @@ const ticketsList = await db
 
   // Helper to format ticket dates
   function formatTicketDate(date: Date) {
-    return date.toLocaleDateString('fa-IR', {
-      hour: '2-digit',
-      minute: '2-digit',
-      month: 'short',
-      day: 'numeric'
-    });
+    if (locale === 'fa') {
+      return date.toLocaleDateString('fa-IR', {
+        hour: '2-digit',
+        minute: '2-digit',
+        month: 'short',
+        day: 'numeric'
+      });
+    } else {
+      return date.toLocaleDateString(locale === 'tr' ? 'tr-TR' : 'en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        month: 'short',
+        day: 'numeric'
+      });
+    }
   }
 
   // Localize dates on page load
@@ -988,25 +1072,21 @@ const ticketsList = await db
     chatMessagesBox.innerHTML = '';
 
     messages.forEach((msg: any) => {
-      const dateText = new Date(msg.createdAt).toLocaleDateString('fa-IR', {
-        hour: '2-digit',
-        minute: '2-digit',
-        month: 'short',
-        day: 'numeric'
-      });
+      const dateText = formatTicketDate(new Date(msg.createdAt));
 
       // Determine sender layout:
       // For Super admin panel, Sent (right) means sent by super admin. Received (left) means sent by vendor user.
       const isSuper = msg.senderUsername === 'super';
       const rowClass = isSuper ? 'sent' : 'received';
       const senderLabel = msg.senderName || msg.senderUsername;
-      const supportBadgeHtml = isSuper ? '<span class="support-badge">پشتیبان سیستم</span>' : '';
+      const systemSupportLabel = clientTranslations.systemSupport;
+      const supportBadgeHtml = isSuper ? `<span class="support-badge">${systemSupportLabel}</span>` : '';
 
       let attachmentHtml = '';
       if (msg.attachmentUrl) {
         attachmentHtml = `
           <div class="chat-msg-attachment" data-url="${msg.attachmentUrl}">
-            <img src="${msg.attachmentUrl}" alt="تصویر پیوست" loading="lazy" />
+            <img src="${msg.attachmentUrl}" alt="Attachment" loading="lazy" />
           </div>
         `;
       }
@@ -1075,11 +1155,11 @@ const ticketsList = await db
       if (res.ok && data.success) {
         replyAttachmentUrl = data.url;
       } else {
-        await window.showAlertDialog(data.message || 'خطا در آپلود تصویر', { type: 'error' });
+        await window.showAlertDialog(data.message || clientTranslations.uploadError, { type: 'error' });
         clearReplyAttachment();
       }
     } catch {
-      await window.showAlertDialog('خطا در ارتباط با سرور.', { type: 'error' });
+      await window.showAlertDialog(clientTranslations.errorServerConnection, { type: 'error' });
       clearReplyAttachment();
     } finally {
       if (btnSendReply) btnSendReply.disabled = false;
@@ -1137,7 +1217,7 @@ const ticketsList = await db
           const badge = listItem.querySelector('.status-badge');
           if (badge) {
             badge.className = 'status-badge status-answered';
-            badge.textContent = 'پاسخ داده شده';
+            badge.textContent = clientTranslations.ticketStatusAnswered;
           }
 
           const dateEl = listItem.querySelector('.ticket-item-date');
@@ -1151,10 +1231,10 @@ const ticketsList = await db
         renderMessages(data.messages);
         clearReplyAttachment();
       } else {
-        await window.showAlertDialog(data.message || 'خطا در ارسال پاسخ', { type: 'error' });
+        await window.showAlertDialog(data.message || clientTranslations.replyError, { type: 'error' });
       }
     } catch {
-      await window.showAlertDialog('خطا در ارتباط با سرور.', { type: 'error' });
+      await window.showAlertDialog(clientTranslations.errorServerConnection, { type: 'error' });
     } finally {
       if (btnSendReply) btnSendReply.disabled = false;
       if (replySpinner) replySpinner.style.display = 'none';
@@ -1192,13 +1272,13 @@ const ticketsList = await db
             badge.className = 'status-badge';
             if (newStatus === 'answered') {
               badge.classList.add('status-answered');
-              badge.textContent = 'پاسخ داده شده';
+              badge.textContent = clientTranslations.ticketStatusAnswered;
             } else if (newStatus === 'closed') {
               badge.classList.add('status-closed');
-              badge.textContent = 'بسته شده';
+              badge.textContent = clientTranslations.ticketStatusClosed;
             } else {
               badge.classList.add('status-open');
-              badge.textContent = 'باز';
+              badge.textContent = clientTranslations.ticketStatusOpen;
             }
           }
 
@@ -1216,14 +1296,14 @@ const ticketsList = await db
           activeFilterPill.dispatchEvent(new Event('click'));
         }
 
-        await window.showAlertDialog('وضعیت تیکت با موفقیت به‌روزرسانی شد.', { type: 'success' });
+        await window.showAlertDialog(data.message || clientTranslations.ticketStatusUpdatedSuccess, { type: 'success' });
       } else {
-        await window.showAlertDialog(data.message || 'خطا در تغییر وضعیت تیکت', { type: 'error' });
+        await window.showAlertDialog(data.message || clientTranslations.errorTicketStatusUpdate, { type: 'error' });
         // Revert dropdown value
         selectActiveStatus.value = activeTicketData.status;
       }
     } catch {
-      await window.showAlertDialog('خطا در ارتباط با سرور.', { type: 'error' });
+      await window.showAlertDialog(clientTranslations.errorServerConnection, { type: 'error' });
       selectActiveStatus.value = activeTicketData.status;
     }
   });
@@ -1259,6 +1339,35 @@ const ticketsList = await db
       })
       .catch(err => console.error('Error checking unread status:', err));
   }
+
+  // Language Switcher Logic
+  const langTrigger = document.getElementById('sidenav-lang-trigger');
+  const langMenu = document.getElementById('sidenav-lang-menu');
+  const langItems = document.querySelectorAll('#sidenav-lang-menu .lang-dropdown-item');
+
+  langTrigger?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const isExpanded = langTrigger.getAttribute('aria-expanded') === 'true';
+    langTrigger.setAttribute('aria-expanded', !isExpanded ? 'true' : 'false');
+    langMenu?.classList.toggle('show');
+  });
+
+  document.addEventListener('click', (e) => {
+    if (langTrigger && langMenu && !langTrigger.contains(e.target as Node) && !langMenu.contains(e.target as Node)) {
+      langTrigger.setAttribute('aria-expanded', 'false');
+      langMenu.classList.remove('show');
+    }
+  });
+
+  langItems.forEach(item => {
+    item.addEventListener('click', () => {
+      const targetLang = item.getAttribute('data-lang');
+      if (targetLang) {
+        document.cookie = `lang=${targetLang}; path=/; max-age=31536000`;
+        window.location.reload();
+      }
+    });
+  });
 
   // Initial lazy check
   refreshSidenavDot();

@@ -11,6 +11,7 @@ interface Props {
   favicon?: string;
   theme?: string;
   twitterCard?: 'summary' | 'summary_large_image';
+  localeOverride?: string;
 }
 
 const { 
@@ -19,10 +20,11 @@ const {
   canonicalUrl, 
   favicon, 
   theme = 'light',
-  twitterCard = 'summary_large_image'
+  twitterCard = 'summary_large_image',
+  localeOverride
 } = Astro.props;
 
-const { t, locale, dir } = useTranslations(Astro.cookies, Astro.request);
+const { t, locale, dir } = useTranslations(Astro.cookies, Astro.request, localeOverride);
 
 const description = Astro.props.description || t('digitalCatalog');
 
@@ -57,7 +59,7 @@ const ogLocaleMap = {
   tr: 'tr_TR',
 };
 const ogLocale = ogLocaleMap[locale] || 'en_US';
-const siteName = locale === 'fa' ? 'شات' : 'Shottt';
+const siteName = t('siteName');
 ---
 
 <!DOCTYPE html>

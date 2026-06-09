@@ -38,17 +38,20 @@ async function getVendorSlug(vendorId: number): Promise<string | null> {
   return vendor.length > 0 ? vendor[0].slug : null;
 }
 
+import { useTranslations } from '../../utils/i18n';
+
 // POST: Create category
 export const POST: APIRoute = async ({ request, cookies }) => {
+  const { t } = useTranslations(cookies, request);
   const session = getSession(cookies);
   if (!session) {
-    return new Response(JSON.stringify({ success: false, message: 'عدم احراز هویت' }), { status: 401 });
+    return new Response(JSON.stringify({ success: false, message: t('unauthorized') }), { status: 401 });
   }
 
   try {
     const { name, vendorSlug } = await request.json();
     if (!name || !vendorSlug) {
-      return new Response(JSON.stringify({ success: false, message: 'فیلدهای اجباری ناقص هستند' }), { status: 400 });
+      return new Response(JSON.stringify({ success: false, message: t('requiredFieldsMissing') }), { status: 400 });
     }
 
     const vendorList = await db
@@ -58,13 +61,13 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       .limit(1);
 
     if (vendorList.length === 0) {
-      return new Response(JSON.stringify({ success: false, message: 'مجموعه یافت نشد' }), { status: 404 });
+      return new Response(JSON.stringify({ success: false, message: t('vendorNotFound') }), { status: 404 });
     }
     const vendor = vendorList[0];
 
     const hasAccess = await checkVendorAccess(session.userId, vendor.id);
     if (!hasAccess) {
-      return new Response(JSON.stringify({ success: false, message: 'عدم دسترسی به این مجموعه' }), { status: 403 });
+      return new Response(JSON.stringify({ success: false, message: t('noAccessToVendor') }), { status: 403 });
     }
 
     // Determine the next sort order
@@ -86,18 +89,19 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     // Purge CDN cache
     purgeVendorCache(vendorSlug).catch(() => {});
 
-    return new Response(JSON.stringify({ success: true, message: 'مجموعه با موفقیت ایجاد شد' }), { status: 200 });
+    return new Response(JSON.stringify({ success: true, message: t('categoryCreatedSuccess') }), { status: 200 });
   } catch (error) {
     console.error(error);
-    return new Response(JSON.stringify({ success: false, message: 'خطای سرور' }), { status: 500 });
+    return new Response(JSON.stringify({ success: false, message: t('serverError') }), { status: 500 });
   }
 };
 
 // PATCH: Rename or Reorder category
 export const PATCH: APIRoute = async ({ request, cookies }) => {
+  const { t } = useTranslations(cookies, request);
   const session = getSession(cookies);
   if (!session) {
-    return new Response(JSON.stringify({ success: false, message: 'عدم احراز هویت' }), { status: 401 });
+    return new Response(JSON.stringify({ success: false, message: t('unauthorized') }), { status: 401 });
   }
 
   try {
@@ -106,12 +110,12 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
 
     const category = await checkCategoryAccess(session.userId, categoryId);
     if (!category) {
-      return new Response(JSON.stringify({ success: false, message: 'دسترسی غیرمجاز یا شناسه نامعتبر' }), { status: 403 });
+      return new Response(JSON.stringify({ success: false, message: t('noAccessToCategory') }), { status: 403 });
     }
 
     if (action === 'update_status') {
       if (!status || (status !== 'available' && status !== 'unavailable' && status !== 'inactive')) {
-        return new Response(JSON.stringify({ success: false, message: 'وضعیت نامعتبر' }), { status: 400 });
+        return new Response(JSON.stringify({ success: false, message: t('invalidStatus') }), { status: 400 });
       }
 
       await db
@@ -123,12 +127,12 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
       const vendorSlug = await getVendorSlug(category.vendorId);
       if (vendorSlug) purgeVendorCache(vendorSlug).catch(() => {});
 
-      return new Response(JSON.stringify({ success: true, message: 'وضعیت با موفقیت به‌روزرسانی شد' }), { status: 200 });
+      return new Response(JSON.stringify({ success: true, message: t('statusUpdatedSuccess') }), { status: 200 });
     }
 
     if (action === 'rename') {
       if (!name || !name.trim()) {
-        return new Response(JSON.stringify({ success: false, message: 'نام نمی‌تواند خالی باشد' }), { status: 400 });
+        return new Response(JSON.stringify({ success: false, message: t('nameCannotBeEmpty') }), { status: 400 });
       }
 
       await db
@@ -140,12 +144,12 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
       const vendorSlug = await getVendorSlug(category.vendorId);
       if (vendorSlug) purgeVendorCache(vendorSlug).catch(() => {});
 
-      return new Response(JSON.stringify({ success: true, message: 'نام مجموعه با موفقیت تغییر کرد' }), { status: 200 });
+      return new Response(JSON.stringify({ success: true, message: t('nameChangedSuccess') }), { status: 200 });
     } 
     
     if (action === 'reorder') {
       if (direction !== 'up' && direction !== 'down') {
-        return new Response(JSON.stringify({ success: false, message: 'جهت نامعتبر' }), { status: 400 });
+        return new Response(JSON.stringify({ success: false, message: t('invalidDirection') }), { status: 400 });
       }
 
       // Fetch all categories for this vendor, sorted by sortOrder
@@ -157,7 +161,7 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
 
       const currentIndex = allCats.findIndex(c => c.id === categoryId);
       if (currentIndex === -1) {
-        return new Response(JSON.stringify({ success: false, message: 'مجموعه یافت نشد' }), { status: 404 });
+        return new Response(JSON.stringify({ success: false, message: t('categoryNotFound') }), { status: 404 });
       }
 
       let targetIndex = -1;
@@ -188,24 +192,25 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
         const vendorSlug = await getVendorSlug(category.vendorId);
         if (vendorSlug) purgeVendorCache(vendorSlug).catch(() => {});
 
-        return new Response(JSON.stringify({ success: true, message: 'ترتیب با موفقیت به‌روزرسانی شد' }), { status: 200 });
+        return new Response(JSON.stringify({ success: true, message: t('reorderSuccess') }), { status: 200 });
       }
 
-      return new Response(JSON.stringify({ success: false, message: 'امکان جابجایی در این جهت وجود ندارد' }), { status: 400 });
+      return new Response(JSON.stringify({ success: false, message: t('cannotMoveDirection') }), { status: 400 });
     }
 
-    return new Response(JSON.stringify({ success: false, message: 'عملیات نامعتبر' }), { status: 400 });
+    return new Response(JSON.stringify({ success: false, message: t('invalidAction') }), { status: 400 });
   } catch (error) {
     console.error(error);
-    return new Response(JSON.stringify({ success: false, message: 'خطای سرور' }), { status: 500 });
+    return new Response(JSON.stringify({ success: false, message: t('serverError') }), { status: 500 });
   }
 };
 
 // DELETE: Remove category
 export const DELETE: APIRoute = async ({ request, cookies }) => {
+  const { t } = useTranslations(cookies, request);
   const session = getSession(cookies);
   if (!session) {
-    return new Response(JSON.stringify({ success: false, message: 'عدم احراز هویت' }), { status: 401 });
+    return new Response(JSON.stringify({ success: false, message: t('unauthorized') }), { status: 401 });
   }
 
   try {
@@ -214,7 +219,7 @@ export const DELETE: APIRoute = async ({ request, cookies }) => {
 
     const category = await checkCategoryAccess(session.userId, categoryId);
     if (!category) {
-      return new Response(JSON.stringify({ success: false, message: 'دسترسی غیرمجاز یا شناسه نامعتبر' }), { status: 403 });
+      return new Response(JSON.stringify({ success: false, message: t('noAccessToCategory') }), { status: 403 });
     }
 
     await db
@@ -225,9 +230,9 @@ export const DELETE: APIRoute = async ({ request, cookies }) => {
     const vendorSlug = await getVendorSlug(category.vendorId);
     if (vendorSlug) purgeVendorCache(vendorSlug).catch(() => {});
 
-    return new Response(JSON.stringify({ success: true, message: 'مجموعه با موفقیت حذف شد' }), { status: 200 });
+    return new Response(JSON.stringify({ success: true, message: t('categoryDeletedSuccess') }), { status: 200 });
   } catch (error) {
     console.error(error);
-    return new Response(JSON.stringify({ success: false, message: 'خطای سرور' }), { status: 500 });
+    return new Response(JSON.stringify({ success: false, message: t('serverError') }), { status: 500 });
   }
 };

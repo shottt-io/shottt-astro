@@ -3,6 +3,7 @@ import AdminLayout from '../../../layouts/AdminLayout.astro';
 import { db } from '../../../db/db';
 import { vendors as vendorsTable } from '../../../db/schema';
 import { eq } from 'drizzle-orm';
+import { useTranslations } from '../../../utils/i18n';
 
 const vendorSlug = Astro.params.vendor;
 if (!vendorSlug) {
@@ -16,24 +17,26 @@ const vendorList = await db
   .where(eq(vendorsTable.slug, vendorSlug))
   .limit(1);
 
+const { t, locale, dir } = useTranslations(Astro.cookies, Astro.request);
+
 if (vendorList.length === 0) {
-  return new Response("مجموعه یافت نشد.", { status: 404 });
+  return new Response(t('vendorNotFound'), { status: 404 });
 }
 const vendor = vendorList[0];
 ---
 
-<AdminLayout title="گزارش و آمار" activeTab="analytics" vendorSlug={vendorSlug}>
+<AdminLayout title={t('analyticsPageTitle')} activeTab="analytics" vendorSlug={vendorSlug}>
   <!-- CDN Dependency for ApexCharts -->
   <script is:inline src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
   <div class="admin-page-actions">
-    <h1 class="page-title-bold">گزارش و آمار بازدید</h1>
+    <h1 class="page-title-bold">{t('analyticsPageTitle')}</h1>
     
     <!-- Range Filter Tabs -->
     <div class="range-selector">
-      <button class="range-btn" data-range="today">امروز</button>
-      <button class="range-btn active" data-range="7">۷ روز گذشته</button>
-      <button class="range-btn" data-range="30">۳۰ روز گذشته</button>
+      <button class="range-btn" data-range="today">{t('analyticsRangeToday')}</button>
+      <button class="range-btn active" data-range="7">{t('analyticsRange7')}</button>
+      <button class="range-btn" data-range="30">{t('analyticsRange30')}</button>
     </div>
   </div>
 
@@ -48,10 +51,10 @@ const vendor = vendorList[0];
       </div>
       <div class="kpi-content">
         <div class="kpi-label-row">
-          <span class="kpi-label">کل مشاهده کاتالوگ</span>
+          <span class="kpi-label">{t('kpiTotalViews')}</span>
           <div class="tooltip-container">
-            <button type="button" class="info-btn">؟</button>
-            <span class="tooltip-text">مجموع کل دفعاتی که کاتالوگ شما توسط کاربران باز یا رفرش شده است.</span>
+            <button type="button" class="info-btn">?</button>
+            <span class="tooltip-text">{t('kpiTotalViewsTooltip')}</span>
           </div>
         </div>
         <h3 class="kpi-value" id="kpi-total-views">-</h3>
@@ -69,10 +72,10 @@ const vendor = vendorList[0];
       </div>
       <div class="kpi-content">
         <div class="kpi-label-row">
-          <span class="kpi-label">بازدیدکنندگان یکتا (سشن)</span>
+          <span class="kpi-label">{t('kpiUniqueVisits')}</span>
           <div class="tooltip-container">
-            <button type="button" class="info-btn">؟</button>
-            <span class="tooltip-text">تعداد کاربران مجزا که کاتالوگ شما را دیده‌اند. هر کاربر در بازه ۱ ساعته فقط یک‌بار شمارش می‌شود.</span>
+            <button type="button" class="info-btn">?</button>
+            <span class="tooltip-text">{t('kpiUniqueVisitsTooltip')}</span>
           </div>
         </div>
         <h3 class="kpi-value" id="kpi-unique-visits">-</h3>
@@ -93,8 +96,8 @@ const vendor = vendorList[0];
     <!-- Site Views Line Chart -->
     <div class="admin-card chart-card" id="visits-chart-container">
       <div class="chart-header">
-        <h3 class="chart-title">روند بازدید کاتالوگ</h3>
-        <p class="chart-subtitle">نمودار مقایسه‌ای تعداد کل مشاهده در برابر بازدید‌های یکتا</p>
+        <h3 class="chart-title">{t('chartViewsTitle')}</h3>
+        <p class="chart-subtitle">{t('chartViewsSubtitle')}</p>
       </div>
       <div id="visits-line-chart"></div>
     </div>
@@ -102,8 +105,8 @@ const vendor = vendorList[0];
     <!-- Top Viewed Items Bar Chart -->
     <div class="admin-card chart-card">
       <div class="chart-header">
-        <h3 class="chart-title">۱۰ محصول پربازدید</h3>
-        <p class="chart-subtitle">محصولاتی که بیشترین بار در کادر تصویر مشتریان ظاهر شده‌اند</p>
+        <h3 class="chart-title">{t('chartItemsTitle')}</h3>
+        <p class="chart-subtitle">{t('chartItemsSubtitle')}</p>
       </div>
       <div id="items-bar-chart"></div>
     </div>
@@ -111,20 +114,20 @@ const vendor = vendorList[0];
     <!-- Detailed Products List Table (Supports low & zero visits) -->
     <div class="admin-card table-card">
       <div class="info-banner-box">
-        <strong>💡 مفهوم رویت (ایمپریشن):</strong> منظور از رویت این است که محصول روی صفحه نمایش خریدار ظاهر شده باشد (حتی بدون کلیک کردن). این آمار به صورت سشن‌های ۱ ساعته یکتا شده است تا تکرار اسکرول یا رفرش توسط یک کاربر در یک بازدید شمارش نشود.
+        {t('impressionNotice')}
       </div>
 
       <div class="report-header-row">
-        <h3 class="chart-title">گزارش تفصیلی محصولات</h3>
+        <h3 class="chart-title">{t('detailedProductsReport')}</h3>
         
         <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
           <!-- Search input -->
-          <input type="text" id="items-search-input" class="search-input" placeholder="جستجو در محصولات..." />
+          <input type="text" id="items-search-input" class="search-input" placeholder={t('searchPlaceholder')} />
 
           <!-- Sort buttons -->
           <div class="sort-selector-group">
-            <button class="sort-btn active" id="sort-desc" data-sort="desc">بیشترین بازدید</button>
-            <button class="sort-btn" id="sort-asc" data-sort="asc">کمترین بازدید</button>
+            <button class="sort-btn active" id="sort-desc" data-sort="desc">{t('sortMostVisited')}</button>
+            <button class="sort-btn" id="sort-asc" data-sort="asc">{t('sortLeastVisited')}</button>
           </div>
         </div>
       </div>
@@ -133,8 +136,8 @@ const vendor = vendorList[0];
         <table class="analytics-table">
           <thead>
             <tr>
-              <th>نام محصول</th>
-              <th class="text-left">تعداد رویت (ایمپریشن) یکتا</th>
+              <th>{t('productNameCol')}</th>
+              <th class="text-left">{t('impressionsCol')}</th>
             </tr>
           </thead>
           <tbody id="items-table-body">
@@ -144,7 +147,7 @@ const vendor = vendorList[0];
       </div>
 
       <div class="load-more-container">
-        <button id="btn-load-more" class="btn-load-more">مشاهده بیشتر</button>
+        <button id="btn-load-more" class="btn-load-more">{t('loadMore')}</button>
       </div>
     </div>
   </div>
@@ -158,7 +161,6 @@ const vendor = vendorList[0];
     margin-bottom: 2rem;
     gap: 1rem;
     flex-wrap: wrap;
-    direction: rtl;
   }
 
   .page-title-bold {
@@ -200,7 +202,6 @@ const vendor = vendorList[0];
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1.25rem;
     margin-bottom: 2rem;
-    direction: rtl;
   }
 
   @media (max-width: 640px) {
@@ -255,7 +256,7 @@ const vendor = vendorList[0];
     display: flex;
     flex-direction: column;
     gap: 0.125rem;
-    text-align: right;
+    text-align: start;
   }
 
   .kpi-label-row {
@@ -313,7 +314,7 @@ const vendor = vendorList[0];
     width: 220px;
     background-color: #171717;
     color: #ffffff;
-    text-align: right;
+    text-align: start;
     border-radius: 0.5rem;
     padding: 0.625rem 0.75rem;
     position: absolute;
@@ -365,7 +366,7 @@ const vendor = vendorList[0];
     outline: none;
     transition: border-color 0.2s ease;
     font-family: inherit;
-    text-align: right;
+    text-align: start;
   }
 
   .search-input:focus {
@@ -411,11 +412,11 @@ const vendor = vendorList[0];
     color: #737373;
     font-weight: 500;
     font-size: 0.8125rem;
-    text-align: right;
+    text-align: start;
   }
 
   .analytics-table th.text-left {
-    text-align: left;
+    text-align: end;
   }
 
   .load-more-container {
@@ -443,14 +444,14 @@ const vendor = vendorList[0];
 
   .info-banner-box {
     background-color: #f8fafc;
-    border-right: 3px solid #64748b;
+    border-inline-start: 3px solid #64748b;
     padding: 1rem;
     border-radius: 0.75rem;
     font-size: 0.8125rem;
     color: #475569;
     line-height: 1.6;
     margin-bottom: 1.5rem;
-    text-align: right;
+    text-align: start;
   }
 
   /* Table animation */
@@ -468,7 +469,6 @@ const vendor = vendorList[0];
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
-    direction: rtl;
   }
 
   .chart-card, .table-card {
@@ -477,7 +477,7 @@ const vendor = vendorList[0];
 
   .chart-header {
     margin-bottom: 1.5rem;
-    text-align: right;
+    text-align: start;
   }
 
   .chart-title {
@@ -498,7 +498,6 @@ const vendor = vendorList[0];
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
-    direction: rtl;
   }
 
   .skeleton-chart-large {
@@ -530,7 +529,16 @@ const vendor = vendorList[0];
   }
 </style>
 
-<script define:vars={{ vendorSlug }}>
+<script define:vars={{ vendorSlug, locale, clientTranslations: {
+  noProductsFound: t('noProductsFound'),
+  timesFormat: t('timesFormat'),
+  analyticsError: t('analyticsError'),
+  errorConnection: t('errorConnection'),
+  kpiTotalViews: t('kpiTotalViews'),
+  kpiUniqueVisits: t('kpiUniqueVisits'),
+  timesShort: t('timesShort'),
+  impressionsCol: t('impressionsCol')
+} }}>
   // Hold active chart instances
   let visitsChart = null;
   let itemsChart = null;
@@ -539,12 +547,12 @@ const vendor = vendorList[0];
   let currentSort = 'desc';
   let currentSearch = '';
 
-  // Format YYYY-MM-DD into Persian month/day (e.g. "۱۰/۳")
-  function formatPersianDate(dateStr) {
+  // Format YYYY-MM-DD into localized month/day
+  function formatDate(dateStr) {
     try {
       const parts = dateStr.split('-');
       const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
-      return new Intl.DateTimeFormat('fa-IR', { month: 'numeric', day: 'numeric' }).format(dateObj);
+      return new Intl.DateTimeFormat(locale, { month: 'numeric', day: 'numeric' }).format(dateObj);
     } catch(e) {
       return dateStr;
     }
@@ -577,7 +585,7 @@ const vendor = vendorList[0];
       tableBody.innerHTML = `
         <tr>
           <td colspan="2" style="text-align: center; color: #a3a3a3; padding: 2rem 0; font-size: 0.875rem;">
-            محصولی یافت نشد.
+            ${clientTranslations.noProductsFound}
           </td>
         </tr>
       `;
@@ -589,11 +597,11 @@ const vendor = vendorList[0];
       const row = document.createElement('tr');
       row.className = 'table-row-animate';
       row.innerHTML = `
-        <td style="padding: 1rem; border-bottom: 1px solid #f5f5f5; text-align: right; font-size: 0.875rem; font-weight: 300;">
+        <td style="padding: 1rem; border-bottom: 1px solid #f5f5f5; text-align: start; font-size: 0.875rem; font-weight: 300;">
           ${item.name}
         </td>
-        <td style="padding: 1rem; border-bottom: 1px solid #f5f5f5; text-align: left; font-size: 0.875rem; font-weight: 500; color: ${item.impressions > 0 ? '#4f46e5' : '#a3a3a3'};">
-          ${item.impressions.toLocaleString('fa-IR')} مرتبه
+        <td style="padding: 1rem; border-bottom: 1px solid #f5f5f5; text-align: end; font-size: 0.875rem; font-weight: 500; color: ${item.impressions > 0 ? '#4f46e5' : '#a3a3a3'};">
+          ${item.impressions.toLocaleString(locale)} ${clientTranslations.timesFormat}
         </td>
       `;
       tableBody.appendChild(row);
@@ -623,7 +631,7 @@ const vendor = vendorList[0];
       const json = await response.json();
 
       if (!json.success) {
-        alert('خطا در دریافت اطلاعات آنالیتیکس: ' + json.message);
+        alert(clientTranslations.analyticsError + ' ' + json.message);
         return;
       }
 
@@ -649,7 +657,7 @@ const vendor = vendorList[0];
       } else {
         if (visitsChartContainer) visitsChartContainer.style.display = 'block';
 
-        const categories = visits.map(v => formatPersianDate(v.date));
+        const categories = visits.map(v => formatDate(v.date));
         const pageViewsData = visits.map(v => v.pageViews);
         const uniqueVisitsData = visits.map(v => v.uniqueVisits);
         
@@ -658,8 +666,8 @@ const vendor = vendorList[0];
 
         const visitsOptions = {
           series: [
-            { name: 'کل مشاهده کاتالوگ', data: pageViewsData },
-            { name: 'بازدیدکننده یکتا', data: uniqueVisitsData }
+            { name: clientTranslations.kpiTotalViews, data: pageViewsData },
+            { name: clientTranslations.kpiUniqueVisits, data: uniqueVisitsData }
           ],
           chart: {
             height: 350,
@@ -691,12 +699,12 @@ const vendor = vendorList[0];
             axisTicks: { show: false }
           },
           yaxis: {
-            opposite: true, // RTL axis orientation
+            opposite: locale === 'fa', // RTL axis orientation for Farsi
             min: 0,
             tickAmount: Math.min(4, maxVal),
             labels: {
               formatter: function(val) {
-                return Math.round(val).toLocaleString('fa-IR');
+                return Math.round(val).toLocaleString(locale);
               },
               style: { colors: '#737373', fontSize: '11px' }
             }
@@ -711,7 +719,7 @@ const vendor = vendorList[0];
           },
           legend: {
             position: 'top',
-            horizontalAlign: 'right',
+            horizontalAlign: locale === 'fa' ? 'right' : 'left',
             fontFamily: 'Estedad, sans-serif',
             labels: { colors: '#171717' }
           }
@@ -736,7 +744,7 @@ const vendor = vendorList[0];
 
       const itemsOptions = {
         series: [{
-          name: 'تعداد رویت (ایمپریشن)',
+          name: clientTranslations.impressionsCol,
           data: itemImpressions
         }],
         chart: {
@@ -763,7 +771,7 @@ const vendor = vendorList[0];
             fontFamily: 'Estedad, sans-serif'
           },
           formatter: function (val) {
-            return val.toLocaleString('fa-IR') + ' بار';
+            return val.toLocaleString(locale) + ' ' + clientTranslations.timesShort;
           },
           offsetX: 10
         },
@@ -773,7 +781,7 @@ const vendor = vendorList[0];
           tickAmount: Math.min(5, maxImpression),
           labels: {
             formatter: function(val) {
-              return Math.round(val).toLocaleString('fa-IR');
+              return Math.round(val).toLocaleString(locale);
             },
             style: { colors: '#737373', fontSize: '11px' }
           },
@@ -781,7 +789,7 @@ const vendor = vendorList[0];
           axisTicks: { show: false }
         },
         yaxis: {
-          opposite: true, // RTL axis orientation
+          opposite: locale === 'fa', // RTL axis orientation for Farsi
           labels: {
             style: { colors: '#171717', fontSize: '11px', fontWeight: 500 }
           }
@@ -813,7 +821,7 @@ const vendor = vendorList[0];
 
     } catch (error) {
       console.error('Failed to load chart data:', error);
-      alert('خطا در ارتباط با سرور.');
+      alert(clientTranslations.errorConnection);
     }
   }
 
@@ -823,7 +831,7 @@ const vendor = vendorList[0];
     if (!obj) return;
     
     if (endVal === 0) {
-      obj.textContent = '۰';
+      obj.textContent = (0).toLocaleString(locale);
       return;
     }
 
@@ -839,7 +847,7 @@ const vendor = vendorList[0];
       const easeProgress = progress * (2 - progress);
       const currentVal = Math.floor(startVal + easeProgress * (endVal - startVal));
       
-      obj.textContent = currentVal.toLocaleString('fa-IR');
+      obj.textContent = currentVal.toLocaleString(locale);
 
       if (progress < 1) {
         requestAnimationFrame(update);

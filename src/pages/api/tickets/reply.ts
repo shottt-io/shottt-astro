@@ -3,18 +3,20 @@ import { db } from '../../../db/db';
 import { tickets, vendorUsers, type DBTicketMessage } from '../../../db/schema';
 import { getSession } from '../../../utils/auth';
 import { and, eq } from 'drizzle-orm';
+import { useTranslations } from '../../../utils/i18n';
 
 export const POST: APIRoute = async ({ request, cookies }) => {
+  const { t } = useTranslations(cookies, request);
   const session = getSession(cookies);
   if (!session) {
-    return new Response(JSON.stringify({ success: false, message: 'عدم احراز هویت' }), { status: 401 });
+    return new Response(JSON.stringify({ success: false, message: t('unauthorized') }), { status: 401 });
   }
 
   try {
     const { ticketId, message, attachmentUrl } = await request.json();
 
     if (!ticketId || !message) {
-      return new Response(JSON.stringify({ success: false, message: 'اطلاعات ارسالی ناقص است' }), { status: 400 });
+      return new Response(JSON.stringify({ success: false, message: t('requiredFieldsMissing') }), { status: 400 });
     }
 
     // 1. Fetch the ticket
@@ -25,7 +27,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       .limit(1);
 
     if (ticketList.length === 0) {
-      return new Response(JSON.stringify({ success: false, message: 'تیکت یافت نشد' }), { status: 404 });
+      return new Response(JSON.stringify({ success: false, message: t('ticketNotFound') }), { status: 404 });
     }
 
     const ticket = ticketList[0];
@@ -44,7 +46,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         .limit(1);
 
       if (access.length === 0) {
-        return new Response(JSON.stringify({ success: false, message: 'شما دسترسی به این تیکت را ندارید' }), { status: 403 });
+        return new Response(JSON.stringify({ success: false, message: t('noAccessToTicket') }), { status: 403 });
       }
     }
 
@@ -79,6 +81,6 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     return new Response(JSON.stringify({ success: true, messages: updatedMessages, status: newStatus }), { status: 200 });
   } catch (error: any) {
     console.error('Error replying to ticket:', error);
-    return new Response(JSON.stringify({ success: false, message: error.message || 'خطا در ثبت پاسخ' }), { status: 500 });
+    return new Response(JSON.stringify({ success: false, message: error.message || t('replyError') }), { status: 500 });
   }
 };

@@ -1,45 +1,81 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import { getSession } from '../../utils/auth';
+import { useTranslations } from '../../utils/i18n';
 import '../../styles/admin.css';
 
 // Redirect to /admin if already logged in
-import { getSession } from '../../utils/auth';
 const session = getSession(Astro.cookies);
 if (session) {
   return Astro.redirect('/admin');
 }
+
+const { t, locale, dir } = useTranslations(Astro.cookies, Astro.request);
 ---
 
-<Layout title="ورود به پنل مدیریت کاتالوگ دیجیتال" description="ورود به پنل مدیریت مجموعه‌ها و کاتالوگ‌های دیجیتال">
-  <main class="login-wrapper">
+<Layout title={t('loginSeoTitle')} description={t('loginSeoDesc')}>
+  <div class="auth-page-container" style={`direction: ${dir};`}>
+    <!-- Language & Home Navigation Top Bar -->
+    <nav class="auth-top-nav">
+      <div class="lang-dropdown-container">
+        <button type="button" class="lang-dropdown-trigger" id="login-lang-trigger" aria-haspopup="listbox" aria-expanded="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="globe-icon">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="2" y1="12" x2="22" y2="12"></line>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+          </svg>
+          <span>{locale === 'fa' ? 'فارسی' : locale === 'en' ? 'English' : 'Türkçe'}</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="chevron-icon">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+        <div class="lang-dropdown-menu" id="login-lang-menu">
+          <button type="button" class={`lang-dropdown-item ${locale === 'fa' ? 'active' : ''}`} data-lang="fa">فارسی</button>
+          <button type="button" class={`lang-dropdown-item ${locale === 'en' ? 'active' : ''}`} data-lang="en">English</button>
+          <button type="button" class={`lang-dropdown-item ${locale === 'tr' ? 'active' : ''}`} data-lang="tr">Türkçe</button>
+        </div>
+      </div>
+      <a href="/" class="auth-top-btn">
+        <span>{t('backToHome')}</span>
+      </a>
+    </nav>
+
+    <main class="login-wrapper">
     <div class="login-container animate-slide-up">
       <header class="login-header">
         <div class="login-logo-container">
           <img src="/logo.png" alt="shottt" class="login-logo-img" />
         </div>
-        <h1 class="login-title">ورود به مدیریت</h1>
-        <p class="login-subtitle">اطلاعات کاربری مجموعه خود را وارد کنید</p>
+        <h1 class="login-title">{t('loginTitle')}</h1>
+        <p class="login-subtitle">{t('loginSubtitle')}</p>
       </header>
 
       <div class="admin-card">
         <div id="error-banner" class="error-banner"></div>
         
-        <form id="login-form" class="login-form">
+        <form 
+          id="login-form" 
+          class="login-form"
+          data-checking-text={t('checking')}
+          data-login-text={t('loginBtn')}
+          data-failed-msg={t('loginFailed')}
+          data-error-msg={t('loginError')}
+        >
           <div class="form-group">
-            <label for="username" class="form-label">نام کاربری</label>
+            <label for="username" class="form-label">{t('usernameLabel')}</label>
             <input 
               type="text" 
               id="username" 
               name="username" 
               class="form-input" 
-              placeholder="مثال: lumiere" 
+              placeholder={t('usernamePlaceholder')} 
               required 
               autocomplete="username"
             />
           </div>
 
           <div class="form-group">
-            <label for="password" class="form-label">رمز عبور</label>
+            <label for="password" class="form-label">{t('passwordLabel')}</label>
             <input 
               type="password" 
               id="password" 
@@ -52,7 +88,7 @@ if (session) {
           </div>
 
           <button type="submit" id="submit-btn" class="btn btn-primary btn-full" style="margin-top: 1rem;">
-            <span id="btn-text">ورود به پنل</span>
+            <span id="btn-text">{t('loginBtn')}</span>
             <svg id="loading-spinner" class="spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none; width: 1rem; height: 1rem; animation: rotate 1.5s linear infinite;">
               <circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle>
               <path d="M4 12a8 8 0 0 1 8-8"></path>
@@ -61,20 +97,14 @@ if (session) {
         </form>
       </div>
 
-      <div class="login-footer" style="display: flex; flex-direction: column; gap: 0.75rem; align-items: center;">
+      <div class="login-footer" style="display: flex; flex-direction: column; gap: 1rem; align-items: center; width: 100%;">
         <a href="/admin/register" class="back-link" style="font-weight: 500; color: #171717;">
-          <span>هنوز ثبت‌نام نکرده‌اید؟ ثبت‌نام مجموعه جدید</span>
-        </a>
-        <a href="/" class="back-link">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="back-icon">
-            <line x1="19" y1="12" x2="5" y2="12" />
-            <polyline points="12 5 19 12 12 19" />
-          </svg>
-          <span>بازگشت به صفحه اصلی</span>
+          <span>{t('notRegistered')}</span>
         </a>
       </div>
     </div>
   </main>
+  </div>
 </Layout>
 
 <script>
@@ -87,11 +117,16 @@ if (session) {
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
     
+    const checkingText = form.getAttribute('data-checking-text') || 'Checking...';
+    const loginText = form.getAttribute('data-login-text') || 'Login';
+    const failedMsg = form.getAttribute('data-failed-msg') || 'Failed';
+    const errorMsg = form.getAttribute('data-error-msg') || 'Error';
+
     // Reset state
     errorBanner.style.display = 'none';
     errorBanner.textContent = '';
     submitBtn.disabled = true;
-    btnText.textContent = 'در حال بررسی...';
+    btnText.textContent = checkingText;
     spinner.style.display = 'inline-block';
 
     const formData = new FormData(form);
@@ -110,31 +145,59 @@ if (session) {
         // Redirect to admin landing
         window.location.href = '/admin';
       } else {
-        errorBanner.textContent = result.message || 'ورود ناموفق بود.';
+        errorBanner.textContent = result.message || failedMsg;
         errorBanner.style.display = 'block';
         submitBtn.disabled = false;
-        btnText.textContent = 'ورود به پنل';
+        btnText.textContent = loginText;
         spinner.style.display = 'none';
       }
     } catch (err) {
-      errorBanner.textContent = 'خطا در ارتباط با سرور. لطفاً دوباره تلاش کنید.';
+      errorBanner.textContent = errorMsg;
       errorBanner.style.display = 'block';
       submitBtn.disabled = false;
-      btnText.textContent = 'ورود به پنل';
+      btnText.textContent = loginText;
       spinner.style.display = 'none';
     }
+  });
+
+  // Language Switcher Logic
+  const langTrigger = document.getElementById('login-lang-trigger');
+  const langMenu = document.getElementById('login-lang-menu');
+  const langItems = document.querySelectorAll('#login-lang-menu .lang-dropdown-item');
+
+  langTrigger?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const isExpanded = langTrigger.getAttribute('aria-expanded') === 'true';
+    langTrigger.setAttribute('aria-expanded', !isExpanded ? 'true' : 'false');
+    langMenu?.classList.toggle('show');
+  });
+
+  document.addEventListener('click', (e) => {
+    if (langTrigger && langMenu && !langTrigger.contains(e.target as Node) && !langMenu.contains(e.target as Node)) {
+      langTrigger.setAttribute('aria-expanded', 'false');
+      langMenu.classList.remove('show');
+    }
+  });
+
+  langItems.forEach(item => {
+    item.addEventListener('click', () => {
+      const targetLang = item.getAttribute('data-lang');
+      if (targetLang) {
+        document.cookie = `lang=${targetLang}; path=/; max-age=31536000`;
+        window.location.reload();
+      }
+    });
   });
 </script>
 
 <style>
   .login-wrapper {
     background-color: #ffffff;
-    min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 1.5rem;
-    direction: rtl;
+    flex: 1;
   }
 
   .login-container {
@@ -198,9 +261,8 @@ if (session) {
     color: #171717;
   }
 
-  .back-icon {
-    width: 0.875rem;
-    height: 0.875rem;
+  [dir="ltr"] .back-home-icon {
+    transform: scaleX(-1); /* Flip the arrow for LTR */
   }
 
   @keyframes rotate {
@@ -211,3 +273,4 @@ if (session) {
     animation: rotate 1s linear infinite;
   }
 </style>
+

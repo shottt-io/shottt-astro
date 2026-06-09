@@ -3,14 +3,16 @@ import { db } from '../../../db/db';
 import { users as dbUsers } from '../../../db/schema';
 import { hashPassword, signSession } from '../../../utils/auth';
 import { eq } from 'drizzle-orm';
+import { useTranslations } from '../../../utils/i18n';
 
 export const POST: APIRoute = async ({ request, cookies }) => {
+  const { t } = useTranslations(cookies, request);
   try {
     const { username, password } = await request.json();
 
     if (!username || !password) {
       return new Response(
-        JSON.stringify({ success: false, message: 'لطفاً نام کاربری و رمز عبور را وارد کنید.' }),
+        JSON.stringify({ success: false, message: t('errorLoginFieldsRequired') }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
@@ -24,7 +26,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
     if (userList.length === 0) {
       return new Response(
-        JSON.stringify({ success: false, message: 'نام کاربری یا رمز عبور اشتباه است.' }),
+        JSON.stringify({ success: false, message: t('errorInvalidCredentials') }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
@@ -34,7 +36,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
     if (user.password !== incomingHash) {
       return new Response(
-        JSON.stringify({ success: false, message: 'نام کاربری یا رمز عبور اشتباه است.' }),
+        JSON.stringify({ success: false, message: t('errorInvalidCredentials') }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
@@ -56,13 +58,13 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     });
 
     return new Response(
-      JSON.stringify({ success: true, message: 'ورود با موفقیت انجام شد.' }),
+      JSON.stringify({ success: true, message: t('loginSuccess') }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (error) {
     console.error('Login API error:', error);
     return new Response(
-      JSON.stringify({ success: false, message: 'خطای سرور رخ داده است.' }),
+      JSON.stringify({ success: false, message: t('serverError') }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }

@@ -4,8 +4,10 @@ import { users as usersTable, vendors as vendorsTable, vendorUsers as vendorUser
 import { hashPassword, signSession } from '../../../utils/auth';
 import { eq } from 'drizzle-orm';
 import { purgeVendorCache } from '../../../utils/purge';
+import { useTranslations } from '../../../utils/i18n';
 
 export const POST: APIRoute = async ({ request, cookies }) => {
+  const { t } = useTranslations(cookies, request);
   try {
     const body = await request.json();
     const { name, slug, type, city, userName, phone, username, password } = body;
@@ -13,7 +15,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     // 1. Validation
     if (!name || !slug || !type || !city || !userName || !phone || !username || !password) {
       return new Response(
-        JSON.stringify({ success: false, message: 'لطفاً تمامی فیلدهای الزامی را تکمیل کنید.' }),
+        JSON.stringify({ success: false, message: t('requiredFieldsMissing') }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
@@ -32,14 +34,14 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
     if (RESERVED_KEYWORDS.includes(normalizedSlug)) {
       return new Response(
-        JSON.stringify({ success: false, message: 'این شناسه مجموعه (Slug) مجاز نیست و جزو کلمات رزرو شده سیستم است.' }),
+        JSON.stringify({ success: false, message: t('slugReserved') }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
     if (RESERVED_KEYWORDS.includes(normalizedUsername)) {
       return new Response(
-        JSON.stringify({ success: false, message: 'این نام کاربری مجاز نیست و جزو کلمات رزرو شده سیستم است.' }),
+        JSON.stringify({ success: false, message: t('usernameReserved') }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
@@ -47,7 +49,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     // Verify slug format (alphanumeric and hyphens only)
     if (!/^[a-z0-9-]+$/.test(normalizedSlug)) {
       return new Response(
-        JSON.stringify({ success: false, message: 'شناسه مجموعه (Slug) فقط می‌تواند شامل حروف انگلیسی، اعداد و خط تیره (-) باشد.' }),
+        JSON.stringify({ success: false, message: t('slugFormatError') }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
@@ -61,7 +63,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
     if (existingUser.length > 0) {
       return new Response(
-        JSON.stringify({ success: false, message: 'این نام کاربری قبلاً انتخاب شده است.' }),
+        JSON.stringify({ success: false, message: t('usernameTaken') }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
@@ -74,7 +76,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
     if (existingVendor.length > 0) {
       return new Response(
-        JSON.stringify({ success: false, message: 'آدرس اینترنتی یا شناسه مجموعه (Slug) قبلاً ثبت شده است.' }),
+        JSON.stringify({ success: false, message: t('slugTaken') }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
@@ -109,8 +111,8 @@ export const POST: APIRoute = async ({ request, cookies }) => {
           slug: normalizedSlug,
           name: name.trim(),
           type: type.trim(),
-          slogan: 'به کاتالوگ دیجیتال ما خوش آمدید',
-          description: 'به کاتالوگ دیجیتال ما خوش آمدید',
+          slogan: t('seoDescription'),
+          description: t('seoDescription'),
           defaultLayout: 'pinterest',
           theme: 'light',
           logoIcon: logoIcon,
@@ -160,13 +162,13 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     purgeVendorCache(normalizedSlug).catch(() => {});
 
     return new Response(
-      JSON.stringify({ success: true, message: 'ثبت‌نام با موفقیت انجام شد.' }),
+      JSON.stringify({ success: true, message: t('registerSuccess') }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (error: any) {
     console.error('Registration API error:', error);
     return new Response(
-      JSON.stringify({ success: false, message: 'خطای سرور در انجام ثبت‌نام.' }),
+      JSON.stringify({ success: false, message: t('registerError') }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }

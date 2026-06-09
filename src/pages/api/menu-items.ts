@@ -58,11 +58,14 @@ async function checkMenuItemAccess(userId: number, menuItemId: number) {
   return item;
 }
 
+import { useTranslations } from '../../utils/i18n';
+
 // POST: Create menu item
 export const POST: APIRoute = async ({ request, cookies }) => {
+  const { t } = useTranslations(cookies, request);
   const session = getSession(cookies);
   if (!session) {
-    return new Response(JSON.stringify({ success: false, message: 'عدم احراز هویت' }), { status: 401 });
+    return new Response(JSON.stringify({ success: false, message: t('unauthorized') }), { status: 401 });
   }
 
   try {
@@ -70,12 +73,12 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     const { categoryId, name, price, image, description, span2, discount, sections, status } = data;
 
     if (!categoryId || !name || !price) {
-      return new Response(JSON.stringify({ success: false, message: 'فیلدهای اجباری ناقص هستند' }), { status: 400 });
+      return new Response(JSON.stringify({ success: false, message: t('requiredFieldsMissing') }), { status: 400 });
     }
 
     const hasAccess = await checkCategoryAccess(session.userId, categoryId);
     if (!hasAccess) {
-      return new Response(JSON.stringify({ success: false, message: 'عدم دسترسی به این دسته‌بندی' }), { status: 403 });
+      return new Response(JSON.stringify({ success: false, message: t('noAccessToCategory') }), { status: 403 });
     }
 
     // Auto-generate slug from name (English slug or simple fallback)
@@ -112,18 +115,19 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     const vendorSlug = await getVendorSlugByCategoryId(categoryId);
     if (vendorSlug) purgeVendorCache(vendorSlug).catch(() => {});
 
-    return new Response(JSON.stringify({ success: true, message: 'آیتم با موفقیت ایجاد شد' }), { status: 200 });
+    return new Response(JSON.stringify({ success: true, message: t('itemCreatedSuccess') }), { status: 200 });
   } catch (error) {
     console.error(error);
-    return new Response(JSON.stringify({ success: false, message: 'خطای سرور' }), { status: 500 });
+    return new Response(JSON.stringify({ success: false, message: t('serverError') }), { status: 500 });
   }
 };
 
 // PATCH: Update menu item
 export const PATCH: APIRoute = async ({ request, cookies }) => {
+  const { t } = useTranslations(cookies, request);
   const session = getSession(cookies);
   if (!session) {
-    return new Response(JSON.stringify({ success: false, message: 'عدم احراز هویت' }), { status: 401 });
+    return new Response(JSON.stringify({ success: false, message: t('unauthorized') }), { status: 401 });
   }
 
   try {
@@ -132,18 +136,18 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
     const itemId = parseInt(id);
 
     if (!itemId) {
-      return new Response(JSON.stringify({ success: false, message: 'شناسه آیتم الزامی است' }), { status: 400 });
+      return new Response(JSON.stringify({ success: false, message: t('itemIdRequired') }), { status: 400 });
     }
 
     // Check access to existing item
     const item = await checkMenuItemAccess(session.userId, itemId);
     if (!item) {
-      return new Response(JSON.stringify({ success: false, message: 'دسترسی غیرمجاز یا شناسه نامعتبر' }), { status: 403 });
+      return new Response(JSON.stringify({ success: false, message: t('noAccessToCategory') }), { status: 403 });
     }
 
     if (action === 'reorder') {
       if (direction !== 'up' && direction !== 'down') {
-        return new Response(JSON.stringify({ success: false, message: 'جهت نامعتبر' }), { status: 400 });
+        return new Response(JSON.stringify({ success: false, message: t('invalidDirection') }), { status: 400 });
       }
 
       // Fetch all items in the same category, sorted by sortOrder
@@ -176,7 +180,7 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
 
       const currentIndex = allItems.findIndex(i => i.id === itemId);
       if (currentIndex === -1) {
-        return new Response(JSON.stringify({ success: false, message: 'آیتم یافت نشد' }), { status: 404 });
+        return new Response(JSON.stringify({ success: false, message: t('itemNotFound') }), { status: 404 });
       }
 
       let targetIndex = -1;
@@ -207,15 +211,15 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
         const vendorSlug = await getVendorSlugByCategoryId(item.categoryId);
         if (vendorSlug) purgeVendorCache(vendorSlug).catch(() => {});
 
-        return new Response(JSON.stringify({ success: true, message: 'ترتیب با موفقیت به‌روزرسانی شد' }), { status: 200 });
+        return new Response(JSON.stringify({ success: true, message: t('reorderSuccess') }), { status: 200 });
       }
 
-      return new Response(JSON.stringify({ success: false, message: 'امکان جابجایی در این جهت وجود ندارد' }), { status: 400 });
+      return new Response(JSON.stringify({ success: false, message: t('cannotMoveDirection') }), { status: 400 });
     }
 
     // Default UPDATE behavior
     if (!categoryId || !name || !price) {
-      return new Response(JSON.stringify({ success: false, message: 'فیلدهای اجباری ناقص هستند' }), { status: 400 });
+      return new Response(JSON.stringify({ success: false, message: t('requiredFieldsMissing') }), { status: 400 });
     }
 
     // Check access to new category (in case they changed it)
@@ -223,7 +227,7 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
     if (categoryId !== item.categoryId) {
       const hasNewAccess = await checkCategoryAccess(session.userId, categoryId);
       if (!hasNewAccess) {
-        return new Response(JSON.stringify({ success: false, message: 'عدم دسترسی به دسته‌بندی جدید' }), { status: 403 });
+        return new Response(JSON.stringify({ success: false, message: t('noAccessToNewCategory') }), { status: 403 });
       }
 
       // Determine the next sort order in the new category
@@ -263,18 +267,19 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
     const vendorSlug = await getVendorSlugByCategoryId(categoryId);
     if (vendorSlug) purgeVendorCache(vendorSlug).catch(() => {});
 
-    return new Response(JSON.stringify({ success: true, message: 'آیتم با موفقیت به‌روزرسانی شد' }), { status: 200 });
+    return new Response(JSON.stringify({ success: true, message: t('itemUpdatedSuccess') }), { status: 200 });
   } catch (error) {
     console.error(error);
-    return new Response(JSON.stringify({ success: false, message: 'خطای سرور' }), { status: 500 });
+    return new Response(JSON.stringify({ success: false, message: t('serverError') }), { status: 500 });
   }
 };
 
 // DELETE: Delete menu item
 export const DELETE: APIRoute = async ({ request, cookies }) => {
+  const { t } = useTranslations(cookies, request);
   const session = getSession(cookies);
   if (!session) {
-    return new Response(JSON.stringify({ success: false, message: 'عدم احراز هویت' }), { status: 401 });
+    return new Response(JSON.stringify({ success: false, message: t('unauthorized') }), { status: 401 });
   }
 
   try {
@@ -283,7 +288,7 @@ export const DELETE: APIRoute = async ({ request, cookies }) => {
 
     const item = await checkMenuItemAccess(session.userId, itemId);
     if (!item) {
-      return new Response(JSON.stringify({ success: false, message: 'دسترسی غیرمجاز یا شناسه نامعتبر' }), { status: 403 });
+      return new Response(JSON.stringify({ success: false, message: t('noAccessToCategory') }), { status: 403 });
     }
 
     await db
@@ -294,9 +299,9 @@ export const DELETE: APIRoute = async ({ request, cookies }) => {
     const vendorSlug = await getVendorSlugByCategoryId(item.categoryId);
     if (vendorSlug) purgeVendorCache(vendorSlug).catch(() => {});
 
-    return new Response(JSON.stringify({ success: true, message: 'آیتم با موفقیت حذف شد' }), { status: 200 });
+    return new Response(JSON.stringify({ success: true, message: t('itemDeletedSuccess') }), { status: 200 });
   } catch (error) {
     console.error(error);
-    return new Response(JSON.stringify({ success: false, message: 'خطای سرور' }), { status: 500 });
+    return new Response(JSON.stringify({ success: false, message: t('serverError') }), { status: 500 });
   }
 };

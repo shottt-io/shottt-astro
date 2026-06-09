@@ -11,6 +11,7 @@ import { eq, and } from 'drizzle-orm';
 import { vendors as mockVendors } from '../../../data/vendors';
 import { downloadAndSaveImage } from '../../../utils/download';
 import { purgeHomepageCache } from '../../../utils/purge';
+import { useTranslations } from '../../../utils/i18n';
 
 // Helper to determine logo icon from type
 function getLogoIconFromType(type: string): string {
@@ -32,10 +33,11 @@ function getLogoIconFromType(type: string): string {
 }
 
 // GET: List all vendors
-export const GET: APIRoute = async ({ cookies }) => {
+export const GET: APIRoute = async ({ cookies, request }) => {
+  const { t } = useTranslations(cookies, request);
   const session = getSession(cookies);
   if (!session || session.username !== 'super') {
-    return new Response(JSON.stringify({ success: false, message: 'عدم دسترسی به پنل سازمانی' }), { status: 403 });
+    return new Response(JSON.stringify({ success: false, message: t('noAccessSuper') }), { status: 403 });
   }
 
   try {
@@ -43,15 +45,16 @@ export const GET: APIRoute = async ({ cookies }) => {
     return new Response(JSON.stringify({ success: true, vendors: list }), { status: 200 });
   } catch (error: any) {
     console.error(error);
-    return new Response(JSON.stringify({ success: false, message: error.message || 'خطای سرور' }), { status: 500 });
+    return new Response(JSON.stringify({ success: false, message: error.message || t('serverError') }), { status: 500 });
   }
 };
 
 // POST: Create a new vendor
 export const POST: APIRoute = async ({ request, cookies }) => {
+  const { t } = useTranslations(cookies, request);
   const session = getSession(cookies);
   if (!session || session.username !== 'super') {
-    return new Response(JSON.stringify({ success: false, message: 'عدم دسترسی به پنل سازمانی' }), { status: 403 });
+    return new Response(JSON.stringify({ success: false, message: t('noAccessSuper') }), { status: 403 });
   }
 
   const encoder = new TextEncoder();
@@ -68,7 +71,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         const { name, slug, type, mode, packageType, mennoVendor, city } = body;
 
         if (!name || !slug || !type || !mode) {
-          sendUpdate('error', 'پر کردن فیلدهای ستاره‌دار الزامی است');
+          sendUpdate('error', t('cityInputRequired'));
           controller.close();
           return;
         }
@@ -81,7 +84,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
           .limit(1);
 
         if (existing.length > 0) {
-          sendUpdate('error', 'این آیدی مجموعه (Slug) قبلاً ثبت شده است');
+          sendUpdate('error', t('slugTaken'));
           controller.close();
           return;
         }
@@ -89,7 +92,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         let createdVendorId: number;
 
         if (mode === 'empty') {
-          sendUpdate('progress', 'در حال ایجاد مجموعه خام...', 20);
+          sendUpdate('progress', t('progressCreatingEmptyVendor'), 20);
           await db.transaction(async (tx) => {
             const [newVendor] = await tx.insert(vendorsTable).values({
               slug,
@@ -104,26 +107,26 @@ export const POST: APIRoute = async ({ request, cookies }) => {
             }).returning({ id: vendorsTable.id });
             
             createdVendorId = newVendor.id;
-            sendUpdate('progress', 'در حال ایجاد دسترسی کاربر...', 70);
+            sendUpdate('progress', t('progressCreatingUserAccess'), 70);
 
             await tx.insert(vendorUsersTable).values({
               vendorId: createdVendorId,
               userId: session.userId,
             });
           });
-          sendUpdate('progress', 'در حال پاکسازی حافظه موقت...', 90);
+          sendUpdate('progress', t('progressPurgingCache'), 90);
         } else if (mode === 'package') {
-          sendUpdate('progress', 'در حال آماده‌سازی پکیج محصولات پیش‌فرض...', 10);
+          sendUpdate('progress', t('progressPreparingDefaultPackage'), 10);
           const targetMockSlug = packageType === 'cafe' ? 'cafe-lumiere' : packageType === 'restaurant' ? 'bistro-dada' : 'pastry-atelier';
           const mockVendor = mockVendors.find(v => v.slug === targetMockSlug);
           
           if (!mockVendor) {
-            sendUpdate('error', 'پکیج انتخابی یافت نشد');
+            sendUpdate('error', t('errorPackageNotFound'));
             controller.close();
             return;
           }
 
-          sendUpdate('progress', 'در حال ایجاد مجموعه جدید...', 30);
+          sendUpdate('progress', t('progressCreatingNewVendor'), 30);
           await db.transaction(async (tx) => {
             const [newVendor] = await tx.insert(vendorsTable).values({
               slug,
@@ -138,7 +141,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
             }).returning({ id: vendorsTable.id });
 
             createdVendorId = newVendor.id;
-            sendUpdate('progress', 'در حال درون‌ریزی دسته‌بندی‌ها و محصولات پکیج...', 50);
+            sendUpdate('progress', t('progressImportingPackage'), 50);
 
             let sortOrder = 0;
             for (const category of mockVendor.categories) {
@@ -170,30 +173,30 @@ export const POST: APIRoute = async ({ request, cookies }) => {
               }
             }
 
-            sendUpdate('progress', 'در حال ایجاد دسترسی کاربر...', 80);
+            sendUpdate('progress', t('progressCreatingUserAccess'), 80);
             await tx.insert(vendorUsersTable).values({
               vendorId: createdVendorId,
               userId: session.userId,
             });
           });
-          sendUpdate('progress', 'در حال پاکسازی حافظه موقت...', 90);
+          sendUpdate('progress', t('progressPurgingCache'), 90);
         } else if (mode === 'menno') {
           if (!mennoVendor) {
-            sendUpdate('error', 'شناسه مجموعه menno.pro الزامی است');
+            sendUpdate('error', t('errorMennoIdRequired'));
             controller.close();
             return;
           }
 
-          sendUpdate('progress', 'در حال دریافت اطلاعات مجموعه از menno.pro...', 10);
+          sendUpdate('progress', t('progressFetchingMennoInfo'), 10);
           const shopRes = await fetch(`https://api.menno.pro/shops/${mennoVendor}`);
           if (!shopRes.ok) {
-            sendUpdate('error', `یافتن اطلاعات مجموعه در menno.pro با خطا مواجه شد (${shopRes.statusText})`);
+            sendUpdate('error', t('errorMennoFetchFailed').replace('{status}', shopRes.statusText));
             controller.close();
             return;
           }
           const shopData = await shopRes.json();
 
-          sendUpdate('progress', 'در حال دریافت منوی دیجیتال از menno.pro...', 20);
+          sendUpdate('progress', t('progressFetchingMennoMenu'), 20);
           const menuRes = await fetch(`https://api.menno.pro/menus/${mennoVendor}`);
           let menuCategories: any[] = [];
           if (menuRes.ok) {
@@ -272,7 +275,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
           let completedTasks = 0;
           const CONCURRENCY_LIMIT = 10;
           
-          sendUpdate('progress', `در حال دانلود و بهینه‌سازی تصاویر (۰ از ${totalTasks})...`, 30);
+          sendUpdate('progress', t('progressDownloadingImages').replace('{completed}', '0').replace('{total}', String(totalTasks)), 30);
 
           for (let i = 0; i < downloadTasks.length; i += CONCURRENCY_LIMIT) {
             const batch = downloadTasks.slice(i, i + CONCURRENCY_LIMIT);
@@ -286,12 +289,12 @@ export const POST: APIRoute = async ({ request, cookies }) => {
                 completedTasks++;
                 // Progress moves from 30% to 80% based on download completion
                 const percent = Math.min(80, Math.round(30 + (completedTasks / totalTasks) * 50));
-                sendUpdate('progress', `در حال دانلود و بهینه‌سازی تصاویر (${completedTasks} از ${totalTasks})...`, percent);
+                sendUpdate('progress', t('progressDownloadingImages').replace('{completed}', String(completedTasks)).replace('{total}', String(totalTasks)), percent);
               }
             }));
           }
 
-          sendUpdate('progress', 'در حال ذخیره‌سازی اطلاعات در پایگاه داده...', 85);
+          sendUpdate('progress', t('progressSavingDatabase'), 85);
 
           // Execute all database writes in a single transaction
           await db.transaction(async (tx) => {
@@ -392,9 +395,9 @@ export const POST: APIRoute = async ({ request, cookies }) => {
             });
           });
           
-          sendUpdate('progress', 'در حال پاکسازی حافظه موقت...', 95);
+          sendUpdate('progress', t('progressPurgingCache'), 95);
         } else {
-          sendUpdate('error', 'حالت پر کردن نامعتبر است');
+          sendUpdate('error', t('errorInvalidFillMode'));
           controller.close();
           return;
         }
@@ -402,11 +405,11 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         // Purge the homepage cache from ArvanCloud so the new collection shows up on the homepage
         purgeHomepageCache().catch(() => {});
 
-        sendUpdate('success', 'مجموعه جدید با موفقیت ایجاد شد', 100);
+        sendUpdate('success', t('vendorCreatedSuccess'), 100);
         controller.close();
       } catch (error: any) {
         console.error('Vendor create error:', error);
-        sendUpdate('error', error.message || 'خطای سرور');
+        sendUpdate('error', error.message || t('serverError'));
         controller.close();
       }
     }
@@ -423,33 +426,34 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
 // DELETE: Delete a vendor
 export const DELETE: APIRoute = async ({ request, cookies }) => {
+  const { t } = useTranslations(cookies, request);
   const session = getSession(cookies);
   if (!session || session.username !== 'super') {
-    return new Response(JSON.stringify({ success: false, message: 'عدم دسترسی به پنل سازمانی' }), { status: 403 });
+    return new Response(JSON.stringify({ success: false, message: t('noAccessSuper') }), { status: 403 });
   }
 
   try {
     const url = new URL(request.url);
     const idStr = url.searchParams.get('id');
     if (!idStr) {
-      return new Response(JSON.stringify({ success: false, message: 'شناسه مجموعه الزامی است' }), { status: 400 });
+      return new Response(JSON.stringify({ success: false, message: t('requiredFieldsMissing') }), { status: 400 });
     }
 
     const id = parseInt(idStr, 10);
     if (isNaN(id)) {
-      return new Response(JSON.stringify({ success: false, message: 'شناسه نامعتبر است' }), { status: 400 });
+      return new Response(JSON.stringify({ success: false, message: t('invalidId') }), { status: 400 });
     }
 
     // Delete vendor (cascades database deletions to categories, products, and vendorUsers)
     const result = await db.delete(vendorsTable).where(eq(vendorsTable.id, id)).returning();
 
     if (result.length === 0) {
-      return new Response(JSON.stringify({ success: false, message: 'مجموعه یافت نشد' }), { status: 404 });
+      return new Response(JSON.stringify({ success: false, message: t('vendorNotFound') }), { status: 404 });
     }
 
-    return new Response(JSON.stringify({ success: true, message: 'مجموعه با موفقیت حذف شد' }), { status: 200 });
+    return new Response(JSON.stringify({ success: true, message: t('vendorDeletedSuccess') }), { status: 200 });
   } catch (error: any) {
     console.error('Vendor delete error:', error);
-    return new Response(JSON.stringify({ success: false, message: error.message || 'خطای سرور' }), { status: 500 });
+    return new Response(JSON.stringify({ success: false, message: error.message || t('serverError') }), { status: 500 });
   }
 };

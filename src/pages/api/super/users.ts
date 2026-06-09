@@ -6,12 +6,14 @@ import {
 } from '../../../db/schema';
 import { getSession, hashPassword } from '../../../utils/auth';
 import { eq, and, ne } from 'drizzle-orm';
+import { useTranslations } from '../../../utils/i18n';
 
 // GET: List all users with their linked vendor IDs
-export const GET: APIRoute = async ({ cookies }) => {
+export const GET: APIRoute = async ({ cookies, request }) => {
+  const { t } = useTranslations(cookies, request);
   const session = getSession(cookies);
   if (!session || session.username !== 'super') {
-    return new Response(JSON.stringify({ success: false, message: 'عدم دسترسی به پنل سازمانی' }), { status: 403 });
+    return new Response(JSON.stringify({ success: false, message: t('noAccessSuper') }), { status: 403 });
   }
 
   try {
@@ -36,15 +38,16 @@ export const GET: APIRoute = async ({ cookies }) => {
     return new Response(JSON.stringify({ success: true, users: usersWithVendors }), { status: 200 });
   } catch (error: any) {
     console.error(error);
-    return new Response(JSON.stringify({ success: false, message: error.message || 'خطای سرور' }), { status: 500 });
+    return new Response(JSON.stringify({ success: false, message: error.message || t('serverError') }), { status: 500 });
   }
 };
 
 // POST: Create a new user
 export const POST: APIRoute = async ({ request, cookies }) => {
+  const { t } = useTranslations(cookies, request);
   const session = getSession(cookies);
   if (!session || session.username !== 'super') {
-    return new Response(JSON.stringify({ success: false, message: 'عدم دسترسی به پنل سازمانی' }), { status: 403 });
+    return new Response(JSON.stringify({ success: false, message: t('noAccessSuper') }), { status: 403 });
   }
 
   try {
@@ -52,7 +55,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     const { name, username, password, vendorIds, phone } = body;
 
     if (!name || !username || !password) {
-      return new Response(JSON.stringify({ success: false, message: 'پر کردن فیلدهای ستاره‌دار الزامی است' }), { status: 400 });
+      return new Response(JSON.stringify({ success: false, message: t('cityInputRequired') }), { status: 400 });
     }
 
     // Check if username is taken
@@ -63,7 +66,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       .limit(1);
 
     if (existing.length > 0) {
-      return new Response(JSON.stringify({ success: false, message: 'نام کاربری قبلاً انتخاب شده است' }), { status: 400 });
+      return new Response(JSON.stringify({ success: false, message: t('usernameTaken') }), { status: 400 });
     }
 
     // Hash password and insert user
@@ -85,18 +88,19 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       }
     }
 
-    return new Response(JSON.stringify({ success: true, message: 'کاربر جدید با موفقیت ایجاد شد' }), { status: 201 });
+    return new Response(JSON.stringify({ success: true, message: t('userCreatedSuccess') }), { status: 201 });
   } catch (error: any) {
     console.error(error);
-    return new Response(JSON.stringify({ success: false, message: error.message || 'خطای سرور' }), { status: 500 });
+    return new Response(JSON.stringify({ success: false, message: error.message || t('serverError') }), { status: 500 });
   }
 };
 
 // PATCH: Update user details
 export const PATCH: APIRoute = async ({ request, cookies }) => {
+  const { t } = useTranslations(cookies, request);
   const session = getSession(cookies);
   if (!session || session.username !== 'super') {
-    return new Response(JSON.stringify({ success: false, message: 'عدم دسترسی به پنل سازمانی' }), { status: 403 });
+    return new Response(JSON.stringify({ success: false, message: t('noAccessSuper') }), { status: 403 });
   }
 
   try {
@@ -104,12 +108,12 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
     const { id, name, username, password, vendorIds, phone } = body;
 
     if (!id || !name || !username) {
-      return new Response(JSON.stringify({ success: false, message: 'شناسه، نام و نام کاربری الزامی هستند' }), { status: 400 });
+      return new Response(JSON.stringify({ success: false, message: t('requiredFieldsMissing') }), { status: 400 });
     }
 
     const userId = parseInt(id, 10);
     if (isNaN(userId)) {
-      return new Response(JSON.stringify({ success: false, message: 'شناسه نامعتبر است' }), { status: 400 });
+      return new Response(JSON.stringify({ success: false, message: t('invalidId') }), { status: 400 });
     }
 
     // Verify username is not taken by another user
@@ -120,7 +124,7 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
       .limit(1);
 
     if (existing.length > 0) {
-      return new Response(JSON.stringify({ success: false, message: 'نام کاربری قبلاً انتخاب شده است' }), { status: 400 });
+      return new Response(JSON.stringify({ success: false, message: t('usernameTaken') }), { status: 400 });
     }
 
     // Prepare fields to update
@@ -149,47 +153,48 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
       }
     }
 
-    return new Response(JSON.stringify({ success: true, message: 'اطلاعات کاربر با موفقیت به‌روزرسانی شد' }), { status: 200 });
+    return new Response(JSON.stringify({ success: true, message: t('userUpdatedSuccess') }), { status: 200 });
   } catch (error: any) {
     console.error(error);
-    return new Response(JSON.stringify({ success: false, message: error.message || 'خطای سرور' }), { status: 500 });
+    return new Response(JSON.stringify({ success: false, message: error.message || t('serverError') }), { status: 500 });
   }
 };
 
 // DELETE: Delete a user
 export const DELETE: APIRoute = async ({ request, cookies }) => {
+  const { t } = useTranslations(cookies, request);
   const session = getSession(cookies);
   if (!session || session.username !== 'super') {
-    return new Response(JSON.stringify({ success: false, message: 'عدم دسترسی به پنل سازمانی' }), { status: 403 });
+    return new Response(JSON.stringify({ success: false, message: t('noAccessSuper') }), { status: 403 });
   }
 
   try {
     const url = new URL(request.url);
     const idStr = url.searchParams.get('id');
     if (!idStr) {
-      return new Response(JSON.stringify({ success: false, message: 'شناسه کاربر الزامی است' }), { status: 400 });
+      return new Response(JSON.stringify({ success: false, message: t('requiredFieldsMissing') }), { status: 400 });
     }
 
     const id = parseInt(idStr, 10);
     if (isNaN(id)) {
-      return new Response(JSON.stringify({ success: false, message: 'شناسه نامعتبر است' }), { status: 400 });
+      return new Response(JSON.stringify({ success: false, message: t('invalidId') }), { status: 400 });
     }
 
     // Prevent deleting oneself
     if (id === session.userId) {
-      return new Response(JSON.stringify({ success: false, message: 'شما نمی‌توانید حساب کاربری خودتان را حذف کنید' }), { status: 400 });
+      return new Response(JSON.stringify({ success: false, message: t('cannotDeleteSelf') }), { status: 400 });
     }
 
     // Perform deletion
     const result = await db.delete(usersTable).where(eq(usersTable.id, id)).returning();
 
     if (result.length === 0) {
-      return new Response(JSON.stringify({ success: false, message: 'کاربر یافت نشد' }), { status: 404 });
+      return new Response(JSON.stringify({ success: false, message: t('userNotFound') }), { status: 404 });
     }
 
-    return new Response(JSON.stringify({ success: true, message: 'کاربر با موفقیت حذف شد' }), { status: 200 });
+    return new Response(JSON.stringify({ success: true, message: t('userDeletedSuccess') }), { status: 200 });
   } catch (error: any) {
     console.error(error);
-    return new Response(JSON.stringify({ success: false, message: error.message || 'خطای سرور' }), { status: 500 });
+    return new Response(JSON.stringify({ success: false, message: error.message || t('serverError') }), { status: 500 });
   }
 };

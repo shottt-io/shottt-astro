@@ -25,6 +25,9 @@ if (vendorList.length === 0) {
 
 const vendor = vendorList[0];
 
+import { useTranslations } from '../utils/i18n';
+const { t } = useTranslations(Astro.cookies, Astro.request, vendor.locale || undefined);
+
 // Fetch categories for this vendor sorted by sort_order (exclude inactive categories)
 const dbCategories = await db
   .select()
@@ -76,12 +79,13 @@ const categories = await Promise.all(
 ---
 
 <Layout 
-  title={`${vendor.name} — کاتالوگ دیجیتال`} 
+  title={`${vendor.name} — ${t('digitalCatalog')}`} 
   description={`${vendor.type} ${vendor.name} - ${vendor.slogan}. ${vendor.description}`}
   ogImage={vendor.logo}
   favicon={vendor.logo}
   theme={vendor.theme}
   twitterCard="summary"
+  localeOverride={vendor.locale || undefined}
 >
   <main class="menu-main-wrapper" id="page-main" data-vendor-slug={vendor.slug}>
     <!-- Brand Info Header -->
@@ -101,13 +105,14 @@ const categories = await Promise.all(
       categories={categories}
       layoutMode={vendor.defaultLayout as 'pinterest' | 'simple' | 'card'}
       vendorSlug={vendor.slug}
+      locale={vendor.locale || undefined}
     />
 
     <!-- Product Page Footer -->
     <footer class="product-page-footer" style="animation-delay: 0.15s;">
       <div class="footer-divider"></div>
       <a href="/" class="footer-platform-link">
-        توسعه پیدا کرده با
+        {t('developedWith')}
         <img src="/logo.png" alt="shottt" class="footer-logo-img" />
       </a>
     </footer>

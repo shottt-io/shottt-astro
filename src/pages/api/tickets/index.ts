@@ -3,18 +3,20 @@ import { db } from '../../../db/db';
 import { tickets, vendorUsers, type DBTicketMessage } from '../../../db/schema';
 import { getSession } from '../../../utils/auth';
 import { and, eq } from 'drizzle-orm';
+import { useTranslations } from '../../../utils/i18n';
 
 export const POST: APIRoute = async ({ request, cookies }) => {
+  const { t } = useTranslations(cookies, request);
   const session = getSession(cookies);
   if (!session) {
-    return new Response(JSON.stringify({ success: false, message: 'عدم احراز هویت' }), { status: 401 });
+    return new Response(JSON.stringify({ success: false, message: t('unauthorized') }), { status: 401 });
   }
 
   try {
     const { vendorId, title, message, attachmentUrl } = await request.json();
 
     if (!vendorId || !title || !message) {
-      return new Response(JSON.stringify({ success: false, message: 'اطلاعات ارسالی ناقص است' }), { status: 400 });
+      return new Response(JSON.stringify({ success: false, message: t('requiredFieldsMissing') }), { status: 400 });
     }
 
     // Authorization check: Must be Super Admin or a user linked to the vendor
@@ -31,7 +33,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         .limit(1);
 
       if (access.length === 0) {
-        return new Response(JSON.stringify({ success: false, message: 'شما دسترسی به این مجموعه را ندارید' }), { status: 403 });
+        return new Response(JSON.stringify({ success: false, message: t('noAccessToVendor') }), { status: 403 });
       }
     }
 
@@ -62,6 +64,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     return new Response(JSON.stringify({ success: true, ticketId: inserted[0].id }), { status: 200 });
   } catch (error: any) {
     console.error('Error creating ticket:', error);
-    return new Response(JSON.stringify({ success: false, message: error.message || 'خطا در ثبت تیکت' }), { status: 500 });
+    return new Response(JSON.stringify({ success: false, message: error.message || t('errorSaving') }), { status: 500 });
   }
 };
+
