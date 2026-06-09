@@ -161,7 +161,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
               vendorId: newVendor.id,
               name: cat.name,
               sortOrder: catOrder++,
-              status: cat.status || 'available'
+              status: 'available'
             })
             .returning();
 
@@ -182,7 +182,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
                     discountText: item.discount.discountText
                   } : null,
                   span2: item.span2 || false,
-                  status: item.status || 'available',
+                  status: 'available',
                   sortOrder: itemOrder++,
                   sections: []
                 });

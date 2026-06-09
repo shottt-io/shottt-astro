@@ -454,7 +454,7 @@ const t = homeTranslations[currentLocale as Locale] || homeTranslations['en'];
   </div>
 </div>
 
-<script is:inline define:vars={{ priceMo: t.paidPriceMo, priceYr: t.paidPriceYr, periodMo: t.paidPeriodMo, periodYr: t.paidPeriodYr, isIranServer: IS_IRAN_SERVER }}>
+<script is:inline define:vars={{ priceMo: t.paidPriceMo, priceYr: t.paidPriceYr, periodMo: t.paidPeriodMo, periodYr: t.paidPeriodYr, isIranServer: IS_IRAN_SERVER, currentLocale }}>
 
   // Toggle billing logic
   const toggleBtn = document.getElementById('billing-toggle');
@@ -763,7 +763,7 @@ const t = homeTranslations[currentLocale as Locale] || homeTranslations['en'];
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ images }),
+          body: JSON.stringify({ images, locale: currentLocale }),
         });
 
         clearInterval(progressInterval);

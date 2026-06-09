@@ -279,7 +279,7 @@ const localT = irTranslations[locale] || irTranslations['fa'];
   )}
 </main>
 
-<script is:inline>
+<script is:inline define:vars={{ currentLocale: locale }}>
   const priceTrigger = document.getElementById('price-trigger');
   const dialog = document.getElementById('info-dialog');
   const closeDialog = document.getElementById('close-dialog');
@@ -576,7 +576,7 @@ const localT = irTranslations[locale] || irTranslations['fa'];
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ images }),
+          body: JSON.stringify({ images, locale: currentLocale }),
         });
 
         clearInterval(progressInterval);

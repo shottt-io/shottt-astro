@@ -25,7 +25,7 @@ function getDecentLogo(type: string): string {
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    const { images } = await request.json();
+    const { images, locale } = await request.json();
     if (!images || !Array.isArray(images) || images.length === 0) {
       return new Response(JSON.stringify({ success: false, error: 'Invalid or empty images array' }), {
         status: 400,
@@ -78,6 +78,13 @@ export const POST: APIRoute = async ({ request }) => {
     // 3. Generate structured food database list in compact CSV-like format to guide the AI model
     const foodGuide = foodDatabase.map(f => `${f.id},${f.name}`).join('\n');
 
+    const targetLocale = locale || 'en';
+    const localeInstruction = `CRITICAL LANGUAGE REQUIREMENT: You MUST extract/translate and return all output text fields (including "name", "type", "slogan", "currency", category names, product names, and descriptions) in the requested locale's language. The requested locale is "${targetLocale}".
+- If the requested locale is "en", the language of all texts must be English. For example, "type" must be "Restaurant", "Cafe", etc., not "رستوران" or "کافه".
+- If the requested locale is "fa", the language of all texts must be Persian. For example, "type" must be "رستوران", "کافه", etc., not "Restaurant" or "Cafe".
+- If the requested locale is "tr", the language of all texts must be Turkish. For example, "type" must be "Restoran", "Kafe", etc.
+Always match the "locale" field in the output JSON with this requested locale: "${targetLocale}".`;
+
     // 4. Generate structured menu JSON text using AI SDK generateText (more robust for OpenRouter)
     const { text } = await generateText({
       model: openai(modelName),
@@ -90,6 +97,8 @@ export const POST: APIRoute = async ({ request }) => {
       ],
       system: `You are an expert menu extraction agent. Parse physical paper menus or menu images and return a cleanly structured digital menu configuration in JSON format.
 You must return ONLY a raw JSON object. Do NOT wrap it in markdown code blocks (like \`\`\`json). Do NOT add any extra text or explanations.
+
+${localeInstruction}
 
 CRITICAL: For every item, you MUST match it to the closest corresponding item from this predefined whitelist database and assign its exact ID to the "foodDatabaseId" field. If the item does not match anything in the database, set "foodDatabaseId" to null. Do NOT make up new IDs.
 
