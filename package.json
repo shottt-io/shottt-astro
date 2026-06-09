@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "node run-migrate.js && astro build",
+    "build": "tsx run-migrate.js && astro build",
     "preview": "astro preview",
     "astro": "astro",
     "db:migrate": "drizzle-kit migrate",
@@ -23,6 +23,7 @@
     "postgres": "^3.4.9"
   },
   "devDependencies": {
-    "drizzle-kit": "^0.31.10"
+    "drizzle-kit": "^0.31.10",
+    "tsx": "^4.19.3"
   }
 }
