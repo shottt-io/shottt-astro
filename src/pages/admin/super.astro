@@ -100,6 +100,21 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
     <aside class="admin-sidenav" id="admin-sidenav">
       <div class="platform-brand">
         <img src="/logo.png" alt="shottt" class="platform-logo-img" />
+        
+        <!-- Brand small language switcher -->
+        <div class="lang-dropdown-container">
+          <button type="button" class="brand-lang-trigger" id="brand-lang-trigger" aria-haspopup="listbox" aria-expanded="false">
+            <span>{locale.toUpperCase()}</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="chevron-icon">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+          <div class="lang-dropdown-menu" id="brand-lang-menu">
+            <button type="button" class={`lang-dropdown-item ${locale === 'fa' ? 'active' : ''}`} data-lang="fa">فارسی</button>
+            <button type="button" class={`lang-dropdown-item ${locale === 'en' ? 'active' : ''}`} data-lang="en">English</button>
+            <button type="button" class={`lang-dropdown-item ${locale === 'tr' ? 'active' : ''}`} data-lang="tr">Türkçe</button>
+          </div>
+        </div>
       </div>
 
       <div class="sidenav-header">
@@ -163,30 +178,7 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
       </nav>
 
       <div class="sidenav-footer">
-        <!-- Language Switcher in Sidenav Footer -->
-        <div class="sidenav-lang-switcher">
-          <span class="sidenav-lang-label">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width: 0.9rem; height: 0.9rem; display: inline-block; vertical-align: middle; margin-inline-end: 0.25rem;">
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="2" y1="12" x2="22" y2="12"></line>
-              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
-            </svg>
-            {t('languageLabel')}
-          </span>
-          <div class="lang-dropdown-container">
-            <button type="button" class="lang-dropdown-trigger" id="sidenav-lang-trigger" aria-haspopup="listbox" aria-expanded="false">
-              {locale === 'fa' ? 'فارسی' : locale === 'en' ? 'English' : 'Türkçe'}
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 0.65rem; height: 0.65rem; transition: transform 0.2s; margin-inline-start: 0.25rem;">
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
-            </button>
-            <div class="lang-dropdown-menu" id="sidenav-lang-menu">
-              <button type="button" class={`lang-dropdown-item ${locale === 'fa' ? 'active' : ''}`} data-lang="fa">فارسی</button>
-              <button type="button" class={`lang-dropdown-item ${locale === 'en' ? 'active' : ''}`} data-lang="en">English</button>
-              <button type="button" class={`lang-dropdown-item ${locale === 'tr' ? 'active' : ''}`} data-lang="tr">Türkçe</button>
-            </div>
-          </div>
-        </div>
+
 
         <div class="user-meta-badge">
           <div class="user-avatar" style="background-color: #e5e5e5; color: #171717;">
@@ -1304,26 +1296,26 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
     }
   });
 
-  // Language Switcher Logic
-  const langTrigger = document.getElementById('sidenav-lang-trigger');
-  const langMenu = document.getElementById('sidenav-lang-menu');
-  const langItems = document.querySelectorAll('#sidenav-lang-menu .lang-dropdown-item');
+  // Brand Header Small Language Switcher Logic
+  const brandLangTrigger = document.getElementById('brand-lang-trigger');
+  const brandLangMenu = document.getElementById('brand-lang-menu');
+  const brandLangItems = document.querySelectorAll('#brand-lang-menu .lang-dropdown-item');
 
-  langTrigger?.addEventListener('click', (e) => {
+  brandLangTrigger?.addEventListener('click', (e) => {
     e.stopPropagation();
-    const isExpanded = langTrigger.getAttribute('aria-expanded') === 'true';
-    langTrigger.setAttribute('aria-expanded', !isExpanded ? 'true' : 'false');
-    langMenu?.classList.toggle('show');
+    const isExpanded = brandLangTrigger.getAttribute('aria-expanded') === 'true';
+    brandLangTrigger.setAttribute('aria-expanded', !isExpanded ? 'true' : 'false');
+    brandLangMenu?.classList.toggle('show');
   });
 
   document.addEventListener('click', (e) => {
-    if (langTrigger && langMenu && !langTrigger.contains(e.target) && !langMenu.contains(e.target)) {
-      langTrigger.setAttribute('aria-expanded', 'false');
-      langMenu.classList.remove('show');
+    if (brandLangTrigger && brandLangMenu && !brandLangTrigger.contains(e.target as Node) && !brandLangMenu.contains(e.target as Node)) {
+      brandLangTrigger.setAttribute('aria-expanded', 'false');
+      brandLangMenu.classList.remove('show');
     }
   });
 
-  langItems.forEach(item => {
+  brandLangItems.forEach(item => {
     item.addEventListener('click', () => {
       const targetLang = item.getAttribute('data-lang');
       if (targetLang) {

@@ -106,6 +106,7 @@ const categories = await Promise.all(
       layoutMode={vendor.defaultLayout as 'pinterest' | 'simple' | 'card'}
       vendorSlug={vendor.slug}
       locale={vendor.locale || undefined}
+      currency={vendor.currency}
     />
 
     <!-- Product Page Footer -->

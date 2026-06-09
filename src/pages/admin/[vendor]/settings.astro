@@ -27,8 +27,6 @@ const vendor = vendorList[0];
 
 // Use slogan as the unified description since they are the same
 const unifiedSlogan = vendor.slogan || vendor.description;
-
-const systemDefaultLabel = DEFAULT_LOCALE === 'fa' ? 'فارسی (Persian)' : DEFAULT_LOCALE === 'en' ? 'English' : 'Türkçe (Turkish)';
 ---
 
 <AdminLayout title={t('editInfo')} activeTab="settings" vendorSlug={vendorSlug}>
@@ -84,15 +82,7 @@ const systemDefaultLabel = DEFAULT_LOCALE === 'fa' ? 'فارسی (Persian)' : DE
         </select>
       </div>
 
-      <div class="form-group">
-        <label class="form-label">{t('customerLanguage')}</label>
-        <select name="locale" class="form-select">
-          <option value="" selected={!vendor.locale}>{t('systemDefault')} ({systemDefaultLabel})</option>
-          <option value="fa" selected={vendor.locale === 'fa'}>{t('langFa')}</option>
-          <option value="en" selected={vendor.locale === 'en'}>{t('langEn')}</option>
-          <option value="tr" selected={vendor.locale === 'tr'}>{t('langTr')}</option>
-        </select>
-      </div>
+
 
       <div class="form-group">
         <label class="form-label">{t('sloganLabel')}</label>
@@ -286,7 +276,6 @@ const systemDefaultLabel = DEFAULT_LOCALE === 'fa' ? 'فارسی (Persian)' : DE
     const type = (formData.get('type') as string).trim();
     const slogan = (formData.get('slogan') as string).trim();
     const logo = (formData.get('logo') as string).trim();
-    const locale = (formData.get('locale') as string).trim();
 
     const successMsg = form.getAttribute('data-success-msg') || 'Saved';
     const errorMsg = form.getAttribute('data-error-msg') || 'Error';
@@ -318,8 +307,7 @@ const systemDefaultLabel = DEFAULT_LOCALE === 'fa' ? 'فارسی (Persian)' : DE
       slogan,
       description: slogan, // Save same value to description in DB
       logoIcon,
-      logo,
-      locale
+      logo
     };
 
     try {

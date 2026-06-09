@@ -899,8 +899,8 @@ const dbTickets = await db
   let newTicketAttachmentUrl = null;
 
   // Lightbox elements
-  const imageLightbox = document.getElementById('image-lightbox') as HTMLDivElement;
-  const lightboxImg = document.getElementById('lightbox-img') as HTMLImageElement;
+  const imageLightbox = document.getElementById('image-lightbox');
+  const lightboxImg = document.getElementById('lightbox-img');
   const btnCloseLightbox = document.getElementById('btn-close-lightbox');
 
   // Handle active session data
@@ -1045,7 +1045,7 @@ const dbTickets = await db
     chatMessagesBox.scrollTop = chatMessagesBox.scrollHeight;
   }
 
-  function escapeHtml(str: string) {
+  function escapeHtml(str) {
     return str
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')

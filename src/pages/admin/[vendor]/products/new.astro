@@ -3,7 +3,7 @@ import AdminLayout from '../../../../layouts/AdminLayout.astro';
 import { db } from '../../../../db/db';
 import { vendors as vendorsTable, categories as categoriesTable } from '../../../../db/schema';
 import { eq, asc } from 'drizzle-orm';
-import { useTranslations } from '../../../../utils/i18n';
+import { useTranslations, translations } from '../../../../utils/i18n';
 
 const vendorSlug = Astro.params.vendor;
 if (!vendorSlug) {
@@ -23,6 +23,7 @@ if (vendorList.length === 0) {
   return new Response(t('vendorNotFound'), { status: 404 });
 }
 const vendor = vendorList[0];
+const currentCurrency = vendor.currency || translations[locale].currency;
 
 // Fetch categories for this vendor
 const dbCategories = await db
@@ -110,7 +111,7 @@ const dbCategories = await db
         </div>
 
         <div class="form-group">
-          <label class="form-label">{t('productPriceLabel')}</label>
+          <label class="form-label">{locale === 'fa' ? `قیمت محصول (به ${currentCurrency}) *` : locale === 'tr' ? `Ürün Fiyatı (${currentCurrency} cinsinden) *` : `Product Price (in ${currentCurrency}) *`}</label>
           <input type="text" name="price" class="form-input" placeholder={t('productPricePlaceholder')} required />
         </div>
 
@@ -189,7 +190,7 @@ const dbCategories = await db
           </div>
           
           <div class="form-group">
-            <label class="form-label">{t('originalPriceLabel')}</label>
+            <label class="form-label">{locale === 'fa' ? `قیمت اصلی و قبلی (خط خورده - به ${currentCurrency})` : locale === 'tr' ? `Orijinal & Önceki Fiyat (üzeri çizili - ${currentCurrency} cinsinden)` : `Original & Previous Price (crossed out - in ${currentCurrency})`}</label>
             <input type="text" name="originalPrice" class="form-input" placeholder={t('originalPricePlaceholder')} />
           </div>
           <div class="form-group" style="margin-bottom: 0;">

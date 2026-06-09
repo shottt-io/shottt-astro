@@ -271,7 +271,7 @@ const descPercent = totalItems > 0 ? Math.round((itemsWithDesc / totalItems) * 1
 } }}>
   // UI interaction for layout radio cards
   const layoutCards = document.querySelectorAll('.layout-radio-card');
-  const layoutInputHidden = document.getElementById('selected-layout') as HTMLInputElement;
+  const layoutInputHidden = document.getElementById('selected-layout');
   const suggestionBanner = document.getElementById('layout-suggestion-banner');
   const suggestionText = document.getElementById('layout-suggestion-text');
   const designForm = document.getElementById('design-settings-form');
@@ -279,7 +279,7 @@ const descPercent = totalItems > 0 ? Math.round((itemsWithDesc / totalItems) * 1
   const imagePercent = parseInt(designForm?.getAttribute('data-image-percent') || '0', 10);
   const descPercent = parseInt(designForm?.getAttribute('data-desc-percent') || '0', 10);
 
-  function checkLayoutRecommendation(layout: string) {
+  function checkLayoutRecommendation(layout) {
     if (!suggestionBanner || !suggestionText) return;
 
     if (layout === 'pinterest') {
@@ -316,13 +316,13 @@ const descPercent = totalItems > 0 ? Math.round((itemsWithDesc / totalItems) * 1
       // Clear previous active
       layoutCards.forEach(c => {
         c.classList.remove('active');
-        const radio = c.querySelector('.layout-radio-input') as HTMLInputElement;
+        const radio = c.querySelector('.layout-radio-input');
         if (radio) radio.checked = false;
       });
 
       // Select current
       card.classList.add('active');
-      const radio = card.querySelector('.layout-radio-input') as HTMLInputElement;
+      const radio = card.querySelector('.layout-radio-input');
       if (radio) radio.checked = true;
 
       const layoutVal = card.getAttribute('data-layout') || 'pinterest';
@@ -338,20 +338,20 @@ const descPercent = totalItems > 0 ? Math.round((itemsWithDesc / totalItems) * 1
 
   // UI interaction for theme radio cards
   const themeCards = document.querySelectorAll('.theme-radio-card');
-  const themeInputHidden = document.getElementById('selected-theme') as HTMLInputElement;
+  const themeInputHidden = document.getElementById('selected-theme');
 
   themeCards.forEach(card => {
     card.addEventListener('click', () => {
       // Clear previous active
       themeCards.forEach(c => {
         c.classList.remove('active');
-        const radio = c.querySelector('.theme-radio-input') as HTMLInputElement;
+        const radio = c.querySelector('.theme-radio-input');
         if (radio) radio.checked = false;
       });
 
       // Select current
       card.classList.add('active');
-      const radio = card.querySelector('.theme-radio-input') as HTMLInputElement;
+      const radio = card.querySelector('.theme-radio-input');
       if (radio) radio.checked = true;
 
       const themeVal = card.getAttribute('data-theme') || 'light';
@@ -360,7 +360,7 @@ const descPercent = totalItems > 0 ? Math.round((itemsWithDesc / totalItems) * 1
   });
 
   // Submit form
-  const form = document.getElementById('design-settings-form') as HTMLFormElement;
+  const form = document.getElementById('design-settings-form');
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const layout = layoutInputHidden.value;

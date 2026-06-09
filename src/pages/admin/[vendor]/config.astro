@@ -1,0 +1,148 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { db } from '../../../db/db';
+import { vendors as vendorsTable } from '../../../db/schema';
+import { eq } from 'drizzle-orm';
+import { useTranslations } from '../../../utils/i18n';
+import { DEFAULT_LOCALE, SUPPORTED_CURRENCIES } from '../../../config/region';
+
+const vendorSlug = Astro.params.vendor;
+if (!vendorSlug) {
+  return Astro.redirect('/admin');
+}
+
+const { t, locale, dir } = useTranslations(Astro.cookies, Astro.request);
+
+// Fetch vendor settings
+const vendorList = await db
+  .select()
+  .from(vendorsTable)
+  .where(eq(vendorsTable.slug, vendorSlug))
+  .limit(1);
+
+if (vendorList.length === 0) {
+  return new Response(t('vendorNotFound'), { status: 404 });
+}
+const vendor = vendorList[0];
+
+const systemDefaultLabel = DEFAULT_LOCALE === 'fa' ? 'فارسی (Persian)' : DEFAULT_LOCALE === 'en' ? 'English' : 'Türkçe (Turkish)';
+---
+
+<AdminLayout title={t('settings')} activeTab="config" vendorSlug={vendorSlug}>
+  <div class="admin-page-actions">
+    <h1 class="page-title-bold">{t('settings')}</h1>
+  </div>
+
+  <div class="admin-card">
+    <form 
+      id="config-settings-form" 
+      style="display: flex; flex-direction: column; gap: 1.25rem;"
+      data-success-msg={t('successSettingsSaved')}
+      data-error-msg={t('errorSavingSettings')}
+      data-conn-error-msg={t('errorServerConnection')}
+    >
+      <div class="form-group">
+        <label class="form-label">{t('customerLanguage')}</label>
+        <select name="locale" class="form-select">
+          <option value="" selected={!vendor.locale}>{t('systemDefault')} ({systemDefaultLabel})</option>
+          <option value="fa" selected={vendor.locale === 'fa'}>{t('langFa')}</option>
+          <option value="en" selected={vendor.locale === 'en'}>{t('langEn')}</option>
+          <option value="tr" selected={vendor.locale === 'tr'}>{t('langTr')}</option>
+        </select>
+        <span style="font-size: 0.75rem; color: #737373; margin-top: 0.5rem; line-height: 1.6; display: block; text-align: justify;">
+          {t('customerLanguageDesc') || 'زبان اپلیکیشن مشتری مستقل از زبان پنل مدیریت است و تنها زبان کاتالوگ عمومی شما را تغییر می‌دهد.'}
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">{t('shopCurrency')}</label>
+        <select id="currency-select" name="currency" class="form-select">
+          <option value="" selected={!vendor.currency}>{t('systemDefault')} ({SUPPORTED_CURRENCIES[0] || '$'})</option>
+          {SUPPORTED_CURRENCIES.map((cur) => (
+            <option value={cur} selected={vendor.currency === cur}>{cur}</option>
+          ))}
+          <option value="__custom__" selected={vendor.currency && !SUPPORTED_CURRENCIES.includes(vendor.currency)}>
+            {t('customCurrency') || 'واحد پولی دلخواه (سفارشی)...'}
+          </option>
+        </select>
+        <span style="font-size: 0.75rem; color: #737373; margin-top: 0.5rem; line-height: 1.6; display: block; text-align: justify;">
+          {t('shopCurrencyDesc') || 'واحد پولی مورد استفاده در قیمت‌گذاری محصولات و کاتالوگ شما.'}
+        </span>
+
+        <div id="custom-currency-container" style={`margin-top: 0.75rem; display: ${vendor.currency && !SUPPORTED_CURRENCIES.includes(vendor.currency) ? 'block' : 'none'};`}>
+          <label class="form-label" style="font-size: 0.8125rem; font-weight: 500; margin-bottom: 0.375rem; display: block;">{t('customCurrencyLabel') || 'نام یا نماد واحد پولی دلخواه'}</label>
+          <input 
+            type="text" 
+            id="custom-currency-input" 
+            name="custom_currency" 
+            class="form-input" 
+            value={vendor.currency && !SUPPORTED_CURRENCIES.includes(vendor.currency) ? vendor.currency : ''} 
+            placeholder={t('customCurrencyPlaceholder') || 'مثال: درهم، AED، ¥'} 
+          />
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="margin-top: 1rem; align-self: flex-start;">
+        <span>{t('saveSettings')}</span>
+      </button>
+    </form>
+  </div>
+</AdminLayout>
+
+<script>
+  const form = document.getElementById('config-settings-form') as HTMLFormElement;
+  const currencySelect = document.getElementById('currency-select') as HTMLSelectElement;
+  const customCurrencyContainer = document.getElementById('custom-currency-container') as HTMLDivElement;
+
+  currencySelect?.addEventListener('change', () => {
+    if (currencySelect.value === '__custom__') {
+      customCurrencyContainer.style.display = 'block';
+    } else {
+      customCurrencyContainer.style.display = 'none';
+    }
+  });
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(form);
+    
+    const locale = (formData.get('locale') as string).trim();
+    let currency = (formData.get('currency') as string).trim();
+
+    if (currency === '__custom__') {
+      currency = (formData.get('custom_currency') as string).trim();
+    }
+
+    const successMsg = form.getAttribute('data-success-msg') || 'Saved';
+    const errorMsg = form.getAttribute('data-error-msg') || 'Error';
+    const connError = form.getAttribute('data-conn-error-msg') || 'Connection Error';
+
+    const payload = {
+      slug: getVendorSlug(),
+      locale,
+      currency
+    };
+
+    try {
+      const response = await fetch('/api/vendors', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (response.ok) {
+        alert(successMsg);
+        window.location.reload();
+      } else {
+        alert(errorMsg);
+      }
+    } catch {
+      alert(connError);
+    }
+  });
+
+  function getVendorSlug() {
+    const parts = window.location.pathname.split('/');
+    return parts[2]; // /admin/[vendorSlug]/config
+  }
+</script>

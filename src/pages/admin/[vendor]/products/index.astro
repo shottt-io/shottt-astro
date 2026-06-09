@@ -7,7 +7,7 @@ import {
   menuItems as menuItemsTable 
 } from '../../../../db/schema';
 import { eq, asc } from 'drizzle-orm';
-import { formatPrice } from '../../../../utils/price';
+import { formatPrice, formatPriceWithUnit } from '../../../../utils/price';
 
 import { useTranslations } from '../../../../utils/i18n';
 
@@ -133,7 +133,7 @@ const items = await db
                           <span class="status-badge status-badge-inactive">{t('statusInactive')}</span>
                         )}
                       </div>
-                      <span class="item-desc-sub">{formatPrice(item.price)} {t('thousandTomanUnit')}{item.span2 && ` • ${t('twoColumnsLabel')}`}</span>
+                      <span class="item-desc-sub">{formatPriceWithUnit(item.price, locale, vendor.currency)}{item.span2 && ` • ${t('twoColumnsLabel')}`}</span>
                     </div>
                   </div>
                   

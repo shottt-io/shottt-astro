@@ -18,24 +18,28 @@ export function formatPrice(price: string | number | null | undefined): string {
   return num.toLocaleString('en-US');
 }
 
-/**
- * Formats a numeric price and appends/prepends the localized currency symbol.
- * E.g., "1450" (fa) -> "1,450 تومان"
- * E.g., "1450" (tr) -> "1,450 TL"
- * E.g., "10" (en) -> "$10"
- */
 export function formatPriceWithUnit(
   price: string | number | null | undefined,
-  currentLocale?: string
+  currentLocale?: string,
+  vendorCurrency?: string | null
 ): string {
   const formatted = formatPrice(price);
   if (!formatted) return '';
 
   const locale = getLocale(currentLocale);
-  const currency = translations[locale].currency;
+  const currency = (vendorCurrency && vendorCurrency.trim())
+    ? vendorCurrency.trim()
+    : translations[locale].currency;
 
-  if (locale === 'en') {
+  const prefixSymbols = ['$', '€', '£', '¥', '₩', '₽', '₨', '元', '₪'];
+
+  if (prefixSymbols.includes(currency)) {
     return `${currency}${formatted}`;
   }
+
+  if (!vendorCurrency && locale === 'en') {
+    return `${currency}${formatted}`;
+  }
+
   return `${formatted} ${currency}`;
 }

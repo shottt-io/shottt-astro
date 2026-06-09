@@ -140,21 +140,45 @@ async function purgeUrls(urls: string[]): Promise<void> {
 }
 
 /**
+ * Retrieves the base URLs configuration for cache purging from the environment.
+ * Expects a comma-separated list of URLs in PURGE_BASE_URLS.
+ */
+function getPurgeBaseUrls(): string[] {
+  const baseUrlsEnv = getEnv('PURGE_BASE_URLS');
+  if (!baseUrlsEnv) {
+    return [];
+  }
+  return baseUrlsEnv
+    .split(',')
+    .map((url) => url.trim())
+    .filter(Boolean)
+    .map((url) => (url.endsWith('/') ? url.slice(0, -1) : url));
+}
+
+/**
  * Purges the customer-facing catalog page for a given vendor slug.
  */
 export async function purgeVendorCache(vendorSlug: string): Promise<void> {
-  const siteUrl = getSiteUrl();
-  const base = siteUrl || 'https://shottt.io';
-  await purgeUrls([`${base}/${vendorSlug}`]);
+  const baseUrls = getPurgeBaseUrls();
+  if (baseUrls.length === 0) {
+    console.warn(`[CDNPurge] Skipping vendor page purge: PURGE_BASE_URLS is not set.`);
+    return;
+  }
+  const urlsToPurge = baseUrls.map((base) => `${base}/${vendorSlug}`);
+  await purgeUrls(urlsToPurge);
 }
 
 /**
  * Purges the homepage (/) from CDN cache.
  */
 export async function purgeHomepageCache(): Promise<void> {
-  const siteUrl = getSiteUrl();
-  const base = siteUrl || 'https://shottt.io';
-  await purgeUrls([`${base}/`]);
+  const baseUrls = getPurgeBaseUrls();
+  if (baseUrls.length === 0) {
+    console.warn(`[CDNPurge] Skipping homepage purge: PURGE_BASE_URLS is not set.`);
+    return;
+  }
+  const urlsToPurge = baseUrls.map((base) => `${base}/`);
+  await purgeUrls(urlsToPurge);
 }
 
 // On server startup (when this file is first loaded in production), trigger homepage purge

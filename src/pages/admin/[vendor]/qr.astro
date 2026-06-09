@@ -124,7 +124,7 @@ if (!SITE_URL && Astro.url.hostname !== 'localhost' && Astro.url.hostname !== '1
   qrGenError: t('qrGenError')
 } }}>
   const copyBtn = document.getElementById('btn-copy-url');
-  const urlInput = document.getElementById('customer-url-input') as HTMLInputElement;
+  const urlInput = document.getElementById('customer-url-input');
 
   copyBtn?.addEventListener('click', async () => {
     if (!urlInput) return;
@@ -164,7 +164,7 @@ if (!SITE_URL && Astro.url.hostname !== 'localhost' && Astro.url.hostname !== '1
   });
 
   function generateQRCode() {
-    const qrPreview = document.getElementById('qr-preview') as HTMLImageElement;
+    const qrPreview = document.getElementById('qr-preview');
     const qrLoading = document.getElementById('qr-loading');
     const url = urlInput?.value;
 
@@ -180,7 +180,7 @@ if (!SITE_URL && Astro.url.hostname !== 'localhost' && Astro.url.hostname !== '1
           dark: '#171717',
           light: '#ffffff'
         }
-      }, (err: any, dataUrl: string) => {
+      }, (err, dataUrl) => {
         if (err) {
           console.error(err);
           if (qrLoading) qrLoading.textContent = clientTranslations.qrGenError;
@@ -205,7 +205,7 @@ if (!SITE_URL && Astro.url.hostname !== 'localhost' && Astro.url.hostname !== '1
 
   const downloadBtn = document.getElementById('btn-download-qr');
   downloadBtn?.addEventListener('click', () => {
-    const qrPreview = document.getElementById('qr-preview') as HTMLImageElement;
+    const qrPreview = document.getElementById('qr-preview');
     if (!qrPreview || !qrPreview.src) return;
 
     const slug = getVendorSlug();

@@ -9,9 +9,10 @@ interface Props {
   layoutMode: 'pinterest' | 'simple' | 'card';
   vendorSlug: string;
   locale?: string;
+  currency?: string | null;
 }
 
-const { categories, layoutMode, vendorSlug, locale: propLocale } = Astro.props;
+const { categories, layoutMode, vendorSlug, locale: propLocale, currency } = Astro.props;
 const { t, locale, dir } = useTranslations(Astro.cookies, Astro.request, propLocale);
 
 // Layout block structure to support full-width spanning featured items
@@ -339,11 +340,11 @@ function getImageAspectRatio(imageUrl: string | undefined): string {
                     <div class="card-price-container">
                       {item.discount ? (
                         <>
-                          <span class="price-tag price-old">{formatPriceWithUnit(item.discount.originalPrice, locale)}</span>
-                          <span class="price-tag price-new">{formatPriceWithUnit(item.price, locale)}</span>
+                          <span class="price-tag price-old">{formatPriceWithUnit(item.discount.originalPrice, locale, currency)}</span>
+                          <span class="price-tag price-new">{formatPriceWithUnit(item.price, locale, currency)}</span>
                         </>
                       ) : (
-                        <span class="price-tag">{formatPriceWithUnit(item.price, locale)}</span>
+                        <span class="price-tag">{formatPriceWithUnit(item.price, locale, currency)}</span>
                       )}
                     </div>
                   </div>
@@ -401,11 +402,11 @@ function getImageAspectRatio(imageUrl: string | undefined): string {
                   <div class="price-container text-left">
                     {item.discount ? (
                       <>
-                        <span class="price-tag price-old">{formatPrice(item.discount.originalPrice)}</span>
-                        <span class="price-tag price-new">{formatPrice(item.price)}</span>
+                        <span class="price-tag price-old">{formatPriceWithUnit(item.discount.originalPrice, locale, currency)}</span>
+                        <span class="price-tag price-new">{formatPriceWithUnit(item.price, locale, currency)}</span>
                       </>
                     ) : (
-                      <span class="price-tag">{formatPrice(item.price)}</span>
+                      <span class="price-tag">{formatPriceWithUnit(item.price, locale, currency)}</span>
                     )}
                   </div>
                 </div>

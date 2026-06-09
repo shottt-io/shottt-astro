@@ -166,11 +166,11 @@ const canonicalUrl = `${base}${canonicalPath}`;
           <div class="product-detail-prices" style={product.status === 'unavailable' ? 'opacity: 0.5;' : ''}>
             {product.discount ? (
               <>
-                <span class="price-tag price-old detail-price-tag">{formatPriceWithUnit(product.discount.originalPrice)}</span>
-                <span class="price-tag price-new detail-price-tag">{formatPriceWithUnit(product.price)}</span>
+                <span class="price-tag price-old detail-price-tag">{formatPriceWithUnit(product.discount.originalPrice, vendor.locale || undefined, vendor.currency)}</span>
+                <span class="price-tag price-new detail-price-tag">{formatPriceWithUnit(product.price, vendor.locale || undefined, vendor.currency)}</span>
               </>
             ) : (
-              <span class="price-tag detail-price-tag">{formatPriceWithUnit(product.price)}</span>
+              <span class="price-tag detail-price-tag">{formatPriceWithUnit(product.price, vendor.locale || undefined, vendor.currency)}</span>
             )}
           </div>
         </div>
@@ -252,7 +252,7 @@ const canonicalUrl = `${base}${canonicalPath}`;
   .back-nav-btn {
     position: absolute;
     top: 1.5rem;
-    inset-inline-end: 1.5rem;
+    inset-inline-start: 1.5rem;
     width: 2.5rem;
     height: 2.5rem;
     border-radius: 50%;

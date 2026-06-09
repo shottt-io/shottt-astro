@@ -26,7 +26,7 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
 
   try {
     const data = await request.json();
-    const { slug, name, type, slogan, description, defaultLayout, logoIcon, logo, theme, locale } = data;
+    const { slug, name, type, slogan, description, defaultLayout, logoIcon, logo, theme, locale, currency } = data;
 
     if (!slug) {
       return new Response(JSON.stringify({ success: false, message: t('requiredFieldsMissing') }), { status: 400 });
@@ -62,6 +62,7 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
       logo: logo !== undefined ? logo : vendor.logo,
       theme: theme !== undefined ? theme : vendor.theme,
       locale: locale !== undefined ? (locale === '' ? null : locale) : vendor.locale,
+      currency: currency !== undefined ? (currency === '' ? null : currency) : vendor.currency,
     };
 
     // Perform update
