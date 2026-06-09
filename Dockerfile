@@ -23,7 +23,7 @@ RUN --mount=type=cache,target=/root/.npm \
 COPY . .
 
 # Build the Astro SSR application
-RUN npm run build
+RUN npx astro build
 
 # Prune devDependencies to keep only production dependencies in node_modules
 RUN npm prune --omit=dev
@@ -45,6 +45,8 @@ EXPOSE 3000
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/drizzle ./drizzle
+COPY --from=builder /app/drizzle.config.ts ./drizzle.config.ts
 
-# Start the server
-CMD ["node", "dist/server/entry.mjs"]
+# Start the server (run migrations at startup, then start the server)
+CMD ["sh", "-c", "npx drizzle-kit migrate && node dist/server/entry.mjs"]

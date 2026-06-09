@@ -15,5 +15,3 @@ docker-compose.yml
 .nvmrc
 .gitignore
 README.md
-drizzle
-drizzle.config.ts
