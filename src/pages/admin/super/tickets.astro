@@ -1345,7 +1345,7 @@ const { t, locale, dir } = useTranslations(Astro.cookies, Astro.request);
   });
 
   document.addEventListener('click', (e) => {
-    if (brandLangTrigger && brandLangMenu && !brandLangTrigger.contains(e.target as Node) && !brandLangMenu.contains(e.target as Node)) {
+    if (brandLangTrigger && brandLangMenu && !brandLangTrigger.contains(e.target) && !brandLangMenu.contains(e.target)) {
       brandLangTrigger.setAttribute('aria-expanded', 'false');
       brandLangMenu.classList.remove('show');
     }

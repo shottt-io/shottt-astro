@@ -1309,7 +1309,7 @@ const vendorMap = new Map(vendorsList.map((v) => [v.id, v.name]));
   });
 
   document.addEventListener('click', (e) => {
-    if (brandLangTrigger && brandLangMenu && !brandLangTrigger.contains(e.target as Node) && !brandLangMenu.contains(e.target as Node)) {
+    if (brandLangTrigger && brandLangMenu && !brandLangTrigger.contains(e.target) && !brandLangMenu.contains(e.target)) {
       brandLangTrigger.setAttribute('aria-expanded', 'false');
       brandLangMenu.classList.remove('show');
     }
