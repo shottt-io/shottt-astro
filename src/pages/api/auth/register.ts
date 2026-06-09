@@ -10,7 +10,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
   const { t } = useTranslations(cookies, request);
   try {
     const body = await request.json();
-    const { name, slug, type, city, userName, phone, username, password } = body;
+    const { name, slug, type, city, userName, phone, username, password, timezone } = body;
 
     // 1. Validation
     if (!name || !slug || !type || !city || !userName || !phone || !username || !password) {
@@ -118,6 +118,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
           logoIcon: logoIcon,
           logo: '/logo.png',
           city: city.trim(),
+          timezone: timezone ? timezone.trim() : 'Asia/Tehran',
           syncSourceUrl: null
         })
         .returning();

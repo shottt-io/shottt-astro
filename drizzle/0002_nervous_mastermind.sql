@@ -1,0 +1,1 @@
+ALTER TABLE "vendors" ADD COLUMN "timezone" varchar(100) DEFAULT 'Asia/Tehran' NOT NULL;

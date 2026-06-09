@@ -26,6 +26,7 @@ export const vendors = pgTable('vendors', {
   city: varchar('city', { length: 255 }),
   locale: varchar('locale', { length: 10 }),
   currency: varchar('currency', { length: 50 }),
+  timezone: varchar('timezone', { length: 100 }).default('Asia/Tehran').notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   lastActiveAt: timestamp('last_active_at', { withTimezone: true }).defaultNow().notNull(),
 });

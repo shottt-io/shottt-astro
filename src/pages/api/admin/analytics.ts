@@ -22,16 +22,25 @@ async function checkVendorAccess(userId: number, vendorId: number): Promise<bool
   return access.length > 0;
 }
 
-// Helper to calculate date offsets in Tehran timezone
-const getTehranDateOffsetString = (offsetDays: number): string => {
+// Helper to calculate date offsets in a specific timezone
+const getVendorDateOffsetString = (offsetDays: number, timeZone: string): string => {
   const d = new Date();
   d.setDate(d.getDate() - offsetDays);
-  return new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Tehran',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(d);
+  try {
+    return new Intl.DateTimeFormat('en-CA', {
+      timeZone: timeZone || 'Asia/Tehran',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(d);
+  } catch (e) {
+    return new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Tehran',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(d);
+  }
 };
 
 export const GET: APIRoute = async ({ request, cookies }) => {
@@ -82,7 +91,7 @@ export const GET: APIRoute = async ({ request, cookies }) => {
       });
     }
 
-    const cutoffDateStr = getTehranDateOffsetString(days - 1);
+    const cutoffDateStr = getVendorDateOffsetString(days - 1, vendor.timezone);
 
     // 2. Fetch daily page views & unique visits
     const dailyMetrics = await db
@@ -101,7 +110,7 @@ export const GET: APIRoute = async ({ request, cookies }) => {
     const visitChartData = [];
 
     for (let i = days - 1; i >= 0; i--) {
-      const dateKey = getTehranDateOffsetString(i);
+      const dateKey = getVendorDateOffsetString(i, vendor.timezone);
       const existing = metricsMap.get(dateKey);
       visitChartData.push({
         date: dateKey,

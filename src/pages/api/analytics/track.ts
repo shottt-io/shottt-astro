@@ -3,14 +3,23 @@ import { db } from '../../../db/db';
 import { vendors as vendorsTable, analyticsDailyMetrics, analyticsDailyItems } from '../../../db/schema';
 import { eq, sql } from 'drizzle-orm';
 
-// Helper function to format date in Tehran timezone (YYYY-MM-DD)
-const getTehranDateString = (): string => {
-  return new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Tehran',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(new Date());
+// Helper function to format date in a given timezone (YYYY-MM-DD)
+const getVendorDateString = (timeZone: string): string => {
+  try {
+    return new Intl.DateTimeFormat('en-CA', {
+      timeZone: timeZone || 'Asia/Tehran',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(new Date());
+  } catch (e) {
+    return new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Tehran',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(new Date());
+  }
 };
 
 export const POST: APIRoute = async ({ request }) => {
@@ -27,7 +36,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     // Lookup vendor by slug
     const vendorList = await db
-      .select({ id: vendorsTable.id })
+      .select({ id: vendorsTable.id, timezone: vendorsTable.timezone })
       .from(vendorsTable)
       .where(eq(vendorsTable.slug, vendorSlug))
       .limit(1);
@@ -39,8 +48,9 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    const vendorId = vendorList[0].id;
-    const dateStr = getTehranDateString();
+    const vendor = vendorList[0];
+    const vendorId = vendor.id;
+    const dateStr = getVendorDateString(vendor.timezone);
 
     const pvs = pageView ? 1 : 0;
     const uvs = uniqueVisit ? 1 : 0;

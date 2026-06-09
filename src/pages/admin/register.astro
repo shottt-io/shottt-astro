@@ -60,6 +60,7 @@ const { t, locale, dir } = useTranslations(Astro.cookies, Astro.request);
           data-show-text={t('show')}
           data-hide-text={t('hide')}
         >
+          <input type="hidden" name="timezone" id="timezone-input" value="Asia/Tehran" />
           <div class="form-group">
             <label for="name" class="form-label">{t('shopName')}</label>
             <input 
@@ -228,6 +229,19 @@ const { t, locale, dir } = useTranslations(Astro.cookies, Astro.request);
   const btnText = document.getElementById('btn-text') as HTMLSpanElement;
   const spinner = document.getElementById('loading-spinner') as SVGElement;
   const slugInput = document.getElementById('slug') as HTMLInputElement;
+
+  // Set client timezone
+  const tzInput = document.getElementById('timezone-input') as HTMLInputElement;
+  if (tzInput) {
+    try {
+      const systemTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      if (systemTimezone) {
+        tzInput.value = systemTimezone;
+      }
+    } catch (e) {
+      console.warn('Could not detect system timezone:', e);
+    }
+  }
 
   // Restrict slug input keys to valid slug format
   slugInput?.addEventListener('input', () => {
