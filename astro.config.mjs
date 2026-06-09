@@ -11,7 +11,7 @@ export default defineConfig({
   adapter: isVercel
     ? vercel({
         isr: {
-          bypassToken: process.env.VERCEL_BYPASS_TOKEN || 'local-fallback-bypass-token',
+          bypassToken: process.env.VERCEL_BYPASS_TOKEN || 'local-fallback-bypass-token-at-least-32-characters',
           exclude: [
             /^\/api\/.+/,
             /^\/admin\/.+/,
