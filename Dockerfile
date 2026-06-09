@@ -48,5 +48,5 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/drizzle ./drizzle
 COPY --from=builder /app/drizzle.config.ts ./drizzle.config.ts
 
-# Start the server (run migrations at startup, then start the server)
-CMD ["sh", "-c", "npx drizzle-kit migrate && node dist/server/entry.mjs"]
+# Start the server
+CMD ["node", "dist/server/entry.mjs"]
