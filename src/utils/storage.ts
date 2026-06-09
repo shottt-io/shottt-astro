@@ -57,6 +57,22 @@ export async function uploadImage(options: UploadOptions): Promise<string> {
       access: 'public',
       contentType,
     });
+
+    const customPublicUrl = process.env.BLOB_PUBLIC_URL || import.meta.env.BLOB_PUBLIC_URL;
+    if (customPublicUrl) {
+      let formattedUrl = customPublicUrl;
+      if (!/^https?:\/\//i.test(formattedUrl)) {
+        formattedUrl = `https://${formattedUrl}`;
+      }
+      try {
+        const parsedBlobUrl = new URL(blob.url);
+        const parsedCustomUrl = new URL(formattedUrl);
+        return `${parsedCustomUrl.origin}${parsedBlobUrl.pathname}`;
+      } catch (e) {
+        return blob.url;
+      }
+    }
+
     return blob.url;
   } else if (provider === 's3') {
     // S3 storage configuration
