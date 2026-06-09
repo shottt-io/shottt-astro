@@ -9,7 +9,15 @@ const isVercel = !!process.env.VERCEL;
 export default defineConfig({
   output: 'server',
   adapter: isVercel
-    ? vercel()
+    ? vercel({
+        isr: {
+          bypassToken: process.env.VERCEL_BYPASS_TOKEN || 'local-fallback-bypass-token',
+          exclude: [
+            /^\/api\/.+/,
+            /^\/admin\/.+/,
+          ]
+        }
+      })
     : node({
         mode: 'standalone'
       }),

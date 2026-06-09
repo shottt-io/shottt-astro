@@ -15,7 +15,7 @@ Shottt is an independent, lightning-fast, and highly localized digital catalog a
   - **AWS S3 / S3-compatible cloud storage** (e.g., Cloudflare R2, ArvanCloud Object Storage).
   - **Vercel Blob Storage**.
 - **Unified CDN Cache Purging**: Keeps catalog response times lightning-fast with edge caching, while ensuring data updates are reflected instantly:
-  - Supports **ArvanCloud** and **Cloudflare** caching strategies.
+  - Supports **ArvanCloud**, **Cloudflare**, and **Vercel (ISR)** caching strategies.
   - Automatically purges CDN cache for the vendor catalog and homepage when changes occur.
 - **Support & Ticketing System**: In-app support ticketing channel between vendors and system administrators (Super Admins) featuring image attachments.
 - **Advanced UI Confirmations/Dialogs**: Premium user experience avoiding native browser prompts (`alert`/`confirm`) in favor of customized, responsive HTML `<dialog>` modals with backdrop blur effects.
@@ -92,7 +92,8 @@ Shottt is an independent, lightning-fast, and highly localized digital catalog a
    # CDN & Base Site URL
    PUBLIC_SITE_URL=http://localhost:4321
    PURGE_BASE_URLS=http://localhost:4321
-   CDN_STRATEGY=none # options: 'arvan', 'cloudflare', 'none'
+   CDN_STRATEGY=none # options: 'arvan', 'cloudflare', 'vercel', 'none'
+   VERCEL_BYPASS_TOKEN=your_vercel_bypass_token
    ```
 
 4. **Initialize the Database:**

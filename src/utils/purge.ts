@@ -128,6 +128,39 @@ async function purgeCloudflare(urls: string[]): Promise<void> {
 }
 
 /**
+ * Purges a list of URLs from Vercel CDN cache by triggering on-demand ISR revalidation.
+ */
+async function purgeVercel(urls: string[]): Promise<void> {
+  const bypassToken = getEnv('VERCEL_BYPASS_TOKEN');
+  if (!bypassToken) {
+    console.warn(`[VercelPurge] Skipping purge: VERCEL_BYPASS_TOKEN is not set.`);
+    return;
+  }
+
+  console.log(`[VercelPurge] Revalidating URLs via HEAD request:`, urls);
+
+  const promises = urls.map(async (url) => {
+    try {
+      const res = await fetch(url, {
+        method: 'HEAD',
+        headers: {
+          'x-prerender-revalidate': bypassToken,
+        },
+      });
+      if (res.ok) {
+        console.log(`[VercelPurge] Success revalidating ${url} (${res.status})`);
+      } else {
+        console.error(`[VercelPurge] Failed revalidating ${url} (${res.status})`);
+      }
+    } catch (err) {
+      console.error(`[VercelPurge] Error revalidating ${url}:`, err);
+    }
+  });
+
+  await Promise.all(promises);
+}
+
+/**
  * Unified purge entry point dispatching to configured CDN strategy.
  */
 async function purgeUrls(urls: string[]): Promise<void> {
@@ -138,6 +171,8 @@ async function purgeUrls(urls: string[]): Promise<void> {
     await purgeArvan(urls);
   } else if (strategy === 'cloudflare') {
     await purgeCloudflare(urls);
+  } else if (strategy === 'vercel') {
+    await purgeVercel(urls);
   } else {
     console.log(`[CDNPurge] No active/supported CDN strategy matches '${strategy}'. Skipping purge.`);
   }
