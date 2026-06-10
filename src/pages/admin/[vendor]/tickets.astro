@@ -75,8 +75,8 @@ const dbTickets = await db
             <span>{t('noTicketsYet')}</span>
           </div>
         ) : (
-          dbTickets.map((t) => {
-            const formattedDate = new Date(t.updatedAt).toLocaleDateString('fa-IR', {
+          dbTickets.map((ticket) => {
+            const formattedDate = new Date(ticket.updatedAt).toLocaleDateString('fa-IR', {
               hour: '2-digit',
               minute: '2-digit',
               month: 'short',
@@ -85,24 +85,24 @@ const dbTickets = await db
 
             let statusText = t('ticketStatusOpen');
             let statusClass = 'status-open';
-            if (t.status === 'answered') {
+            if (ticket.status === 'answered') {
               statusText = t('ticketStatusAnswered');
               statusClass = 'status-answered';
-            } else if (t.status === 'closed') {
+            } else if (ticket.status === 'closed') {
               statusText = t('ticketStatusClosed');
               statusClass = 'status-closed';
             }
 
             return (
-              <div class="ticket-list-item" data-id={t.id} data-ticket={JSON.stringify(t)}>
+              <div class="ticket-list-item" data-id={ticket.id} data-ticket={JSON.stringify(ticket)}>
                 <div class="ticket-item-top">
-                  <span class="ticket-item-title">{t.title}</span>
+                  <span class="ticket-item-title">{ticket.title}</span>
                   <span class={`status-badge ${statusClass}`}>{statusText}</span>
                 </div>
                 <div class="ticket-item-bottom">
-                  <span class="ticket-item-date local-ticket-date" data-date={t.updatedAt ? new Date(t.updatedAt).toISOString() : ''}>{formattedDate}</span>
+                  <span class="ticket-item-date local-ticket-date" data-date={ticket.updatedAt ? new Date(ticket.updatedAt).toISOString() : ''}>{formattedDate}</span>
                   <span class="ticket-item-preview">
-                    {t.messages[t.messages.length - 1]?.message || ''}
+                    {ticket.messages[ticket.messages.length - 1]?.message || ''}
                   </span>
                 </div>
               </div>

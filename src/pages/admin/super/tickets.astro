@@ -186,8 +186,8 @@ const { t, locale, dir } = useTranslations(Astro.cookies, Astro.request);
                 <span>{t('noTicketsFound')}</span>
               </div>
             ) : (
-              ticketsList.map((t) => {
-                const formattedDate = new Date(t.updatedAt).toLocaleDateString(locale === 'fa' ? 'fa-IR' : (locale === 'tr' ? 'tr-TR' : 'en-US'), {
+              ticketsList.map((ticket) => {
+                const formattedDate = new Date(ticket.updatedAt).toLocaleDateString(locale === 'fa' ? 'fa-IR' : (locale === 'tr' ? 'tr-TR' : 'en-US'), {
                   hour: '2-digit',
                   minute: '2-digit',
                   month: 'short',
@@ -196,27 +196,27 @@ const { t, locale, dir } = useTranslations(Astro.cookies, Astro.request);
 
                 let statusText = t('filterOpen');
                 let statusClass = 'status-open';
-                if (t.status === 'answered') {
+                if (ticket.status === 'answered') {
                   statusText = t('filterAnswered');
                   statusClass = 'status-answered';
-                } else if (t.status === 'closed') {
+                } else if (ticket.status === 'closed') {
                   statusText = t('filterClosed');
                   statusClass = 'status-closed';
                 }
 
                 return (
-                  <div class="ticket-list-item" data-id={t.id} data-status={t.status} data-ticket={JSON.stringify(t)}>
+                  <div class="ticket-list-item" data-id={ticket.id} data-status={ticket.status} data-ticket={JSON.stringify(ticket)}>
                     <div class="ticket-item-top">
-                      <span class="ticket-item-title">{t.title}</span>
+                      <span class="ticket-item-title">{ticket.title}</span>
                       <span class={`status-badge ${statusClass}`}>{statusText}</span>
                     </div>
                     <div style="font-size: 0.6875rem; color: #171717; margin-top: 0.125rem; font-weight: 500;">
-                      {t('vendorLabel')}{t.vendorName} ({t.userName})
+                      {t('vendorLabel')}{ticket.vendorName} ({ticket.userName})
                     </div>
                     <div class="ticket-item-bottom" style="margin-top: 0.25rem;">
-                       <span class="ticket-item-date local-ticket-date" data-date={t.updatedAt ? new Date(t.updatedAt).toISOString() : ''}>{formattedDate}</span>
+                       <span class="ticket-item-date local-ticket-date" data-date={ticket.updatedAt ? new Date(ticket.updatedAt).toISOString() : ''}>{formattedDate}</span>
                        <span class="ticket-item-preview">
-                        {t.messages[t.messages.length - 1]?.message || ''}
+                        {ticket.messages[ticket.messages.length - 1]?.message || ''}
                       </span>
                     </div>
                   </div>
