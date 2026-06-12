@@ -923,7 +923,7 @@ const dbTickets = await db
     });
   });
 
-  function openTicketChat(ticket: any) {
+  function openTicketChat(ticket) {
     activeTicketId = ticket.id;
     activeTicketData = ticket;
 
@@ -985,11 +985,11 @@ const dbTickets = await db
     clearReplyAttachment();
   }
 
-  function renderMessages(messages: any[]) {
+  function renderMessages(messages) {
     if (!chatMessagesBox) return;
     chatMessagesBox.innerHTML = '';
 
-    messages.forEach((msg: any) => {
+    messages.forEach((msg) => {
       const dateText = new Date(msg.createdAt).toLocaleDateString(locale, {
         hour: '2-digit',
         minute: '2-digit',

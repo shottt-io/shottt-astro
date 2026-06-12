@@ -930,7 +930,7 @@ const { t, locale, dir } = useTranslations(Astro.cookies, Astro.request);
   const filterPills = document.querySelectorAll('.filter-pill');
 
   // Helper to format ticket dates
-  function formatTicketDate(date: Date) {
+  function formatTicketDate(date) {
     if (locale === 'fa') {
       return date.toLocaleDateString('fa-IR', {
         hour: '2-digit',
@@ -949,15 +949,15 @@ const { t, locale, dir } = useTranslations(Astro.cookies, Astro.request);
   }
 
   // Localize dates on page load
-  document.querySelectorAll('.local-ticket-date').forEach((el: any) => {
+  document.querySelectorAll('.local-ticket-date').forEach((el) => {
     const dateStr = el.getAttribute('data-date');
     if (dateStr) {
       el.textContent = formatTicketDate(new Date(dateStr));
     }
   });
 
-  let activeTicketId: number | null = null;
-  let activeTicketData: any = null;
+  let activeTicketId = null;
+  let activeTicketData = null;
 
   // Attachment elements
   const replyFileInput = document.getElementById('input-reply-file');
@@ -995,7 +995,7 @@ const { t, locale, dir } = useTranslations(Astro.cookies, Astro.request);
       pill.classList.add('active');
 
       const filter = pill.getAttribute('data-filter') || 'all';
-      listItems.forEach((item: any) => {
+      listItems.forEach((item) => {
         const itemStatus = item.getAttribute('data-status');
         if (filter === 'all' || itemStatus === filter) {
           item.style.display = 'flex';
@@ -1017,7 +1017,7 @@ const { t, locale, dir } = useTranslations(Astro.cookies, Astro.request);
     });
   });
 
-  function openTicketChat(ticket: any) {
+  function openTicketChat(ticket) {
     activeTicketId = ticket.id;
     activeTicketData = ticket;
 
@@ -1059,11 +1059,11 @@ const { t, locale, dir } = useTranslations(Astro.cookies, Astro.request);
     clearReplyAttachment();
   }
 
-  function renderMessages(messages: any[]) {
+  function renderMessages(messages) {
     if (!chatMessagesBox) return;
     chatMessagesBox.innerHTML = '';
 
-    messages.forEach((msg: any) => {
+    messages.forEach((msg) => {
       const dateText = formatTicketDate(new Date(msg.createdAt));
 
       // Determine sender layout:
