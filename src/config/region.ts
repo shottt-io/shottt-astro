@@ -4,6 +4,10 @@ function getEnv(key: string): string {
   }
   try {
     switch (key) {
+      case 'PUBLIC_INFO_CHANNEL_URL':
+        return (import.meta.env.PUBLIC_INFO_CHANNEL_URL as string) || '';
+      case 'INFO_CHANNEL_URL':
+        return (import.meta.env.INFO_CHANNEL_URL as string) || '';
       case 'PUBLIC_TOTAL_FREE':
         return (import.meta.env.PUBLIC_TOTAL_FREE as string) || '';
       case 'PUBLIC_DEFAULT_LOCALE':
@@ -30,3 +34,4 @@ export const SITE_URL = getEnv('PUBLIC_SITE_URL') || '';
 export const CDN_STRATEGY = getEnv('CDN_STRATEGY') || 'none';
 export const SUPPORTED_CURRENCIES = (getEnv('PUBLIC_SUPPORTED_CURRENCIES') || '$,€').split(',').map(c => c.trim());
 export const IS_IRAN_SERVER = getEnv('PUBLIC_IS_IRAN_SERVER') === 'true';
+export const INFO_CHANNEL_URL = getEnv('PUBLIC_INFO_CHANNEL_URL') || getEnv('INFO_CHANNEL_URL') || '';
