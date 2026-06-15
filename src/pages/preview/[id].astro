@@ -267,22 +267,12 @@ const changeDesignLabel = {
           const currentTheme = changeDesignBtn.getAttribute('data-current-theme');
           const id = changeDesignBtn.getAttribute('data-preview-id');
           
-          // Filter out current values to guarantee a change
-          const otherLayouts = layouts.filter(l => l !== currentLayout);
-          const otherThemes = themes.filter(t => t !== currentTheme);
+          // Cycle layouts sequentially to guarantee a change on every click
+          const currentIndex = layouts.indexOf(currentLayout);
+          const nextLayout = layouts[currentIndex === -1 ? 0 : (currentIndex + 1) % layouts.length];
           
-          // Randomly choose whether to change layout, theme, or both
-          const changeType = Math.floor(Math.random() * 3); // 0: layout, 1: theme, 2: both
-          
-          let nextLayout = currentLayout;
-          let nextTheme = currentTheme;
-          
-          if (changeType === 0 || changeType === 2) {
-            nextLayout = otherLayouts[Math.floor(Math.random() * otherLayouts.length)];
-          }
-          if (changeType === 1 || changeType === 2) {
-            nextTheme = otherThemes[Math.floor(Math.random() * otherThemes.length)];
-          }
+          // Randomly choose dark/light theme (can be consecutive)
+          const nextTheme = themes[Math.floor(Math.random() * themes.length)];
           
           changeDesignBtn.disabled = true;
           changeDesignBtn.style.opacity = '0.7';

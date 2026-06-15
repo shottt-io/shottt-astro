@@ -8,17 +8,29 @@ interface Props {
 }
 
 const { name, type, slogan, logoIcon, logo } = Astro.props;
+const hasLogo = logo && typeof logo === 'string' && logo.trim() !== '';
+const initialLetter = (name || '').trim().substring(0, 1);
 ---
 
 <header class="brand-header">
   <div class="header-content">
     <!-- Right side: Logo & Brand Info (RTL) -->
     <div class="brand-info">
-      {logo ? (
-        <img src={logo} alt={name} class="logo-img" />
+      {hasLogo ? (
+        <>
+          <img 
+            src={logo} 
+            alt={name} 
+            class="logo-img" 
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+          />
+          <div class="logo-box" style="display: none;">
+            <span class="logo-text-fallback">{initialLetter}</span>
+          </div>
+        </>
       ) : (
         <div class="logo-box">
-          <span class="logo-text-fallback">{name.substring(0, 1)}</span>
+          <span class="logo-text-fallback">{initialLetter}</span>
         </div>
       )}
       
