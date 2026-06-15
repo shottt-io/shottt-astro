@@ -25,57 +25,64 @@ if (vendorList.length === 0) {
 
 const vendor = vendorList[0];
 
+import { checkVendorActive } from '../utils/billing';
+const billingStatus = await checkVendorActive(vendor);
+const isOffline = !billingStatus.active;
+
 import { useTranslations } from '../utils/i18n';
 const { t } = useTranslations(Astro.cookies, Astro.request, vendor.locale || undefined);
 
-// Fetch categories for this vendor sorted by sort_order (exclude inactive categories)
-const dbCategories = await db
-  .select()
-  .from(categoriesTable)
-  .where(
-    and(
-      eq(categoriesTable.vendorId, vendor.id),
-      ne(categoriesTable.status, 'inactive')
-    )
-  )
-  .orderBy(asc(categoriesTable.sortOrder));
-
-// Fetch all menu items for the categories and map to UI schema
-const categories = await Promise.all(
-  dbCategories.map(async (category) => {
-    const items = await db
-      .select()
-      .from(menuItemsTable)
-      .where(
-        and(
-          eq(menuItemsTable.categoryId, category.id),
-          ne(menuItemsTable.status, 'inactive')
-        )
+let categories: any[] = [];
+if (!isOffline) {
+  // Fetch categories for this vendor sorted by sort_order (exclude inactive categories)
+  const dbCategories = await db
+    .select()
+    .from(categoriesTable)
+    .where(
+      and(
+        eq(categoriesTable.vendorId, vendor.id),
+        ne(categoriesTable.status, 'inactive')
       )
-      .orderBy(asc(menuItemsTable.sortOrder), asc(menuItemsTable.id));
+    )
+    .orderBy(asc(categoriesTable.sortOrder));
 
-    return {
-      id: category.id.toString(),
-      name: category.name,
-      status: category.status,
-      items: items.map((item) => ({
-        id: item.id.toString(),
-        name: item.name,
-        slug: item.slug || undefined,
-        price: item.price,
-        image: item.image || undefined,
-        description: item.description || undefined,
-        discount: item.discount ? {
-          originalPrice: item.discount.originalPrice,
-          discountText: item.discount.discountText,
-        } : undefined,
-        span2: item.span2,
-        sections: item.sections,
-        status: (category.status === 'unavailable' || item.status === 'unavailable') ? 'unavailable' : item.status,
-      })),
-    };
-  })
-);
+  // Fetch all menu items for the categories and map to UI schema
+  categories = await Promise.all(
+    dbCategories.map(async (category) => {
+      const items = await db
+        .select()
+        .from(menuItemsTable)
+        .where(
+          and(
+            eq(menuItemsTable.categoryId, category.id),
+            ne(menuItemsTable.status, 'inactive')
+          )
+        )
+        .orderBy(asc(menuItemsTable.sortOrder), asc(menuItemsTable.id));
+
+      return {
+        id: category.id.toString(),
+        name: category.name,
+        status: category.status,
+        items: items.map((item) => ({
+          id: item.id.toString(),
+          name: item.name,
+          slug: item.slug || undefined,
+          price: item.price,
+          image: item.image || undefined,
+          description: item.description || undefined,
+          discount: item.discount ? {
+            originalPrice: item.discount.originalPrice,
+            discountText: item.discount.discountText,
+          } : undefined,
+          span2: item.span2,
+          sections: item.sections,
+          status: (category.status === 'unavailable' || item.status === 'unavailable') ? 'unavailable' : item.status,
+        })),
+      };
+    })
+  );
+}
 ---
 
 <Layout 
@@ -88,35 +95,50 @@ const categories = await Promise.all(
   localeOverride={vendor.locale || undefined}
 >
   <main class="menu-main-wrapper" id="page-main" data-vendor-slug={vendor.slug}>
-    <!-- Brand Info Header -->
-    <BrandHeader 
-      name={vendor.name}
-      type={vendor.type}
-      slogan={vendor.slogan}
-      logoIcon={vendor.logoIcon}
-      logo={vendor.logo}
-    />
+    {isOffline ? (
+      <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6rem 2rem; text-align: center; gap: 1.25rem;">
+        <div style="width: 4.5rem; height: 4.5rem; border-radius: 9999px; background-color: #fee2e2; display: flex; align-items: center; justify-content: center; color: #ef4444; margin-bottom: 0.5rem; animation: pulse 2s infinite;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width: 2.25rem; height: 2.25rem;">
+            <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
+            <line x1="1" y1="10" x2="23" y2="10" />
+          </svg>
+        </div>
+        <h1 style="font-size: 1.375rem; font-weight: 600; color: #171717; margin: 0;">{t('shopOffline')}</h1>
+        <p style="font-size: 0.8125rem; color: #737373; line-height: 1.6; max-width: 24rem; margin: 0;">{t('shopOfflineDesc')}</p>
+      </div>
+    ) : (
+      <>
+        <!-- Brand Info Header -->
+        <BrandHeader 
+          name={vendor.name}
+          type={vendor.type}
+          slogan={vendor.slogan}
+          logoIcon={vendor.logoIcon}
+          logo={vendor.logo}
+        />
 
-    <!-- Frosted Glass Categories Sticky Bar -->
-    <CategoryNav categories={categories} />
+        <!-- Frosted Glass Categories Sticky Bar -->
+        <CategoryNav categories={categories} />
 
-    <!-- Core Menu Items List (Pinterest Masonry, Compact List, or Card layout) -->
-    <MenuLayout 
-      categories={categories}
-      layoutMode={vendor.defaultLayout as 'pinterest' | 'simple' | 'card'}
-      vendorSlug={vendor.slug}
-      locale={vendor.locale || undefined}
-      currency={vendor.currency}
-    />
+        <!-- Core Menu Items List (Pinterest Masonry, Compact List, or Card layout) -->
+        <MenuLayout 
+          categories={categories}
+          layoutMode={vendor.defaultLayout as 'pinterest' | 'simple' | 'card'}
+          vendorSlug={vendor.slug}
+          locale={vendor.locale || undefined}
+          currency={vendor.currency}
+        />
 
-    <!-- Product Page Footer -->
-    <footer class="product-page-footer" style="animation-delay: 0.15s;">
-      <div class="footer-divider"></div>
-      <a href="/" class="footer-platform-link">
-        {t('developedWith')}
-        <img src="/logo.png" alt="shottt" class="footer-logo-img" />
-      </a>
-    </footer>
+        <!-- Product Page Footer -->
+        <footer class="product-page-footer" style="animation-delay: 0.15s;">
+          <div class="footer-divider"></div>
+          <a href="/" class="footer-platform-link">
+            {t('developedWith')}
+            <img src="/logo.png" alt="shottt" class="footer-logo-img" />
+          </a>
+        </footer>
+      </>
+    )}
   </main>
 
   <!-- Client-side Analytics Tracker Script -->

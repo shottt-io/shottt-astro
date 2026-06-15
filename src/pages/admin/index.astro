@@ -5,6 +5,7 @@ import { db } from '../../db/db';
 import { vendors as vendorsTable, vendorUsers as vendorUsersTable } from '../../db/schema';
 import { eq } from 'drizzle-orm';
 import { useTranslations, getTranslatedType } from '../../utils/i18n';
+import { checkVendorActive } from '../../utils/billing';
 import '../../styles/admin.css';
 
 // 1. Get Session
@@ -16,7 +17,7 @@ if (!session) {
 const { t, locale, dir } = useTranslations(Astro.cookies, Astro.request);
 
 // 2. Query vendors linked to this user
-const userVendors = await db
+const userVendorsList = await db
   .select({
     id: vendorsTable.id,
     name: vendorsTable.name,
@@ -24,6 +25,7 @@ const userVendors = await db
     type: vendorsTable.type,
     slogan: vendorsTable.slogan,
     logo: vendorsTable.logo,
+    createdAt: vendorsTable.createdAt,
   })
   .from(vendorUsersTable)
   .innerJoin(vendorsTable, eq(vendorUsersTable.vendorId, vendorsTable.id))
@@ -34,15 +36,30 @@ if (session.username === 'super') {
   return Astro.redirect('/admin/super');
 }
 
-if (userVendors.length === 0) {
+if (userVendorsList.length === 0) {
   // Session is stale or user has no vendor access (e.g. after database seed/reset).
   // Clear the session cookie and redirect to login.
   Astro.cookies.delete('admin_session', { path: '/' });
   return Astro.redirect('/admin/login');
 }
 
-// Redirect directly to the first available vendor panel
-return Astro.redirect(`/admin/${userVendors[0].slug}`);
+// Check billing statuses
+const userVendors = await Promise.all(
+  userVendorsList.map(async (vendor) => {
+    const billing = await checkVendorActive(vendor);
+    return {
+      ...vendor,
+      billing,
+    };
+  })
+);
+
+// Redirect directly to the first available vendor panel ONLY if it is active (no payment needed)
+// If it has pending billing, we don't automatically redirect if they have multiple vendors,
+// but since the layout blocks it, redirecting is fine. Let's redirect only if they have exactly 1 vendor.
+if (userVendors.length === 1) {
+  return Astro.redirect(`/admin/${userVendors[0].slug}`);
+}
 ---
 
 <Layout title={`${t('selectVendorToManage')} — ${t('dashboard')}`} description={t('selectVendorDesc').replace('{count}', userVendors.length.toString())}>
@@ -86,7 +103,21 @@ return Astro.redirect(`/admin/${userVendors[0].slug}`);
                 <span class="vendor-type-badge">{getTranslatedType(vendor.type, t)}</span>
               </div>
               <div class="vendor-info">
-                <h2 class="vendor-name">{vendor.name}</h2>
+                <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 0.25rem;">
+                  <h2 class="vendor-name" style="margin: 0;">{vendor.name}</h2>
+                  {!vendor.billing.active && (
+                    <span 
+                      class={`billing-badge status-${vendor.billing.status}`} 
+                      style={`font-size: 0.6875rem; padding: 0.25rem 0.65rem; border-radius: 9999px; font-weight: 500; ${
+                        vendor.billing.status === 'pending' 
+                          ? 'background-color: #fef3c7; color: #d97706;' 
+                          : 'background-color: #fee2e2; color: #b91c1c;'
+                      }`}
+                    >
+                      {vendor.billing.status === 'pending' ? t('paymentStatusPending') : vendor.billing.status === 'rejected' ? t('paymentStatusRejected') : t('paymentStatusUnpaid')}
+                    </span>
+                  )}
+                </div>
                 <p class="vendor-slogan">{vendor.slogan}</p>
                 <div class="manage-action">
                   <span>{t('enterEditPanel')}</span>

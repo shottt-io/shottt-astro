@@ -1,0 +1,15 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { useTranslations } from '../../../utils/i18n';
+
+const vendorSlug = Astro.params.vendor;
+if (!vendorSlug) {
+  return Astro.redirect('/admin');
+}
+
+const { t } = useTranslations(Astro.cookies, Astro.request);
+---
+
+<AdminLayout title={t('payments')} activeTab="billing" vendorSlug={vendorSlug}>
+  <!-- Content is rendered directly by AdminLayout when activeTab is "billing" -->
+</AdminLayout>

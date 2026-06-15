@@ -2,15 +2,16 @@
 import Layout from './Layout.astro';
 import { getSession } from '../utils/auth';
 import { db } from '../db/db';
-import { vendors as vendorsTable, vendorUsers as vendorUsersTable } from '../db/schema';
-import { eq, and } from 'drizzle-orm';
+import { vendors as vendorsTable, vendorUsers as vendorUsersTable, payments as paymentsTable } from '../db/schema';
+import { eq, and, desc } from 'drizzle-orm';
 import { useTranslations, getTranslatedType } from '../utils/i18n';
-import { INFO_CHANNEL_URL } from '../config/region';
+import { INFO_CHANNEL_URL, SUBSCRIPTION_FEE, TOTAL_FREE, PAYMENT_URL, PAYMENT_TYPE } from '../config/region';
+import { checkVendorActive, formatSubscriptionFee, formatBillingMonth, formatDateString } from '../utils/billing';
 import '../styles/admin.css';
 
 interface Props {
   title: string;
-  activeTab: 'categories' | 'products' | 'settings' | 'design' | 'analytics' | 'tickets' | 'qr' | 'config';
+  activeTab: 'categories' | 'products' | 'settings' | 'design' | 'analytics' | 'tickets' | 'qr' | 'config' | 'billing';
   vendorSlug: string;
 }
 
@@ -27,6 +28,11 @@ if (!session) {
 
 let vendor: any = null;
 let hasMultipleVendors = false;
+let billingStatus: any = null;
+let isBillingBlocked = false;
+let paymentHistoryList: any[] = [];
+let hasPendingPayment = false;
+let hasRequiredPayment = false;
 
 if (session) {
   // 2. Fetch vendor
@@ -70,6 +76,20 @@ if (session) {
       .from(vendorUsersTable)
       .where(eq(vendorUsersTable.userId, session.userId));
     hasMultipleVendors = userVendors.length > 1;
+
+    // Billing validation
+    billingStatus = await checkVendorActive(vendor);
+    isBillingBlocked = !billingStatus.active && session.username !== 'super';
+
+    // Fetch full payment history for this vendor
+    paymentHistoryList = await db
+      .select()
+      .from(paymentsTable)
+      .where(eq(paymentsTable.vendorId, vendor.id))
+      .orderBy(desc(paymentsTable.createdAt));
+
+    hasPendingPayment = paymentHistoryList.some(pay => pay.status === 'pending');
+    hasRequiredPayment = paymentHistoryList.some(pay => pay.status === 'unpaid' || pay.status === 'rejected') || isBillingBlocked;
   }
 }
 
@@ -142,117 +162,155 @@ if (session) {
       </div>
 
       <nav class="sidenav-menu">
-        <a href={`/admin/${vendorSlug}/products`} class={`sidenav-link ${activeTab === 'products' ? 'active' : ''}`}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="menu-icon-svg">
-            <polyline points="21 8 21 21 3 21 3 8" />
-            <rect x="1" y="3" width="22" height="5" />
-            <line x1="10" y1="12" x2="14" y2="12" />
-          </svg>
-          <span>{t('products')}</span>
-        </a>
-
-        <a href={`/admin/${vendorSlug}/categories`} class={`sidenav-link ${activeTab === 'categories' ? 'active' : ''}`}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="menu-icon-svg">
-            <line x1="4" y1="6" x2="20" y2="6" />
-            <line x1="4" y1="12" x2="20" y2="12" />
-            <line x1="4" y1="18" x2="20" y2="18" />
-          </svg>
-          <span>{t('categories')}</span>
-        </a>
-
-        <a href={`/admin/${vendorSlug}/analytics`} class={`sidenav-link ${activeTab === 'analytics' ? 'active' : ''}`}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="menu-icon-svg">
-            <line x1="18" y1="20" x2="18" y2="10" />
-            <line x1="12" y1="20" x2="12" y2="4" />
-            <line x1="6" y1="20" x2="6" y2="14" />
-          </svg>
-          <span>{t('analytics')}</span>
-        </a>
-
-        <a href={`/admin/${vendorSlug}/design`} class={`sidenav-link ${activeTab === 'design' ? 'active' : ''}`}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="menu-icon-svg">
-            <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 14.7255 3.09032 17.1962 4.85857 19C5.03442 19.1758 5.27581 19.2625 5.51864 19.2319L7.49842 18.9818C7.99406 18.919 8.44146 19.2274 8.56396 19.7118L9.04351 21.6067C9.09703 21.8183 9.25667 21.9868 9.46743 22.046C10.2882 22.2764 11.1396 22.3995 12 22Z" />
-            <circle cx="7.5" cy="10.5" r="1.5" fill="currentColor" />
-            <circle cx="11.5" cy="7.5" r="1.5" fill="currentColor" />
-            <circle cx="16.5" cy="9.5" r="1.5" fill="currentColor" />
-            <circle cx="15.5" cy="14.5" r="1.5" fill="currentColor" />
-          </svg>
-          <span>{t('design')}</span>
-        </a>
-
-        <a href={`/admin/${vendorSlug}/settings`} class={`sidenav-link ${activeTab === 'settings' ? 'active' : ''}`}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="menu-icon-svg">
-            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-            <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-          </svg>
-          <span>{t('editInfo')}</span>
-        </a>
-
-        <a href={`/admin/${vendorSlug}/config`} class={`sidenav-link ${activeTab === 'config' ? 'active' : ''}`}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="menu-icon-svg">
-            <circle cx="12" cy="12" r="3" />
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-          </svg>
-          <span>{t('settings')}</span>
-        </a>
-
-        <a href={`/admin/${vendorSlug}/qr`} class={`sidenav-link ${activeTab === 'qr' ? 'active' : ''}`}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="menu-icon-svg">
-            <rect x="3" y="3" width="7" height="7" />
-            <rect x="14" y="3" width="7" height="7" />
-            <rect x="3" y="14" width="7" height="7" />
-            <path d="M14 14h3v3h-3z" />
-            <path d="M21 14h-3v3h3z" />
-            <path d="M14 21h7v-4h-7z" />
-          </svg>
-          <span>{t('qrAndLink')}</span>
-        </a>
-
-        <a id="sidenav-tickets-link" href={session && session.username === 'super' ? '/admin/super/tickets' : `/admin/${vendorSlug}/tickets`} class={`sidenav-link ${activeTab === 'tickets' ? 'active' : ''}`}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="menu-icon-svg">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-          </svg>
-          <span>{t('supportTickets')}</span>
-        </a>
-
-        {INFO_CHANNEL_URL && (
-          <a href={INFO_CHANNEL_URL} target="_blank" rel="noopener noreferrer" class="sidenav-link external-link">
-            {INFO_CHANNEL_URL.includes('t.me') || INFO_CHANNEL_URL.includes('telegram') ? (
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="menu-icon-svg">
-                <line x1="22" y1="2" x2="11" y2="13"></line>
-                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-              </svg>
-            ) : INFO_CHANNEL_URL.includes('ble.ir') || INFO_CHANNEL_URL.includes('bale') ? (
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="menu-icon-svg">
-                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
-                <path d="M12 7c-1.5 0-2.5 1-2.5 2.5v2.5h2.5c1.5 0 2.5-1 2.5-2.5S13.5 7 12 7z"></path>
-                <line x1="12" y1="15" x2="12" y2="7"></line>
-              </svg>
-            ) : (
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="menu-icon-svg">
-                <path d="m3 11 18-5v12L3 14v-3z"></path>
-                <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"></path>
-              </svg>
-            )}
-            <span>{t('infoChannel')}</span>
+        {isBillingBlocked ? (
+          <a href="#" class="sidenav-link active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="menu-icon-svg">
+              <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
+              <line x1="1" y1="10" x2="23" y2="10" />
+            </svg>
+            <span>{t('paymentPanel')}</span>
+            {hasRequiredPayment ? (
+              <span style="font-size: 0.625rem; background-color: #fee2e2; color: #b91c1c; padding: 0.15rem 0.5rem; border-radius: 9999px; font-weight: 600; margin-inline-start: auto; white-space: nowrap;">
+                {locale === 'fa' ? 'نیاز به پرداخت' : (locale === 'tr' ? 'Gerekli' : 'Required')}
+              </span>
+            ) : hasPendingPayment ? (
+              <span style="font-size: 0.625rem; background-color: #fef3c7; color: #b45309; padding: 0.15rem 0.5rem; border-radius: 9999px; font-weight: 600; margin-inline-start: auto; white-space: nowrap;">
+                {locale === 'fa' ? 'در انتظار بررسی' : (locale === 'tr' ? 'Bekliyor' : 'Pending')}
+              </span>
+            ) : null}
           </a>
+        ) : (
+          <>
+            <a href={`/admin/${vendorSlug}/products`} class={`sidenav-link ${activeTab === 'products' ? 'active' : ''}`}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="menu-icon-svg">
+                <polyline points="21 8 21 21 3 21 3 8" />
+                <rect x="1" y="3" width="22" height="5" />
+                <line x1="10" y1="12" x2="14" y2="12" />
+              </svg>
+              <span>{t('products')}</span>
+            </a>
+
+            <a href={`/admin/${vendorSlug}/categories`} class={`sidenav-link ${activeTab === 'categories' ? 'active' : ''}`}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="menu-icon-svg">
+                <line x1="4" y1="6" x2="20" y2="6" />
+                <line x1="4" y1="12" x2="20" y2="12" />
+                <line x1="4" y1="18" x2="20" y2="18" />
+              </svg>
+              <span>{t('categories')}</span>
+            </a>
+
+            <a href={`/admin/${vendorSlug}/analytics`} class={`sidenav-link ${activeTab === 'analytics' ? 'active' : ''}`}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="menu-icon-svg">
+                <line x1="18" y1="20" x2="18" y2="10" />
+                <line x1="12" y1="20" x2="12" y2="4" />
+                <line x1="6" y1="20" x2="6" y2="14" />
+              </svg>
+              <span>{t('analytics')}</span>
+            </a>
+
+            <a href={`/admin/${vendorSlug}/design`} class={`sidenav-link ${activeTab === 'design' ? 'active' : ''}`}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="menu-icon-svg">
+                <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 14.7255 3.09032 17.1962 4.85857 19C5.03442 19.1758 5.27581 19.2625 5.51864 19.2319L7.49842 18.9818C7.99406 18.919 8.44146 19.2274 8.56396 19.7118L9.04351 21.6067C9.09703 21.8183 9.25667 21.9868 9.46743 22.046C10.2882 22.2764 11.1396 22.3995 12 22Z" />
+                <circle cx="7.5" cy="10.5" r="1.5" fill="currentColor" />
+                <circle cx="11.5" cy="7.5" r="1.5" fill="currentColor" />
+                <circle cx="16.5" cy="9.5" r="1.5" fill="currentColor" />
+                <circle cx="15.5" cy="14.5" r="1.5" fill="currentColor" />
+              </svg>
+              <span>{t('design')}</span>
+            </a>
+
+            <a href={`/admin/${vendorSlug}/settings`} class={`sidenav-link ${activeTab === 'settings' ? 'active' : ''}`}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="menu-icon-svg">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+              </svg>
+              <span>{t('editInfo')}</span>
+            </a>
+
+            <a href={`/admin/${vendorSlug}/config`} class={`sidenav-link ${activeTab === 'config' ? 'active' : ''}`}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="menu-icon-svg">
+                <circle cx="12" cy="12" r="3" />
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+              </svg>
+              <span>{t('settings')}</span>
+            </a>
+
+            <a href={`/admin/${vendorSlug}/qr`} class={`sidenav-link ${activeTab === 'qr' ? 'active' : ''}`}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="menu-icon-svg">
+                <rect x="3" y="3" width="7" height="7" />
+                <rect x="14" y="3" width="7" height="7" />
+                <rect x="3" y="14" width="7" height="7" />
+                <path d="M14 14h3v3h-3z" />
+                <path d="M21 14h-3v3h3z" />
+                <path d="M14 21h7v-4h-7z" />
+              </svg>
+              <span>{t('qrAndLink')}</span>
+            </a>
+
+            <a id="sidenav-tickets-link" href={session && session.username === 'super' ? '/admin/super/tickets' : `/admin/${vendorSlug}/tickets`} class={`sidenav-link ${activeTab === 'tickets' ? 'active' : ''}`}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="menu-icon-svg">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+              </svg>
+              <span>{t('supportTickets')}</span>
+            </a>
+
+            {!TOTAL_FREE && (
+              <a href={`/admin/${vendorSlug}/billing`} class={`sidenav-link ${activeTab === 'billing' ? 'active' : ''}`}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="menu-icon-svg">
+                  <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
+                  <line x1="1" y1="10" x2="23" y2="10" />
+                </svg>
+                <span>{t('payments')}</span>
+                {hasRequiredPayment ? (
+                  <span style="font-size: 0.625rem; background-color: #fee2e2; color: #b91c1c; padding: 0.15rem 0.5rem; border-radius: 9999px; font-weight: 600; margin-inline-start: auto; white-space: nowrap;">
+                    {locale === 'fa' ? 'نیاز به پرداخت' : (locale === 'tr' ? 'Gerekli' : 'Required')}
+                  </span>
+                ) : hasPendingPayment ? (
+                  <span style="font-size: 0.625rem; background-color: #fef3c7; color: #b45309; padding: 0.15rem 0.5rem; border-radius: 9999px; font-weight: 600; margin-inline-start: auto; white-space: nowrap;">
+                    {locale === 'fa' ? 'در انتظار بررسی' : (locale === 'tr' ? 'Bekliyor' : 'Pending')}
+                  </span>
+                ) : null}
+              </a>
+            )}
+
+            {INFO_CHANNEL_URL && (
+              <a href={INFO_CHANNEL_URL} target="_blank" rel="noopener noreferrer" class="sidenav-link external-link">
+                {INFO_CHANNEL_URL.includes('t.me') || INFO_CHANNEL_URL.includes('telegram') ? (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="menu-icon-svg">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                  </svg>
+                ) : INFO_CHANNEL_URL.includes('ble.ir') || INFO_CHANNEL_URL.includes('bale') ? (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="menu-icon-svg">
+                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                    <path d="M12 7c-1.5 0-2.5 1-2.5 2.5v2.5h2.5c1.5 0 2.5-1 2.5-2.5S13.5 7 12 7z"></path>
+                    <line x1="12" y1="15" x2="12" y2="7"></line>
+                  </svg>
+                ) : (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="menu-icon-svg">
+                    <path d="m3 11 18-5v12L3 14v-3z"></path>
+                    <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"></path>
+                  </svg>
+                )}
+                <span>{t('infoChannel')}</span>
+              </a>
+            )}
+
+            <div class="menu-divider"></div>
+
+            <a href={`/${vendorSlug}`} target="_blank" class="sidenav-link external-link">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="menu-icon-svg text-gray">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                <polyline points="15 3 21 3 21 9" />
+                <line x1="10" y1="14" x2="21" y2="3" />
+              </svg>
+              <span>{t('viewLiveCatalog')}</span>
+            </a>
+          </>
         )}
-
-        <div class="menu-divider"></div>
-
-        <a href={`/${vendorSlug}`} target="_blank" class="sidenav-link external-link">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="menu-icon-svg text-gray">
-            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-            <polyline points="15 3 21 3 21 9" />
-            <line x1="10" y1="14" x2="21" y2="3" />
-          </svg>
-          <span>{t('viewLiveCatalog')}</span>
-        </a>
       </nav>
 
       <div class="sidenav-footer">
-
-
         {session.username === 'super' && (
           <a href="/admin/super" class="sidenav-footer-link" style="color: #9f1239; font-weight: 500;">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="footer-icon-svg" style="color: #9f1239;">
@@ -298,7 +356,198 @@ if (session) {
 
     <!-- Main Workspace Content Area -->
     <div class="admin-workspace">
-      <slot />
+      {isBillingBlocked && activeTab !== 'billing' ? (
+        <!-- Blocked View for other pages -->
+        <div style="max-width: 32rem; margin: 4rem auto; padding: 0 1.5rem; width: 100%;">
+          <div class="admin-card" style="padding: 2.5rem; border-radius: 1.5rem; background: #ffffff; border: 1px solid #e5e5e5; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); display: flex; flex-direction: column; align-items: center; text-align: center; gap: 1.5rem;">
+            <div style="width: 3.5rem; height: 3.5rem; border-radius: 9999px; background-color: #fef2f2; display: flex; align-items: center; justify-content: center; color: #ef4444;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width: 1.75rem; height: 1.75rem;">
+                <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
+                <line x1="1" y1="10" x2="23" y2="10" />
+              </svg>
+            </div>
+            <h1 style="font-size: 1.25rem; font-weight: 600; color: #171717; margin: 0;">{t('paymentRequired')}</h1>
+            <p style="font-size: 0.875rem; color: #64748b; line-height: 1.6; margin: 0;">
+              {locale === 'fa' 
+                ? 'به دلیل عدم پرداخت هزینه اشتراک ماهانه، دسترسی شما به پنل موقتاً مسدود شده است. لطفاً هزینه اشتراک را پرداخت نمایید.' 
+                : (locale === 'tr' 
+                    ? 'Abonelik ücretinin ödenmemesi nedeniyle panel erişiminiz geçici olarak engellenmiştir. Lütfen abonelik ücretini ödeyin.'
+                    : 'Due to unpaid monthly subscription, your panel access is temporarily blocked. Please pay the subscription fee to continue.')}
+            </p>
+            <a href={`/admin/${vendorSlug}/billing`} class="btn btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; height: 2.75rem; width: 100%; border-radius: 0.75rem; font-weight: 600;">
+              {t('payments')}
+            </a>
+          </div>
+        </div>
+      ) : activeTab === 'billing' ? (
+        <!-- Redesigned Billing Page (Table View) -->
+        <div style="width: 100%; display: flex; flex-direction: column; gap: 1.5rem;">
+          <!-- Page Header -->
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <h1 style="font-size: 1.5rem; font-weight: 700; color: #0f172a; margin: 0;">{t('payments')}</h1>
+            
+            <!-- Standard Status Badge -->
+            <div class="billing-status-badge">
+              {!isBillingBlocked ? (
+                <div class="badge-status active">
+                  <span>{locale === 'fa' ? 'وضعیت سیستم: فعال' : (locale === 'tr' ? 'Sistem Durumu: Aktif' : 'System Status: Active')}</span>
+                </div>
+              ) : (
+                <div class="badge-status blocked">
+                  <span>{locale === 'fa' ? 'وضعیت سیستم: مسدود شده' : (locale === 'tr' ? 'Sistem Durumu: Engellendi' : 'System Status: Blocked')}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <!-- Table Container -->
+          <div class="invoices-table-container">
+            {paymentHistoryList.length === 0 ? (
+              <div style="padding: 3rem; text-align: center; color: #64748b; display: flex; flex-direction: column; align-items: center; gap: 1rem;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width: 3rem; height: 3rem; color: #94a3b8;">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M12 8v4" />
+                  <path d="M12 16h.01" />
+                </svg>
+                <p style="font-size: 0.95rem; font-weight: 500; margin: 0;">
+                  {locale === 'fa' 
+                    ? 'هیچ فاکتور پرداختی وجود ندارد. وضعیت سیستم فعال است.' 
+                    : (locale === 'tr'
+                        ? 'Herhangi bir ödeme faturası bulunamadı. Sistem durumu aktif.'
+                        : 'No payment invoices found. System status is active.')}
+                </p>
+              </div>
+            ) : (
+              <div style="overflow-x: auto;">
+                <table class="invoices-table">
+                  <thead>
+                    <tr>
+                      <th style="text-align: right;">{t('month')}</th>
+                      <th style="text-align: right;">{t('subscriptionFee')}</th>
+                      <th style="text-align: right;">{t('paymentDate')}</th>
+                      <th style="text-align: right;">{t('paymentStatus')}</th>
+                      <th style="text-align: center;">{locale === 'fa' ? 'عملیات' : (locale === 'tr' ? 'İşlem' : 'Action')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paymentHistoryList.map((pay) => (
+                      <tr>
+                        <td style="font-weight: 600;">{formatBillingMonth(pay.month, locale)}</td>
+                        <td style="font-weight: 600;">{formatSubscriptionFee(SUBSCRIPTION_FEE, locale) || '—'}</td>
+                        <td style="font-family: monospace;">{formatDateString(pay.paidAt)}</td>
+                        <td>
+                          <span 
+                            style={`font-size: 0.6875rem; padding: 0.2rem 0.5rem; border-radius: 9999px; font-weight: 500; display: inline-block; ${
+                              pay.status === 'approved' 
+                                ? 'background-color: #dcfce7; color: #15803d;' 
+                                : pay.status === 'pending'
+                                ? 'background-color: #fef3c7; color: #b45309;'
+                                : 'background-color: #fee2e2; color: #b91c1c;'
+                            }`}
+                          >
+                            {pay.status === 'approved' ? t('paymentStatusPaid') :
+                             pay.status === 'pending' ? t('paymentStatusPending') :
+                             pay.status === 'rejected' ? t('paymentStatusRejected') :
+                             t('paymentStatusUnpaid')}
+                          </span>
+                        </td>
+                        <td style="text-align: center;">
+                          {pay.status === 'approved' ? (
+                            <span style="color: #10b981; font-weight: 600; font-size: 0.875rem; display: inline-flex; align-items: center; gap: 0.25rem; justify-content: center;">
+                              ✓ {locale === 'fa' ? 'تایید شده' : (locale === 'tr' ? 'Tamamlandı' : 'Approved')}
+                            </span>
+                          ) : pay.status === 'pending' ? (
+                            <button type="button" class="btn btn-secondary btn-sm btn-trigger-payment-modal" data-month={pay.month} data-hash={pay.hash} data-date={formatDateString(pay.paidAt)}>
+                              {t('resubmitHash')}
+                            </button>
+                          ) : (
+                            <button type="button" class="btn btn-primary btn-sm btn-trigger-payment-modal" data-month={pay.month} data-hash={pay.hash} data-date={formatDateString(pay.paidAt)}>
+                              {locale === 'fa' ? 'پرداخت' : (locale === 'tr' ? 'Öde' : 'Pay')}
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          <!-- Standard Payment Modal Overlay -->
+          <div id="payment-modal-overlay" class="modal-overlay" style="display: none;">
+            <div class="modal-content">
+              <div class="modal-header">
+                <span class="modal-title">{locale === 'fa' ? 'پرداخت حق اشتراک' : (locale === 'tr' ? 'Abonelik Ödemesi' : 'Subscription Payment')}</span>
+                <button type="button" class="modal-close" id="btn-close-payment-modal">✕</button>
+              </div>
+
+              <form id="payment-hash-form" data-vendor-slug={vendor.slug} data-vendor-name={vendor.name} data-payment-url={PAYMENT_URL} data-subscription-fee={SUBSCRIPTION_FEE}>
+                <input type="hidden" name="month" id="input-payment-month" />
+                <div class="modal-body">
+                  <!-- Online Payment Redirection Button -->
+                  <div style="margin-bottom: 1.25rem;">
+                    <a 
+                      href={`${PAYMENT_URL}?description=${encodeURIComponent(vendor.name + ' shottt subscription')}&amount=${SUBSCRIPTION_FEE || '10'}`}
+                      target="_blank" 
+                      class="btn btn-secondary" 
+                      style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; text-decoration: none; font-weight: 600; width: 100%; height: 3rem; border-radius: 0.75rem;"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 1.25rem; height: 1.25rem;">
+                        <rect x="2" y="5" width="20" height="14" rx="2" ry="2"/>
+                        <line x1="2" y1="10" x2="22" y2="10"/>
+                      </svg>
+                      <span>{locale === 'fa' ? `پرداخت آنلاین (درگاه ${PAYMENT_TYPE})` : (locale === 'tr' ? `Online Ödeme (${PAYMENT_TYPE})` : `Online Payment (${PAYMENT_TYPE})`)}</span>
+                    </a>
+                  </div>
+
+                  <!-- Instruction message -->
+                  <p style="font-size: 0.8125rem; color: #525252; line-height: 1.6; margin: 0 0 1rem 0; text-align: justify;">
+                    {t('paymentDesc')}
+                  </p>
+
+                  <div id="payment-error-banner" class="error-banner" style="display: none; margin-bottom: 1rem;"></div>
+                  
+                  <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label">{t('paymentDate')}</label>
+                    <input 
+                      type="date" 
+                      name="paidAt" 
+                      id="input-payment-date"
+                      class="form-input" 
+                      required 
+                    />
+                  </div>
+
+                  <div style="margin-bottom: 0.5rem; display: flex; flex-direction: row; align-items: center; justify-content: flex-start; gap: 0.5rem; user-select: none;">
+                    <input 
+                      type="checkbox" 
+                      id="checkbox-payment-confirm" 
+                      required 
+                      style="width: 1.125rem; height: 1.125rem; cursor: pointer; margin: 0; flex-shrink: 0;"
+                    />
+                    <label for="checkbox-payment-confirm" style="font-size: 0.8125rem; color: #1e293b; font-weight: 500; cursor: pointer; margin: 0; text-align: start; line-height: 1.2;">
+                      {locale === 'fa' ? 'تایید می‌کنم که پرداخت را انجام داده‌ام' : (locale === 'tr' ? 'Ödemeyi yaptığımı onaylıyorum' : 'I confirm that I have made the payment')}
+                    </label>
+                  </div>
+                </div>
+                
+                <div class="modal-footer">
+                  <button type="submit" class="btn btn-primary btn-full" id="btn-submit-payment-hash">
+                    <span>{t('submitPaymentHash')}</span>
+                    <svg id="payment-submit-spinner" class="spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none; width: 0.875rem; height: 0.875rem; margin-inline-start: 0.5rem; animation: rotate 1.5s linear infinite;">
+                      <circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle>
+                      <path d="M4 12a8 8 0 0 1 8-8"></path>
+                    </svg>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <slot />
+      )}
     </div>
   </div>
 
@@ -532,5 +781,269 @@ if (session) {
   button, input, select, textarea {
     font-family: 'Estedad', sans-serif !important;
   }
+  
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  /* Custom Billing Styling aligned with Design System Guidelines */
+  .badge-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+  }
+  .badge-status.active {
+    background-color: #dcfce7;
+    color: #15803d;
+  }
+  .badge-status.blocked {
+    background-color: #fee2e2;
+    color: #b91c1c;
+  }
+
+  .invoices-table-container {
+    width: 100%;
+    overflow-x: auto;
+    background: #ffffff;
+    border: 1px solid #e5e5e5;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.01);
+    margin-top: 1.5rem;
+  }
+
+  .invoices-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: right;
+  }
+
+  .invoices-table th, 
+  .invoices-table td {
+    padding: 0.875rem 1rem;
+    font-size: 0.8125rem;
+    border-bottom: 1px solid #e5e5e5;
+    vertical-align: middle;
+  }
+
+  .invoices-table th {
+    background-color: #fafafa;
+    color: #525252;
+    font-weight: 600;
+    user-select: none;
+    border-bottom: 2px solid #e5e5e5;
+  }
+
+  .invoices-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .invoices-table tr:hover td {
+    background-color: #fafafa;
+  }
+  
+  .btn-sm {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.75rem;
+    border-radius: 0.5rem;
+  }
+  
+  .bank-details-card {
+    background: #171717;
+    color: #ffffff;
+    padding: 1.25rem;
+    border-radius: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    position: relative;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border: 1px solid #262626;
+  }
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .card-chip {
+    width: 2rem;
+    height: 1.5rem;
+    background: linear-gradient(135deg, #cbd5e1, #64748b);
+    border-radius: 0.25rem;
+  }
+  .card-bank-name {
+    font-size: 0.85rem;
+    font-weight: 700;
+    opacity: 0.9;
+  }
+  .card-number-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .card-number {
+    font-size: 1.1rem;
+    font-weight: 700;
+    font-family: monospace;
+    letter-spacing: 0.08em;
+    direction: ltr;
+  }
+  .card-holder-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    font-size: 0.75rem;
+    border-top: 1px dashed rgba(255, 255, 255, 0.15);
+    padding-top: 0.75rem;
+  }
+  .card-holder-name {
+    font-weight: 600;
+    font-size: 0.8rem;
+    opacity: 0.95;
+  }
+  .card-fee-badge {
+    background-color: rgba(255, 255, 255, 0.15);
+    padding: 0.2rem 0.6rem;
+    border-radius: 0.375rem;
+    font-weight: 700;
+    font-size: 0.8rem;
+  }
 </style>
+
+<script>
+  // Copy to clipboard logic
+  const copyBtns = document.querySelectorAll('.btn-copy-card');
+  copyBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const textToCopy = btn.getAttribute('data-copy');
+      if (textToCopy) {
+        navigator.clipboard.writeText(textToCopy).then(() => {
+          const originalText = btn.textContent;
+          btn.textContent = btn.getAttribute('data-copied-text') || 'Copied! ✓';
+          btn.classList.add('copied');
+          setTimeout(() => {
+            btn.textContent = originalText;
+            btn.classList.remove('copied');
+          }, 2000);
+        }).catch(() => {
+          const lang = document.documentElement.lang || 'fa';
+          const copyErrorMsg = lang === 'fa' ? 'کپی ناموفق بود. لطفاً کد را دستی کپی کنید.' : (lang === 'tr' ? 'Kopyalama başarısız oldu.' : 'Copy failed. Please copy manually.');
+          window.showAlertDialog(copyErrorMsg, { type: 'error' });
+        });
+      }
+    });
+  });
+
+  // Submit payment hash
+  const paymentForm = document.getElementById('payment-hash-form');
+  const paymentSubmitBtn = document.getElementById('btn-submit-payment-hash') as HTMLButtonElement;
+  const paymentErrorBanner = document.getElementById('payment-error-banner');
+  const paymentSpinner = document.getElementById('payment-submit-spinner');
+
+  paymentForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (paymentErrorBanner) paymentErrorBanner.style.display = 'none';
+    if (paymentSubmitBtn) paymentSubmitBtn.disabled = true;
+    if (paymentSpinner) paymentSpinner.style.display = 'inline-block';
+
+    const formData = new FormData(paymentForm as HTMLFormElement);
+    const hash = 'bunq';
+    const paidAt = formData.get('paidAt')?.toString().trim();
+    const month = formData.get('month')?.toString().trim();
+    const vendorSlug = paymentForm.getAttribute('data-vendor-slug');
+
+    try {
+      const response = await fetch('/api/vendor/submit-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ hash, paidAt, vendorSlug, month }),
+      });
+
+      const data = await response.json();
+      if (response.ok && data.success) {
+        window.location.reload();
+      } else {
+        throw new Error(data.message || 'Error saving payment hash');
+      }
+    } catch (err: any) {
+      if (paymentErrorBanner) {
+        paymentErrorBanner.textContent = err.message || 'Error occurred';
+        paymentErrorBanner.style.display = 'block';
+      }
+      if (paymentSubmitBtn) paymentSubmitBtn.disabled = false;
+      if (paymentSpinner) paymentSpinner.style.display = 'none';
+    }
+  });
+
+  // Toggle payment modal
+  const paymentModalOverlay = document.getElementById('payment-modal-overlay');
+  const closePaymentModalBtn = document.getElementById('btn-close-payment-modal');
+  const triggerModalBtns = document.querySelectorAll('.btn-trigger-payment-modal');
+  const inputPaymentDate = document.getElementById('input-payment-date') as HTMLInputElement;
+  const inputPaymentMonth = document.getElementById('input-payment-month') as HTMLInputElement;
+
+  function openPaymentModal(month: string, existingHash: string, existingDate: string) {
+    if (inputPaymentMonth) {
+      inputPaymentMonth.value = month || '';
+    }
+    const checkboxConfirm = document.getElementById('checkbox-payment-confirm') as HTMLInputElement;
+    if (checkboxConfirm) {
+      checkboxConfirm.checked = false;
+    }
+    if (inputPaymentDate) {
+      const localDate = new Date();
+      const yyyy = localDate.getFullYear();
+      const mm = String(localDate.getMonth() + 1).padStart(2, '0');
+      const dd = String(localDate.getDate()).padStart(2, '0');
+      const todayLocal = `${yyyy}-${mm}-${dd}`;
+      
+      inputPaymentDate.value = (existingDate && existingDate !== '—') 
+        ? existingDate 
+        : todayLocal;
+    }
+    if (paymentErrorBanner) paymentErrorBanner.style.display = 'none';
+    if (paymentModalOverlay) {
+      paymentModalOverlay.style.display = 'flex';
+    }
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closePaymentModal() {
+    if (paymentModalOverlay) {
+      paymentModalOverlay.style.display = 'none';
+    }
+    document.body.style.overflow = '';
+  }
+
+  triggerModalBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const month = btn.getAttribute('data-month') || '';
+      const hash = btn.getAttribute('data-hash') || '';
+      const date = btn.getAttribute('data-date') || '';
+      
+      // Open payment link in a new tab
+      const vendorName = paymentForm?.getAttribute('data-vendor-name') || '';
+      const paymentUrl = paymentForm?.getAttribute('data-payment-url') || '';
+      const fee = paymentForm?.getAttribute('data-subscription-fee') || '10';
+      if (paymentUrl) {
+        const url = `${paymentUrl}?description=${encodeURIComponent(vendorName + ' shottt subscription')}&amount=${fee}`;
+        window.open(url, '_blank');
+      }
+
+      openPaymentModal(month, hash, date);
+    });
+  });
+
+  closePaymentModalBtn?.addEventListener('click', closePaymentModal);
+  paymentModalOverlay?.addEventListener('click', (e) => {
+    if (e.target === paymentModalOverlay) {
+      closePaymentModal();
+    }
+  });
+</script>
 

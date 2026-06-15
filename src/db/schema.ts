@@ -124,4 +124,17 @@ export const tickets = pgTable('tickets', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 });
 
+// 11. Payments Table
+export const payments = pgTable('payments', {
+  id: serial('id').primaryKey(),
+  vendorId: integer('vendor_id').references(() => vendors.id, { onDelete: 'cascade' }).notNull(),
+  month: varchar('month', { length: 7 }).notNull(), // format YYYY-MM
+  status: varchar('status', { length: 50 }).default('unpaid').notNull(), // 'unpaid', 'pending', 'approved', 'rejected'
+  hash: varchar('hash', { length: 255 }).default('').notNull(),
+  paidAt: timestamp('paid_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+
 

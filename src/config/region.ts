@@ -20,6 +20,13 @@ function getEnv(key: string): string {
         return (import.meta.env.PUBLIC_SUPPORTED_CURRENCIES as string) || '';
       case 'PUBLIC_IS_IRAN_SERVER':
         return (import.meta.env.PUBLIC_IS_IRAN_SERVER as string) || '';
+
+      case 'PUBLIC_SUBSCRIPTION_FEE':
+        return (import.meta.env.PUBLIC_SUBSCRIPTION_FEE as string) || '';
+      case 'PUBLIC_PAYMENT_URL':
+        return (import.meta.env.PUBLIC_PAYMENT_URL as string) || '';
+      case 'PUBLIC_PAYMENT_TYPE':
+        return (import.meta.env.PUBLIC_PAYMENT_TYPE as string) || '';
       default:
         return (import.meta.env[key] as string) || '';
     }
@@ -35,3 +42,8 @@ export const CDN_STRATEGY = getEnv('CDN_STRATEGY') || 'none';
 export const SUPPORTED_CURRENCIES = (getEnv('PUBLIC_SUPPORTED_CURRENCIES') || '$,€').split(',').map(c => c.trim());
 export const IS_IRAN_SERVER = getEnv('PUBLIC_IS_IRAN_SERVER') === 'true';
 export const INFO_CHANNEL_URL = getEnv('PUBLIC_INFO_CHANNEL_URL') || getEnv('INFO_CHANNEL_URL') || '';
+
+export const SUBSCRIPTION_FEE = getEnv('PUBLIC_SUBSCRIPTION_FEE');
+export const PAYMENT_URL = getEnv('PUBLIC_PAYMENT_URL') || '';
+export const PAYMENT_TYPE = getEnv('PUBLIC_PAYMENT_TYPE') || '';
+

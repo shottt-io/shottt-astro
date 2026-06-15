@@ -3,7 +3,9 @@ import { db } from '../../db/db';
 import { vendors as vendorsTable } from '../../db/schema';
 import { sql } from 'drizzle-orm';
 import { getLocale, useTranslations } from '../../utils/i18n';
-import { IS_IRAN_SERVER } from '../../config/region';
+import { IS_IRAN_SERVER, TOTAL_FREE, SUBSCRIPTION_FEE } from '../../config/region';
+import { formatSubscriptionFee } from '../../utils/billing';
+
 
 const enableConvertPaper = import.meta.env.ENABLE_CONVERT_PAPER === 'true' || process.env.ENABLE_CONVERT_PAPER === 'true';
 
@@ -236,96 +238,216 @@ const t = homeTranslations[currentLocale as Locale] || homeTranslations['en'];
       <h2 class="pricing-title">{t.pricingTitle}</h2>
       <p class="pricing-subtitle">{t.pricingSubtitle}</p>
       
-      <!-- Billing Switcher -->
-      <div class="billing-toggle-container">
-        <span class="toggle-label" id="label-monthly">{t.monthly}</span>
-        <button class="billing-toggle" id="billing-toggle" aria-label="Toggle billing period">
-          <span class="toggle-slider"></span>
-        </button>
-        <span class="toggle-label" id="label-yearly">{t.yearly}</span>
-        <span class="save-badge">{t.save2Months}</span>
-      </div>
+      {TOTAL_FREE ? (
+        <!-- Billing Switcher -->
+        <div class="billing-toggle-container">
+          <span class="toggle-label" id="label-monthly">{t.monthly}</span>
+          <button class="billing-toggle" id="billing-toggle" aria-label="Toggle billing period">
+            <span class="toggle-slider"></span>
+          </button>
+          <span class="toggle-label" id="label-yearly">{t.yearly}</span>
+          <span class="save-badge">{t.save2Months}</span>
+        </div>
+      ) : (
+        <!-- Trial Badge -->
+        <div class="trial-badge-container" style="margin-top: 1rem; display: flex; justify-content: center;">
+          <span class="trial-badge" style="padding: 0.5rem 1.25rem; background: rgba(24, 24, 27, 0.05); border: 1px solid #e4e4e7; border-radius: 9999px; font-size: 0.8125rem; font-weight: 500; color: #18181b;">
+            ✨ {currentLocale === 'fa' ? 'ماه اول رایگان / شروع بدون نیاز به پرداخت' : currentLocale === 'tr' ? 'İlk ay ücretsiz / Ödemesiz başlangıç' : 'First calendar month free / No payment needed to start'}
+          </span>
+        </div>
+      )}
     </div>
 
     <!-- Pricing Cards Grid -->
     <div class="pricing-grid">
-      <!-- Free Plan -->
-      <div class="pricing-card card-glass">
-        <div class="card-header">
-          <h3 class="plan-name">{t.freeTitle}</h3>
-          <p class="plan-desc">{t.freeDesc}</p>
-          <div class="price-wrap">
-            <span class="price-value">{t.freePrice}</span>
+      {TOTAL_FREE ? (
+        <>
+          <!-- Free Plan -->
+          <div class="pricing-card card-glass">
+            <div class="card-header">
+              <h3 class="plan-name">{t.freeTitle}</h3>
+              <p class="plan-desc">{t.freeDesc}</p>
+              <div class="price-wrap">
+                <span class="price-value">{t.freePrice}</span>
+              </div>
+            </div>
+            <ul class="features-list">
+              <li>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="check-icon">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span>{t.freeFeature1}</span>
+              </li>
+              <li>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="check-icon">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span>{t.freeFeature2}</span>
+              </li>
+              <li>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="check-icon">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span>{t.freeFeature3}</span>
+              </li>
+              <li>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="check-icon">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span>{t.freeFeature4}</span>
+              </li>
+            </ul>
+            <a href="/admin/register" class="pricing-btn-action secondary-pricing-btn">{t.pricingBtn}</a>
           </div>
-        </div>
-        <ul class="features-list">
-          <li>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="check-icon">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-            <span>{t.freeFeature1}</span>
-          </li>
-          <li>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="check-icon">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-            <span>{t.freeFeature2}</span>
-          </li>
-          <li>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="check-icon">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-            <span>{t.freeFeature3}</span>
-          </li>
-          <li>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="check-icon">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-            <span>{t.freeFeature4}</span>
-          </li>
-        </ul>
-        <a href="/admin/register" class="pricing-btn-action secondary-pricing-btn">{t.pricingBtn}</a>
-      </div>
 
-      <!-- Paid Plan -->
-      <div class="pricing-card card-premium">
-        <div class="premium-badge">Popular</div>
-        <div class="card-header">
-          <h3 class="plan-name">{t.paidTitle}</h3>
-          <p class="plan-desc" style="color: rgba(255,255,255,0.7);">{t.paidDesc}</p>
-          <div class="price-wrap">
-            <span class="price-value" id="paid-price">{t.paidPriceMo}</span>
-            <span class="price-period" id="paid-period">/ {t.paidPeriodMo}</span>
+          <!-- Paid Plan -->
+          <div class="pricing-card card-premium">
+            <div class="premium-badge">Popular</div>
+            <div class="card-header">
+              <h3 class="plan-name">{t.paidTitle}</h3>
+              <p class="plan-desc" style="color: rgba(255,255,255,0.7);">{t.paidDesc}</p>
+              <div class="price-wrap">
+                <span class="price-value" id="paid-price">{t.paidPriceMo}</span>
+                <span class="price-period" id="paid-period">/ {t.paidPeriodMo}</span>
+              </div>
+            </div>
+            <ul class="features-list premium-list">
+              <li>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="check-icon">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span>{t.paidFeature1}</span>
+              </li>
+              <li>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="check-icon">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span>{t.paidFeature2}</span>
+              </li>
+              <li>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="check-icon">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span>{t.paidFeature3}</span>
+              </li>
+              <li>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="check-icon">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span>{t.paidFeature4}</span>
+              </li>
+            </ul>
+            <a href="/admin/register" class="pricing-btn-action primary-pricing-btn">{t.pricingBtn}</a>
           </div>
-        </div>
-        <ul class="features-list premium-list">
-          <li>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="check-icon">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-            <span>{t.paidFeature1}</span>
-          </li>
-          <li>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="check-icon">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-            <span>{t.paidFeature2}</span>
-          </li>
-          <li>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="check-icon">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-            <span>{t.paidFeature3}</span>
-          </li>
-          <li>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="check-icon">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-            <span>{t.paidFeature4}</span>
-          </li>
-        </ul>
-        <a href="/admin/register" class="pricing-btn-action primary-pricing-btn">{t.pricingBtn}</a>
-      </div>
+        </>
+      ) : (
+        <>
+          <!-- Trial Plan -->
+          <div class="pricing-card card-glass">
+            <div class="card-header">
+              <h3 class="plan-name">
+                {currentLocale === 'fa' ? 'شروع رایگان' : currentLocale === 'tr' ? 'Ücretsiz Deneme' : 'Trial Period'}
+              </h3>
+              <p class="plan-desc">
+                {currentLocale === 'fa' ? 'ثبت‌نام و ماه اول میلادی رایگان' : currentLocale === 'tr' ? 'Kayıt ve ilk takvim ayı ücretsiz' : 'Registration & first calendar month free'}
+              </p>
+              <div class="price-wrap">
+                <span class="price-value">
+                  {currentLocale === 'fa' ? 'رایگان' : currentLocale === 'tr' ? 'Ücretsiz' : 'Free'}
+                </span>
+              </div>
+            </div>
+            <ul class="features-list">
+              <li>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="check-icon">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span>
+                  {currentLocale === 'fa' ? 'اولین ماه میلادی کاملاً رایگان' : currentLocale === 'tr' ? 'İlk takvim ayı tamamen ücretsiz' : 'First calendar month completely free'}
+                </span>
+              </li>
+              <li>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="check-icon">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span>
+                  {currentLocale === 'fa' ? 'بدون نیاز به ثبت کارت برای شروع' : currentLocale === 'tr' ? 'Başlamak için kart veya ödeme gerekmez' : 'No credit card or payment needed to start'}
+                </span>
+              </li>
+              <li>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="check-icon">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span>
+                  {currentLocale === 'fa' ? 'کاتالوگ و منوی دیجیتال زیبا' : currentLocale === 'tr' ? 'Harika dijital menü ve katalog' : 'Beautiful digital menu & catalog'}
+                </span>
+              </li>
+              <li>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="check-icon">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span>
+                  {currentLocale === 'fa' ? 'کد QR اختصاصی و آنی' : currentLocale === 'tr' ? 'Anında QR kod' : 'Instant QR code'}
+                </span>
+              </li>
+            </ul>
+            <a href="/admin/register" class="pricing-btn-action secondary-pricing-btn">{t.pricingBtn}</a>
+          </div>
+
+          <!-- Monthly Subscription Plan -->
+          <div class="pricing-card card-premium">
+            <div class="premium-badge">Popular</div>
+            <div class="card-header">
+              <h3 class="plan-name">
+                {currentLocale === 'fa' ? 'اشتراک ماهانه' : currentLocale === 'tr' ? 'Aylık Abonelik' : 'Monthly Subscription'}
+              </h3>
+              <p class="plan-desc" style="color: rgba(255,255,255,0.7);">
+                {currentLocale === 'fa' ? 'فعال نگه‌داشتن کاتالوگ شما' : currentLocale === 'tr' ? 'Kataloğunuzu aktif tutun' : 'Keep your digital catalog active'}
+              </p>
+              <div class="price-wrap">
+                <span class="price-value" style="font-size: 2.25rem;">
+                  {formatSubscriptionFee(SUBSCRIPTION_FEE, currentLocale)}
+                </span>
+              </div>
+            </div>
+            <ul class="features-list premium-list">
+              <li>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="check-icon">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span>
+                  {currentLocale === 'fa' ? 'محصولات نامحدود' : currentLocale === 'tr' ? 'Sınırsız ürün' : 'Unlimited products'}
+                </span>
+              </li>
+              <li>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="check-icon">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span>
+                  {currentLocale === 'fa' ? 'تم‌های پرمیوم و رنگ‌های دلخواه' : currentLocale === 'tr' ? 'Premium temalar & özel renkler' : 'Premium themes & custom colors'}
+                </span>
+              </li>
+              <li>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="check-icon">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span>
+                  {currentLocale === 'fa' ? 'تایید پرداخت با ثبت هش تراکنش' : currentLocale === 'tr' ? 'İşlem kodu ile manuel onay' : 'Approval via manual transaction hash'}
+                </span>
+              </li>
+              <li>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="check-icon">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span>
+                  {currentLocale === 'fa' ? 'پشتیبانی اولویت‌دار' : currentLocale === 'tr' ? 'Öncelikli destek' : 'Priority support'}
+                </span>
+              </li>
+            </ul>
+            <a href="/admin/register" class="pricing-btn-action primary-pricing-btn">{t.pricingBtn}</a>
+          </div>
+        </>
+      )}
     </div>
   </section>
 
@@ -1247,6 +1369,7 @@ const t = homeTranslations[currentLocale as Locale] || homeTranslations['en'];
     font-size: 1.25rem;
     font-weight: 700;
     margin-bottom: 0.5rem;
+    color: inherit;
   }
 
   .plan-desc {
