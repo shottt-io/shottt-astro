@@ -616,13 +616,16 @@ const localT = irTranslations[locale] || irTranslations['fa'];
 
   /* Top Navigation Bar */
   .top-nav-bar {
+    position: absolute;
+    top: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
     justify-content: space-between;
     align-items: center;
     width: 100%;
     max-width: 32rem;
-    margin: 0 auto;
-    padding: 0 1rem;
+    padding: 0 1.5rem;
     box-sizing: border-box;
   }
 
@@ -958,6 +961,7 @@ const localT = irTranslations[locale] || irTranslations['fa'];
 
   /* Base Container (Full-screen pure white canvas) */
   .marketing-container {
+    position: relative;
     width: 100%;
     min-height: 100vh;
     background-color: #ffffff;
