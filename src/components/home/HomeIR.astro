@@ -34,61 +34,61 @@ const irTranslations = {
   fa: {
     mainStatement: "شات، صرفاً یک کاتالوگ و منوی دیجیتال ساده است.",
     subStatement: "اگر به دنبال خدمات یا امکانات دیگری هستید، پیشنهاد می‌کنیم به سایر وب‌سایت‌ها سر بزنید؛ چرا که ما در شات خدمتی فراتر از این ارائه نمی‌دهیم.",
-    pricingBadge: TOTAL_FREE ? "تعرفه: رایگان" : `اشتراک: ${formatSubscriptionFee(SUBSCRIPTION_FEE, 'fa')}`,
-    termsBadge: TOTAL_FREE ? "ثبت‌نام: رایگان و آنلاین" : "ماه اول رایگان / شروع بدون پرداخت",
+    pricingBadge: TOTAL_FREE ? "تعرفه: رایگان" : `رایگان تا ۱۵ محصول (یا ${formatSubscriptionFee(SUBSCRIPTION_FEE, 'fa')}/ماه)`,
+    termsBadge: TOTAL_FREE ? "ثبت‌نام: رایگان و آنلاین" : "شروع بدون نیاز به پرداخت و کارت",
     createBtn: "ثبت‌نام مجموعه جدید ⚡",
     loginBtn: "ورود به پنل مدیریت",
     whyFreeTitle: TOTAL_FREE ? "چرا رایگان؟" : "تعرفه و شرایط اشتراک",
     whyFreeP1: TOTAL_FREE 
       ? "ما حدود ۱۰ سال در زمینه ارائه منوی دیجیتال، سیستم سفارش‌گیری، باشگاه مشتریان و خدمات متنوع دیگر فعالیت کردیم؛ اما در طول این سال‌ها با چالش‌ها و شرایطی مواجه شدیم که مسیر توسعه را بسیار دشوار کرد. در سال‌های اخیر تلاش کردیم با حداقل هزینه اشتراک خدماتمان را ادامه دهیم، اما مشکلات مداوم زیرساختی و اینترنت کشور همواره ما را با چالش‌های پایه‌ای و فرساینده روبه‌رو ساخت."
-      : "شات با دریافت هزینه اشتراک ارائه می‌شود. هزینه اشتراک به صورت یورو محاسبه شده و در ابتدای هر ماه میلادی پرداخت می‌گردد. همچنین برای شروع کار و ثبت‌نام، اولین ماه میلادی عضویت شما کاملاً رایگان خواهد بود و نیاز به هیچ پرداختی ندارید.",
+      : "استفاده از شات برای مجموعه‌های کوچک (۱۵ محصول یا کمتر) کاملاً رایگان است و نیاز به پرداخت هیچ هزینه‌ای نیست. برای مجموعه‌های بزرگ‌تر، هزینه اشتراک ماهانه محاسبه شده و در ابتدای هر ماه میلادی پرداخت می‌گردد. همچنین اولین ماه میلادی پس از ثبت‌نام برای تمامی مجموعه‌ها کاملاً رایگان است.",
     whyFreeP2: TOTAL_FREE 
       ? "از این رو، تصمیم گرفتیم به دلیل عدم توجیه اقتصادی، امکانات پلتفرم را محدود کنیم. در حال حاضر شات صرفاً بر پایه علاقه شخصی حفظ شده و با ساده‌ترین ابزارها ارائه می‌شود تا کمترین دغدغه فنی را برای شما و ما ایجاد کند. به همین دلیل، تصمیم گرفتیم بابت این امکانات محدود هیچ هزینه‌ای از مجموعه‌ها دریافت نکنیم. امیدواریم روزی شرایط بهبود یابد و امکان ارائه خدمات کامل‌تری فراهم شود. 🖤"
-      : "برای فعال‌سازی و تایید پرداخت، پس از واریز مبلغ به شماره کارت مشخص شده در پنل مدیریت، کافیست کد رهگیری یا هش تراکنش خود را ثبت کنید تا توسط مدیران تایید شود.",
+      : "برای فعال‌سازی و تایید پرداخت پس از اتمام دوره آزمایشی (برای مجموعه‌های بیش از ۱۵ محصول)، کافیست کد رهگیری یا مشخصات پرداخت خود را در پنل مدیریت ثبت کنید تا توسط سوپر ادمین تایید شود.",
     termsTitle: "شرایط و نحوه ثبت‌نام",
     termsDesc: TOTAL_FREE
       ? "عضویت و ایجاد کاتالوگ دیجیتال در شات کاملاً رایگان، آنلاین و آنی است. شما می‌توانید با زدن دکمه «ثبت‌نام مجموعه جدید»، نام مجموعه، آدرس اینترنتی دلخواه و اطلاعات ورود خود را مشخص کرده و بلافاصله مدیریت منوی خود را آغاز کنید. همچنین در صورت داشتن منوی دیجیتال دیگر، می‌توانید از کادر هوش مصنوعی در پایین همین صفحه استفاده کرده و کل محصولات خود را در کسری از ثانیه منتقل کنید."
-      : `عضویت و ایجاد کاتالوگ دیجیتال در شات آنلاین و آنی است. اولین ماه میلادی عضویت شما کاملاً رایگان است و نیاز به پرداخت ندارد. از ماه‌های بعد، هزینه اشتراک معادل ${formatSubscriptionFee(SUBSCRIPTION_FEE, 'fa')} می‌باشد. شما می‌توانید با زدن دکمه «ثبت‌نام مجموعه جدید»، نام مجموعه، آدرس اینترنتی دلخواه و اطلاعات ورود خود را مشخص کرده و بلافاصله مدیریت منوی خود را آغاز کنید.`,
+      : `عضویت و ایجاد کاتالوگ دیجیتال در شات آنلاین و آنی است. اگر تعداد محصولات شما ۱۵ یا کمتر باشد، همواره رایگان است. برای محصولات بیشتر، اولین ماه میلادی عضویت شما کاملاً رایگان است و از ماه‌های بعد، هزینه اشتراک معادل ${formatSubscriptionFee(SUBSCRIPTION_FEE, 'fa')} می‌باشد.`,
     someCollections: "برخی از مجموعه‌ها",
   },
   en: {
     mainStatement: "Shottt is simply a clean digital catalog and menu.",
     subStatement: "If you are looking for other complex services, we suggest checking other websites; because at Shottt, we do not offer any services beyond this.",
-    pricingBadge: TOTAL_FREE ? "Pricing: Free" : `Subscription: ${formatSubscriptionFee(SUBSCRIPTION_FEE, 'en')}`,
-    termsBadge: TOTAL_FREE ? "Registration: Free & Online" : "First month free / Start free",
+    pricingBadge: TOTAL_FREE ? "Pricing: Free" : `Free up to 15 products (or ${formatSubscriptionFee(SUBSCRIPTION_FEE, 'en')}/mo)`,
+    termsBadge: TOTAL_FREE ? "Registration: Free & Online" : "No card required / Start free",
     createBtn: "Register Now ⚡",
     loginBtn: "Log in to Dashboard",
     whyFreeTitle: TOTAL_FREE ? "Why is it Free?" : "Subscription & Terms",
     whyFreeP1: TOTAL_FREE 
       ? "We operated for about 10 years in the field of digital menus, ordering systems, customer clubs, and various other services. However, over the years we faced challenges and conditions that made development very difficult. In recent years, we tried to continue our services with minimal subscription costs, but continuous infrastructure and internet issues always presented base and exhausting challenges."
-      : "Shottt is provided on a monthly subscription basis. The subscription fee is calculated in Euros and paid at the start of each calendar month. Additionally, your first calendar month is completely free upon registration, with no payment required to start.",
+      : "Using Shottt is completely free for small collections (15 products or less), with no payment required. For larger collections, the subscription fee is calculated and paid at the start of each calendar month. Additionally, your first calendar month is completely free upon registration.",
     whyFreeP2: TOTAL_FREE 
       ? "Therefore, we decided to limit the platform's features due to lack of economic justification. Currently, Shottt is maintained purely as a personal hobby and is provided with the simplest tools to create the minimum technical concern for you and us. For this reason, we decided not to charge any fees for these limited features. We hope conditions improve one day so we can provide fuller services. 🖤"
-      : "To activate and verify your payment, after transferring the amount to the card number specified in the management panel, simply submit your transaction reference/hash for review by administrators.",
+      : "To activate and verify your payment after the trial period (for collections with more than 15 products), simply submit your transaction details or hash in the dashboard for review.",
     termsTitle: "Registration & Terms",
     termsDesc: TOTAL_FREE
       ? "Membership and creating a digital catalog on Shottt is completely free, online, and instant. You can register your store, set a custom URL, configure login info, and immediately start managing your menu. You can also import items in seconds."
-      : `Membership and creating a digital catalog on Shottt is online and instant. Your first calendar month is completely free and requires no payment to start. In subsequent months, a subscription fee of ${formatSubscriptionFee(SUBSCRIPTION_FEE, 'en')} applies. You can register your store, set a custom URL, configure login info, and immediately start managing your menu.`,
+      : `Membership and creating a digital catalog on Shottt is online and instant. If you have 15 products or less, it is always free. For more products, your first calendar month is completely free, and subsequent months will cost a subscription fee of ${formatSubscriptionFee(SUBSCRIPTION_FEE, 'en')}.`,
     someCollections: "Some of our shops",
   },
   tr: {
     mainStatement: "Shottt sadece temiz bir dijital katalog ve menüdür.",
     subStatement: "Başka karmaşık hizmetler arıyorsanız, diğer web sitelerini kontrol etmenizi öneririz; çünkü Shottt'ta bunun ötesinde herhangi bir hizmet sunmuyoruz.",
-    pricingBadge: TOTAL_FREE ? "Fiyatlandırma: Ücretsiz" : `Abonelik: ${formatSubscriptionFee(SUBSCRIPTION_FEE, 'tr')}`,
-    termsBadge: TOTAL_FREE ? "Kayıt: Ücretsiz & Çevrimiçi" : "İlk ay ücretsiz / Ödemesiz başlangıç",
+    pricingBadge: TOTAL_FREE ? "Fiyatlandırma: Ücretsiz" : `15 ürüne kadar ücretsiz (veya ${formatSubscriptionFee(SUBSCRIPTION_FEE, 'tr')}/ay)`,
+    termsBadge: TOTAL_FREE ? "Kayıt: Ücretsiz & Çevrimiçi" : "Kart gerekmez / Ücretsiz başlayın",
     createBtn: "Hemen Kayıt Ol ⚡",
     loginBtn: "Yönetici Paneline Giriş Yap",
     whyFreeTitle: TOTAL_FREE ? "Neden Ücretsiz?" : "Abonelik & Koşullar",
     whyFreeP1: TOTAL_FREE 
       ? "Dijital menüler, sipariş sistemleri, müşteri kulüpleri ve diğer çeşitli hizmetler alanında yaklaşık 10 yıl faaliyet gösterdik. Ancak yıllar geçtikçe geliştirilmesini çok zorlaştıran zorluklarla ve koşullarla karşılaştık. Son yıllarda hizmetlerimize asgari abonelik maliyetleriyle devam etmeye çalıştık, ancak sürekli altyapı ve internet sorunları her zaman temel ve yorucu zorluklar çıkardı."
-      : "Shottt, aylık abonelik esasına göre sunulmaktadır. Abonelik ücreti Euro cinsinden hesaplanır ve her takvim ayının başında ödenir. Ayrıca, kayıt olduğunuz ilk takvim ayı tamamen ücretsizdir ve başlamak için herhangi bir ödeme yapmanız gerekmez.",
+      : "Shottt kullanımı küçük işletmeler (15 ürün veya daha az) için tamamen ücretsizdir ve herhangi bir ödeme gerektirmez. Daha büyük işletmeler için abonelik ücreti her takvim ayının başında ödenir. Ayrıca, kayıt olduğunuz ilk takvim ayı tamamen ücretsizdir.",
     whyFreeP2: TOTAL_FREE 
       ? "Bu nedenle, ekonomik gerekçelerin olmaması nedeniyle platformun özelliklerini sınırlandırmaya karar verdik. Şu anda Shottt tamamen kişisel bir hobi olarak sürdürülmekte ve siz ve bizim için minimum teknik endişe yaratacak en basit araçlarla sunulmaktadır. Bu nedenle, bu sınırlı özellikler için herhangi bir ücret talep etmemeye karar verdik. Bir gün koşulların iyileşmesini ve daha kapsamlı hizmetler sunabilmeyi umuyoruz. 🖤"
-      : "Ödemenizi onaylamak ve aktifleştirmek için, yönetim panelinde belirtilen kart numarasına tutarı transfer ettikten sonra işlem referansını/kodunu yöneticilerin onayına sunmanız yeterlidir.",
+      : "Deneme süresinden sonra (15'ten fazla ürünü olan işletmeler için) ödemenizi doğrulamak üzere işlem referans kodunuzu yönetim panelinden onayımıza sunmanız yeterlidir.",
     termsTitle: "Kayıt & Koşullar",
     termsDesc: TOTAL_FREE
       ? "Shottt'ta üyelik ve dijital katalog oluşturmak tamamen ücretsiz, çevrimiçi ve anındadır. Mağazanızı kaydedebilir, özel bir URL belirleyebilir, giriş bilgilerinizi yapılandırabilir ve hemen menünüzü yönetmeye başlayabilirsiniz. Ürünlerinizi saniyeler içinde içe aktarabilirsiniz."
-      : `Shottt'ta üyelik ve dijital katalog oluşturmak çevrimiçi ve anındadır. İlk takvim ayınız tamamen ücretsizdir ve başlamak için herhangi bir ödeme gerektirmez. Sonraki aylarda ${formatSubscriptionFee(SUBSCRIPTION_FEE, 'tr')} tutarında abonelik ücreti uygulanır. Mağazanızı kaydedebilir, özel bir URL belirleyebilir, giriş bilgilerinizi yapılandırabilir ve hemen menünüzü yönetmeye başlayabilirsiniz.`,
+      : `Shottt'ta üyelik ve dijital katalog oluşturmak çevrimiçi ve anındadır. 15 veya daha az ürününüz varsa her zaman ücretsizdir. Daha fazla ürün için ilk takvim ayınız tamamen ücretsizdir ve sonraki aylarda ${formatSubscriptionFee(SUBSCRIPTION_FEE, 'tr')} abonelik ücreti uygulanır.`,
     someCollections: "Bazı işletmelerimiz",
   }
 };

@@ -250,9 +250,12 @@ const t = homeTranslations[currentLocale as Locale] || homeTranslations['en'];
         </div>
       ) : (
         <!-- Trial Badge -->
-        <div class="trial-badge-container" style="margin-top: 1rem; display: flex; justify-content: center;">
+        <div class="trial-badge-container" style="margin-top: 1rem; display: flex; justify-content: center; gap: 0.5rem; flex-wrap: wrap;">
+          <span class="trial-badge" style="padding: 0.5rem 1.25rem; background: rgba(2, 132, 199, 0.05); border: 1px solid #bae6fd; border-radius: 9999px; font-size: 0.8125rem; font-weight: 600; color: #0369a1;">
+            🎁 {currentLocale === 'fa' ? 'همیشه رایگان برای ۱۵ محصول یا کمتر' : currentLocale === 'tr' ? '15 ürün veya daha azı için her zaman ücretsiz' : 'Always free for 15 products or less'}
+          </span>
           <span class="trial-badge" style="padding: 0.5rem 1.25rem; background: rgba(24, 24, 27, 0.05); border: 1px solid #e4e4e7; border-radius: 9999px; font-size: 0.8125rem; font-weight: 500; color: #18181b;">
-            ✨ {currentLocale === 'fa' ? 'ماه اول رایگان / شروع بدون نیاز به پرداخت' : currentLocale === 'tr' ? 'İlk ay ücretsiz / Ödemesiz başlangıç' : 'First calendar month free / No payment needed to start'}
+            ✨ {currentLocale === 'fa' ? 'ماه اول رایگان برای تعداد بیشتر' : currentLocale === 'tr' ? 'Daha fazla ürün için ilk ay ücretsiz' : 'First month free for larger catalogs'}
           </span>
         </div>
       )}
@@ -342,14 +345,14 @@ const t = homeTranslations[currentLocale as Locale] || homeTranslations['en'];
         </>
       ) : (
         <>
-          <!-- Trial Plan -->
+          <!-- Free Plan -->
           <div class="pricing-card card-glass">
             <div class="card-header">
               <h3 class="plan-name">
-                {currentLocale === 'fa' ? 'شروع رایگان' : currentLocale === 'tr' ? 'Ücretsiz Deneme' : 'Trial Period'}
+                {currentLocale === 'fa' ? 'پلن رایگان' : currentLocale === 'tr' ? 'Ücretsiz Plan' : 'Free Plan'}
               </h3>
               <p class="plan-desc">
-                {currentLocale === 'fa' ? 'ثبت‌نام و ماه اول میلادی رایگان' : currentLocale === 'tr' ? 'Kayıt ve ilk takvim ayı ücretsiz' : 'Registration & first calendar month free'}
+                {currentLocale === 'fa' ? 'مناسب مجموعه‌های کوچک' : currentLocale === 'tr' ? 'Küçük işletmeler için mükemmel' : 'Perfect for small collections'}
               </p>
               <div class="price-wrap">
                 <span class="price-value">
@@ -363,7 +366,7 @@ const t = homeTranslations[currentLocale as Locale] || homeTranslations['en'];
                   <polyline points="20 6 9 17 4 12"></polyline>
                 </svg>
                 <span>
-                  {currentLocale === 'fa' ? 'اولین ماه میلادی کاملاً رایگان' : currentLocale === 'tr' ? 'İlk takvim ayı tamamen ücretsiz' : 'First calendar month completely free'}
+                  {currentLocale === 'fa' ? 'تا ۱۵ محصول (همیشه رایگان)' : currentLocale === 'tr' ? 'En fazla 15 ürün (her zaman ücretsiz)' : 'Up to 15 products (always free)'}
                 </span>
               </li>
               <li>
@@ -371,15 +374,7 @@ const t = homeTranslations[currentLocale as Locale] || homeTranslations['en'];
                   <polyline points="20 6 9 17 4 12"></polyline>
                 </svg>
                 <span>
-                  {currentLocale === 'fa' ? 'بدون نیاز به ثبت کارت برای شروع' : currentLocale === 'tr' ? 'Başlamak için kart veya ödeme gerekmez' : 'No credit card or payment needed to start'}
-                </span>
-              </li>
-              <li>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="check-icon">
-                  <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-                <span>
-                  {currentLocale === 'fa' ? 'کاتالوگ و منوی دیجیتال زیبا' : currentLocale === 'tr' ? 'Harika dijital menü ve katalog' : 'Beautiful digital menu & catalog'}
+                  {currentLocale === 'fa' ? 'منوی دیجیتال زیبا و واکنش‌گرا' : currentLocale === 'tr' ? 'Güzel ve uyumlu dijital menü' : 'Beautiful & responsive digital menu'}
                 </span>
               </li>
               <li>
@@ -390,19 +385,27 @@ const t = homeTranslations[currentLocale as Locale] || homeTranslations['en'];
                   {currentLocale === 'fa' ? 'کد QR اختصاصی و آنی' : currentLocale === 'tr' ? 'Anında QR kod' : 'Instant QR code'}
                 </span>
               </li>
+              <li>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="check-icon">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span>
+                  {currentLocale === 'fa' ? 'بهینه‌سازی شده برای سرعت و سئو' : currentLocale === 'tr' ? 'Hız ve SEO optimize edilmiş' : 'Speed & SEO optimized'}
+                </span>
+              </li>
             </ul>
             <a href="/admin/register" class="pricing-btn-action secondary-pricing-btn">{t.pricingBtn}</a>
           </div>
 
-          <!-- Monthly Subscription Plan -->
+          <!-- Professional Plan -->
           <div class="pricing-card card-premium">
             <div class="premium-badge">Popular</div>
             <div class="card-header">
               <h3 class="plan-name">
-                {currentLocale === 'fa' ? 'اشتراک ماهانه' : currentLocale === 'tr' ? 'Aylık Abonelik' : 'Monthly Subscription'}
+                {currentLocale === 'fa' ? 'اشتراک حرفه‌ای' : currentLocale === 'tr' ? 'Profesyonel Plan' : 'Professional Plan'}
               </h3>
               <p class="plan-desc" style="color: rgba(255,255,255,0.7);">
-                {currentLocale === 'fa' ? 'فعال نگه‌داشتن کاتالوگ شما' : currentLocale === 'tr' ? 'Kataloğunuzu aktif tutun' : 'Keep your digital catalog active'}
+                {currentLocale === 'fa' ? 'برای مجموعه‌های بزرگ‌تر' : currentLocale === 'tr' ? 'Büyüyen işletmeler için' : 'For larger collections'}
               </p>
               <div class="price-wrap">
                 <span class="price-value" style="font-size: 2.25rem;">
@@ -416,7 +419,15 @@ const t = homeTranslations[currentLocale as Locale] || homeTranslations['en'];
                   <polyline points="20 6 9 17 4 12"></polyline>
                 </svg>
                 <span>
-                  {currentLocale === 'fa' ? 'محصولات نامحدود' : currentLocale === 'tr' ? 'Sınırsız ürün' : 'Unlimited products'}
+                  {currentLocale === 'fa' ? 'محصولات نامحدود (بیشتر از ۱۵ محصول)' : currentLocale === 'tr' ? 'Sınırsız ürün (15 üründen fazla)' : 'Unlimited products (more than 15)'}
+                </span>
+              </li>
+              <li>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="check-icon">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span>
+                  {currentLocale === 'fa' ? 'اولین ماه میلادی عضویت کاملاً رایگان' : currentLocale === 'tr' ? 'İlk takvim ayı tamamen ücretsiz' : 'First calendar month completely free'}
                 </span>
               </li>
               <li>
@@ -433,14 +444,6 @@ const t = homeTranslations[currentLocale as Locale] || homeTranslations['en'];
                 </svg>
                 <span>
                   {currentLocale === 'fa' ? 'تایید پرداخت با ثبت هش تراکنش' : currentLocale === 'tr' ? 'İşlem kodu ile manuel onay' : 'Approval via manual transaction hash'}
-                </span>
-              </li>
-              <li>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="check-icon">
-                  <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-                <span>
-                  {currentLocale === 'fa' ? 'پشتیبانی اولویت‌دار' : currentLocale === 'tr' ? 'Öncelikli destek' : 'Priority support'}
                 </span>
               </li>
             </ul>
