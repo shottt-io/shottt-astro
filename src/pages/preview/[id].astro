@@ -69,7 +69,7 @@ const changeDesignLabel = {
   <div class="preview-cta-banner">
     <div class="banner-content">
       <span class="banner-text">{bannerTitle}</span>
-      <div style="display: flex; align-items: center; gap: 0.5rem;">
+      <div class="banner-actions">
         <button 
           id="change-design-btn" 
           class="preview-design-btn"
@@ -132,10 +132,17 @@ const changeDesignLabel = {
       max-width: 42rem;
       margin: 0 auto;
       display: flex;
-      justify-content: space-between;
+      flex-direction: column;
       align-items: center;
-      gap: 1rem;
+      text-align: center;
+      gap: 0.75rem;
       font-family: 'Estedad', system-ui, -apple-system, sans-serif;
+    }
+
+    .banner-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
 
     .banner-text {
