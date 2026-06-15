@@ -1,7 +1,7 @@
 import { db } from '../db/db';
-import { payments } from '../db/schema';
-import { eq, and, desc } from 'drizzle-orm';
-import { TOTAL_FREE } from '../config/region';
+import { payments, menuItems, categories } from '../db/schema';
+import { eq, and, desc, sql } from 'drizzle-orm';
+import { TOTAL_FREE, FREE_LIMIT } from '../config/region';
 
 export interface BillingStatus {
   active: boolean;
@@ -12,6 +12,20 @@ export interface BillingStatus {
 export async function checkVendorActive(vendor: { id: number; createdAt: Date | string }): Promise<BillingStatus> {
   // 1. If system-wide total free is enabled, bypass
   if (TOTAL_FREE) {
+    return { active: true, status: 'free' };
+  }
+
+  // 1.5. If product count is less than or equal to FREE_LIMIT, they are free
+  const productCountResult = await db
+    .select({
+      count: sql<number>`count(${menuItems.id})::integer`
+    })
+    .from(menuItems)
+    .innerJoin(categories, eq(menuItems.categoryId, categories.id))
+    .where(eq(categories.vendorId, vendor.id));
+
+  const productCount = productCountResult[0]?.count || 0;
+  if (productCount <= FREE_LIMIT) {
     return { active: true, status: 'free' };
   }
 

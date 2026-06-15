@@ -388,7 +388,11 @@ if (session) {
             
             <!-- Standard Status Badge -->
             <div class="billing-status-badge">
-              {!isBillingBlocked ? (
+              {billingStatus?.status === 'free' ? (
+                <div class="badge-status active" style="background-color: #e0f2fe; color: #0369a1;">
+                  <span>{locale === 'fa' ? 'طرح رایگان (۱۵ محصول یا کمتر)' : (locale === 'tr' ? 'Ücretsiz Plan (15 ürün veya daha az)' : 'Free Plan (15 products or less)')}</span>
+                </div>
+              ) : !isBillingBlocked ? (
                 <div class="badge-status active">
                   <span>{locale === 'fa' ? 'وضعیت سیستم: فعال' : (locale === 'tr' ? 'Sistem Durumu: Aktif' : 'System Status: Active')}</span>
                 </div>

@@ -10,6 +10,8 @@ function getEnv(key: string): string {
         return (import.meta.env.INFO_CHANNEL_URL as string) || '';
       case 'PUBLIC_TOTAL_FREE':
         return (import.meta.env.PUBLIC_TOTAL_FREE as string) || '';
+      case 'PUBLIC_FREE_LIMIT':
+        return (import.meta.env.PUBLIC_FREE_LIMIT as string) || '';
       case 'PUBLIC_DEFAULT_LOCALE':
         return (import.meta.env.PUBLIC_DEFAULT_LOCALE as string) || '';
       case 'PUBLIC_SITE_URL':
@@ -36,6 +38,7 @@ function getEnv(key: string): string {
 }
 
 export const TOTAL_FREE = getEnv('PUBLIC_TOTAL_FREE') === 'true';
+export const FREE_LIMIT = parseInt(getEnv('PUBLIC_FREE_LIMIT') || '15', 10);
 export const DEFAULT_LOCALE = (getEnv('PUBLIC_DEFAULT_LOCALE') || 'fa') as 'fa' | 'en' | 'tr';
 export const SITE_URL = getEnv('PUBLIC_SITE_URL') || '';
 export const CDN_STRATEGY = getEnv('CDN_STRATEGY') || 'none';

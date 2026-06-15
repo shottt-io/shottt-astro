@@ -6,11 +6,13 @@ import {
   vendors as vendorsTable, 
   users as usersTable, 
   vendorUsers as vendorUsersTable,
-  payments as paymentsTable
+  payments as paymentsTable,
+  categories as categoriesTable,
+  menuItems as menuItemsTable
 } from '../../db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, sql } from 'drizzle-orm';
 import { useTranslations, getTranslatedType } from '../../utils/i18n';
-import { TOTAL_FREE } from '../../config/region';
+import { TOTAL_FREE, FREE_LIMIT } from '../../config/region';
 import { formatBillingMonth } from '../../utils/billing';
 import '../../styles/admin.css';
 
@@ -48,6 +50,20 @@ const paymentsList = await db
 const pendingPayments = paymentsList.filter((p) => p.status === 'pending');
 const historyPayments = paymentsList.filter((p) => p.status !== 'pending');
 
+// Query the count of menu items per vendor
+const vendorProductCounts = await db
+  .select({
+    vendorId: categoriesTable.vendorId,
+    productCount: sql<number>`count(${menuItemsTable.id})::integer`
+  })
+  .from(menuItemsTable)
+  .innerJoin(categoriesTable, eq(menuItemsTable.categoryId, categoriesTable.id))
+  .groupBy(categoriesTable.vendorId);
+
+const productCountMap = new Map<number, number>(
+  vendorProductCounts.map(item => [item.vendorId, item.productCount])
+);
+
 // Compute current month string
 const now = new Date();
 const currentYear = now.getFullYear();
@@ -56,6 +72,10 @@ const currentMonthStr = `${currentYear}-${String(currentMonthNum).padStart(2, '0
 
 const getVendorCurrentMonthBillingStatus = (vendorId: number, vendorCreatedAt: Date) => {
   if (TOTAL_FREE) return 'free';
+
+  // If vendor product count is <= FREE_LIMIT, they are free
+  const productCount = productCountMap.get(vendorId) || 0;
+  if (productCount <= FREE_LIMIT) return 'free';
 
   const vCreatedAt = new Date(vendorCreatedAt);
   const regYear = vCreatedAt.getFullYear();
