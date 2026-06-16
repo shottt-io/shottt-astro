@@ -1,4 +1,5 @@
 import { translations, getLocale } from './i18n';
+import { SUPPORTED_CURRENCIES } from '../config/region';
 
 /**
  * Formats a numeric price string or number with standard English digits and thousand separators.
@@ -29,7 +30,7 @@ export function formatPriceWithUnit(
   const locale = getLocale(currentLocale);
   const currency = (vendorCurrency && vendorCurrency.trim())
     ? vendorCurrency.trim()
-    : translations[locale].currency;
+    : (SUPPORTED_CURRENCIES[0] || translations[locale].currency);
 
   const prefixSymbols = ['$', '€', '£', '¥', '₩', '₽', '₨', '元', '₪'];
 

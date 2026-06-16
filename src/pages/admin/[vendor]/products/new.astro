@@ -4,6 +4,7 @@ import { db } from '../../../../db/db';
 import { vendors as vendorsTable, categories as categoriesTable } from '../../../../db/schema';
 import { eq, asc } from 'drizzle-orm';
 import { useTranslations, translations } from '../../../../utils/i18n';
+import { SUPPORTED_CURRENCIES } from '../../../../config/region';
 
 const vendorSlug = Astro.params.vendor;
 if (!vendorSlug) {
@@ -23,7 +24,7 @@ if (vendorList.length === 0) {
   return new Response(t('vendorNotFound'), { status: 404 });
 }
 const vendor = vendorList[0];
-const currentCurrency = vendor.currency || translations[locale].currency;
+const currentCurrency = vendor.currency || SUPPORTED_CURRENCIES[0] || translations[locale].currency;
 
 // Fetch categories for this vendor
 const dbCategories = await db
