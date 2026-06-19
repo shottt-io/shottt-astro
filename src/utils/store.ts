@@ -13,6 +13,8 @@ export interface PreviewData {
   defaultLayout: 'pinterest' | 'simple' | 'card';
   gridImage?: string;
   gridSize?: number;
+  brandStyle?: string;
+  photoConcepts?: string[];
   categories: Array<{
     id: string;
     name: string;

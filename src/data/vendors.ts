@@ -19,6 +19,7 @@ export interface MenuItem {
   span2?: boolean; // If true, occupies 2 columns in Masonry mode
   sections?: ProductSection[]; // Dynamic sections for the separate product page
   status?: 'available' | 'unavailable' | 'inactive';
+  gridIndex?: number | null;
 }
 
 export interface Category {

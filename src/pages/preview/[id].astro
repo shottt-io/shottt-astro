@@ -18,22 +18,33 @@ if (!vendor) {
 
 const { t } = useTranslations(Astro.cookies, Astro.request, vendor.locale || undefined);
 
-// Map categories to components schema format
+let globalItemIdx = 0;
 const categories = vendor.categories.map((category) => ({
   id: category.id,
   name: category.name,
   status: category.status,
-  items: category.items.map((item) => ({
-    id: item.id,
-    name: item.name,
-    slug: item.slug,
-    price: item.price,
-    image: item.image,
-    description: item.description,
-    discount: item.discount,
-    span2: item.span2,
-    status: item.status,
-  })),
+  items: category.items.map((item) => {
+    let gridIndex = item.gridIndex;
+    if (gridIndex === undefined || gridIndex === null) {
+      if (globalItemIdx < 35) {
+        gridIndex = globalItemIdx + 1; // 1-based index (0 is logo)
+      }
+    }
+    globalItemIdx++;
+
+    return {
+      id: item.id,
+      name: item.name,
+      slug: item.slug,
+      price: item.price,
+      image: item.image,
+      description: item.description,
+      discount: item.discount,
+      span2: item.span2,
+      status: item.status,
+      gridIndex: gridIndex,
+    };
+  }),
 }));
 
 // Multi-language banner messages
@@ -84,6 +95,14 @@ const changeDesignLabel = {
     </div>
   </div>
 
+  <!-- AI Image Status Banner -->
+  <div id="image-status-banner" class="image-status-banner" style="display: none;">
+    <div class="status-banner-content">
+      <span class="pulse-dot"></span>
+      <span id="image-status-text"></span>
+    </div>
+  </div>
+
   <main class="menu-main-wrapper" id="page-main" data-vendor-slug="#">
     <!-- Brand Info Header -->
     <BrandHeader 
@@ -104,6 +123,7 @@ const changeDesignLabel = {
       vendorSlug="#"
       locale={vendor.locale || undefined}
       currency={vendor.currency}
+      forceSkeletons={true}
     />
 
     <!-- Product Page Footer -->
@@ -244,6 +264,62 @@ const changeDesignLabel = {
       border-color: rgba(255, 255, 255, 0.6);
       transform: scale(1.02);
     }
+
+    /* AI Image Status Banner Styles */
+    .image-status-banner {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      padding: 0.625rem 1rem;
+      position: sticky;
+      top: 3.5rem;
+      z-index: 999;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
+      transition: all 0.3s ease;
+      color: #18181b;
+    }
+
+    [data-theme="dark"] .image-status-banner {
+      background: rgba(24, 24, 27, 0.85);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      color: #ffffff;
+    }
+
+    .status-banner-content {
+      max-width: 42rem;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.625rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      font-family: 'Estedad', system-ui, -apple-system, sans-serif;
+    }
+
+    .pulse-dot {
+      width: 0.5rem;
+      height: 0.5rem;
+      background-color: #10b981;
+      border-radius: 50%;
+      animation: pulse-animation 1.5s infinite ease-in-out;
+      flex-shrink: 0;
+    }
+
+    @keyframes pulse-animation {
+      0% {
+        transform: scale(0.9);
+        opacity: 0.6;
+      }
+      50% {
+        transform: scale(1.2);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(0.9);
+        opacity: 0.6;
+      }
+    }
   </style>
 
   <!-- Client-side script to intercept details page clicks -->
@@ -301,6 +377,230 @@ const changeDesignLabel = {
             changeDesignBtn.style.opacity = '1';
           }
         });
+      }
+    });
+  </script>
+
+  <!-- Client-side script to poll for AI generated images and perform canvas cropping -->
+  <script is:inline define:vars={{ previewId: id, initialHasGridImage: !!vendor.gridImage, initialGridImageUrl: vendor.gridImage || null, currentLocale: vendor.locale || 'fa' }}>
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('[DEBUG] DOMContentLoaded initialized.');
+      console.log('[DEBUG] Current configuration:', { previewId, initialHasGridImage, initialGridImageUrl, currentLocale });
+
+      const banner = document.getElementById('image-status-banner');
+      const bannerText = document.getElementById('image-status-text');
+      console.log('[DEBUG] Status Banner elements:', { banner: !!banner, bannerText: !!bannerText });
+
+      const messages = {
+        fa: {
+          preparing: '📸 عکاسی آیتم‌های منو توسط هوش مصنوعی در حال آماده‌سازی است...',
+          processing: '✨ تصاویر هوش مصنوعی آماده شد! در حال اعمال روی منو...',
+          success: '✅ تصاویر با موفقیت اعمال شدند.'
+        },
+        en: {
+          preparing: '📸 AI menu item photography is being prepared...',
+          processing: '✨ AI images ready! Slicing and applying to menu...',
+          success: '✅ Images applied successfully.'
+        },
+        tr: {
+          preparing: '📸 Yapay zeka menü fotoğrafları hazırlanıyor...',
+          processing: '✨ Görseller hazır! Menüye uygulanıyor...',
+          success: '✅ Görseller başarıyla uygulandı.'
+        }
+      }[currentLocale || 'fa'];
+
+      // Function to load the grid image, crop it using canvas, and set image elements locally
+      const cropAndApplyGridImage = (gridImageUrl, gridSize, items) => {
+        console.log('[DEBUG] cropAndApplyGridImage started.', { gridImageUrl, gridSize, itemsCount: items.length });
+        
+        if (banner && bannerText) {
+          banner.style.display = 'block';
+          bannerText.textContent = messages.processing;
+          console.log('[DEBUG] Updated banner text to processing.');
+        }
+
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        
+        img.onerror = (err) => {
+          console.error('[DEBUG] [ERROR] Failed to load grid image element! URL:', gridImageUrl, 'Error:', err);
+        };
+        
+        img.onload = () => {
+          console.log('[DEBUG] Grid image loaded successfully.', { 
+            naturalWidth: img.naturalWidth, 
+            naturalHeight: img.naturalHeight,
+            width: img.width,
+            height: img.height
+          });
+
+          try {
+            const effectiveGridSize = gridSize || 6;
+            const tileSize = img.naturalWidth / effectiveGridSize;
+            console.log('[DEBUG] Slicing configuration:', { effectiveGridSize, tileSize });
+
+            // Crop and set Logo (always at gridIndex 0, which is col 0, row 0)
+            console.log('[DEBUG] Starting Logo crop...');
+            const logoCanvas = document.createElement('canvas');
+            logoCanvas.width = 320;
+            logoCanvas.height = 320;
+            const logoCtx = logoCanvas.getContext('2d');
+            logoCtx.drawImage(
+              img,
+              0, // col 0
+              0, // row 0
+              tileSize,
+              tileSize,
+              0,
+              0,
+              320,
+              320
+            );
+            const logoDataUrl = logoCanvas.toDataURL('image/jpeg', 0.85);
+            console.log('[DEBUG] Logo cropped. Data URL length:', logoDataUrl.length);
+
+            const logoImg = document.querySelector('.logo-img');
+            const logoBox = document.querySelector('.logo-box');
+            console.log('[DEBUG] Logo elements in DOM:', { logoImg: !!logoImg, logoBox: !!logoBox });
+
+            if (logoImg) {
+              logoImg.src = logoDataUrl;
+              logoImg.style.display = '';
+              logoImg.style.opacity = '1';
+              logoImg.classList.add('loaded');
+              console.log('[DEBUG] Assigned Logo Data URL to logoImg.src.');
+            }
+            if (logoBox) {
+              logoBox.style.display = 'none';
+              console.log('[DEBUG] Hid logoBox.');
+            }
+
+            // Crop and set item images
+            console.log('[DEBUG] Starting items crop loop...');
+            for (const item of items) {
+              console.log('[DEBUG] Processing item:', { id: item.id, name: item.name, gridIndex: item.gridIndex });
+              if (item.gridIndex === null || item.gridIndex === undefined) {
+                console.log('[DEBUG] Item skipped (no gridIndex).');
+                continue;
+              }
+
+              const canvas = document.createElement('canvas');
+              canvas.width = 320;
+              canvas.height = 320;
+              const ctx = canvas.getContext('2d');
+
+              const col = item.gridIndex % effectiveGridSize;
+              const row = Math.floor(item.gridIndex / effectiveGridSize);
+              console.log('[DEBUG] Item crop coordinates:', { col, row, x: col * tileSize, y: row * tileSize, width: tileSize, height: tileSize });
+
+              ctx.drawImage(
+                img,
+                col * tileSize,
+                row * tileSize,
+                tileSize,
+                tileSize,
+                0,
+                0,
+                320,
+                320
+              );
+
+              const itemDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+              console.log('[DEBUG] Item canvas crop complete. Data URL length:', itemDataUrl.length);
+
+              const itemContainer = document.querySelector(`[data-item-id="${item.id}"]`);
+              console.log('[DEBUG] Target itemContainer found in DOM:', !!itemContainer);
+              if (itemContainer) {
+                const imgEl = itemContainer.querySelector('img');
+                console.log('[DEBUG] Target image element in itemContainer found:', !!imgEl);
+                if (imgEl) {
+                  imgEl.src = itemDataUrl;
+                  imgEl.style.display = '';
+                  imgEl.style.opacity = '1';
+                  imgEl.classList.add('loaded');
+                  
+                  const placeholder = imgEl.nextElementSibling;
+                  console.log('[DEBUG] Target placeholder found:', !!placeholder);
+                  if (placeholder) {
+                    placeholder.style.display = 'none';
+                  }
+                  console.log('[DEBUG] Applied Data URL to item image.');
+                }
+              }
+            }
+
+            // Hide status banner
+            if (banner) {
+              bannerText.textContent = messages.success;
+              console.log('[DEBUG] Updated banner text to success.');
+              setTimeout(() => {
+                banner.style.opacity = '0';
+                setTimeout(() => {
+                  banner.style.display = 'none';
+                  console.log('[DEBUG] Hid status banner.');
+                }, 300);
+              }, 1000);
+            }
+          } catch (ex) {
+            console.error('[DEBUG] [ERROR] Exception caught during canvas cropping:', ex);
+          }
+        };
+        
+        console.log('[DEBUG] Setting img.src to start loading grid image:', gridImageUrl);
+        img.src = gridImageUrl;
+      };
+
+      if (initialHasGridImage && initialGridImageUrl) {
+        console.log('[DEBUG] initialHasGridImage is true. Loading index data immediately...');
+        fetch(`/api/ai/check-images?id=${previewId}`)
+          .then(res => {
+            console.log('[DEBUG] Index fetch response status:', res.status);
+            return res.json();
+          })
+          .then(data => {
+            console.log('[DEBUG] Index fetch parsed response:', data);
+            if (data.success && data.gridImage) {
+              cropAndApplyGridImage(data.gridImage, data.gridSize, data.items);
+            } else {
+              console.warn('[DEBUG] Index fetch response was unsuccessful or missing gridImage.', data);
+            }
+          })
+          .catch(err => console.error('[DEBUG] [ERROR] Failed to load item coordinates:', err));
+      } else {
+        console.log('[DEBUG] initialHasGridImage is false. Starting polling check-images API...');
+        if (banner && bannerText) {
+          banner.style.display = 'block';
+          bannerText.textContent = messages.preparing;
+        }
+
+        let isPolling = false;
+        const pollInterval = setInterval(async () => {
+          if (isPolling) {
+            console.log('[DEBUG] Polling tick: already fetching, skipping...');
+            return;
+          }
+          isPolling = true;
+          console.log('[DEBUG] Polling tick: fetching `/api/ai/check-images`...');
+
+          try {
+            const res = await fetch(`/api/ai/check-images?id=${previewId}`);
+            console.log('[DEBUG] Poll response status:', res.status);
+            const data = await res.json();
+            console.log('[DEBUG] Poll response parsed:', data);
+
+            if (data.success && data.ready && data.gridImage) {
+              console.log('[DEBUG] Polling successful. Stopping polling.');
+              clearInterval(pollInterval);
+              cropAndApplyGridImage(data.gridImage, data.gridSize, data.items);
+            } else {
+              console.log('[DEBUG] Grid not ready yet. Continuing polling.');
+              isPolling = false;
+            }
+          } catch (err) {
+            console.error('[DEBUG] [ERROR] Error polling check-images status:', err);
+            isPolling = false;
+          }
+        }, 3000);
       }
     });
   </script>

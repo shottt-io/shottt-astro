@@ -16,23 +16,16 @@ const initialLetter = (name || '').trim().substring(0, 1);
   <div class="header-content">
     <!-- Right side: Logo & Brand Info (RTL) -->
     <div class="brand-info">
-      {hasLogo ? (
-        <>
-          <img 
-            src={logo} 
-            alt={name} 
-            class="logo-img" 
-            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
-          />
-          <div class="logo-box" style="display: none;">
-            <span class="logo-text-fallback">{initialLetter}</span>
-          </div>
-        </>
-      ) : (
-        <div class="logo-box">
-          <span class="logo-text-fallback">{initialLetter}</span>
-        </div>
-      )}
+      <img 
+        src={hasLogo ? logo : ''} 
+        alt={name} 
+        class="logo-img" 
+        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+        style={hasLogo ? '' : 'display: none;'}
+      />
+      <div class="logo-box" style={hasLogo ? 'display: none;' : 'display: flex;'}>
+        <span class="logo-text-fallback">{initialLetter}</span>
+      </div>
       
       <div class="brand-text">
         <h1 class="brand-name">{name}</h1>
