@@ -1,11 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import HomeIR from '../components/home/HomeIR.astro';
-import HomeINT from '../components/home/HomeINT.astro';
-import { TOTAL_FREE } from '../config/region';
+import Home from '../components/home/Home.astro';
 import { useTranslations } from '../utils/i18n';
-
-
 
 const { t } = useTranslations(Astro.cookies, Astro.request);
 ---
@@ -16,5 +12,5 @@ const { t } = useTranslations(Astro.cookies, Astro.request);
   ogImage="/logo.png"
   twitterCard="summary"
 >
-  {TOTAL_FREE ? <HomeIR /> : <HomeINT />}
+  <Home />
 </Layout>
