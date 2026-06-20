@@ -1692,6 +1692,93 @@ body {
   color: #78350f;
 }
 
+/* Thin Full-width Sales Platform Promo Banner */
+.admin-top-banner {
+  position: relative;
+  width: 100%;
+  background: linear-gradient(90deg, #18181b, #27272a); /* Sleek dark gradient */
+  color: #f4f4f5;
+  padding: 0.35rem 1rem;
+  box-sizing: border-box;
+  font-family: 'Estedad', sans-serif;
+  z-index: 101; /* Set higher than header/sidenav to avoid overlapping */
+  border-bottom: 1px solid #3f3f46;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.banner-content {
+  max-width: 92rem;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  font-size: 0.75rem; /* very thin / small text */
+  line-height: 1.4;
+  text-align: center;
+}
+
+.admin-top-banner .banner-badge {
+  background: linear-gradient(135deg, #10b981, #059669); /* Emerald Green */
+  color: #ffffff;
+  font-size: 0.625rem;
+  font-weight: 700;
+  padding: 0.125rem 0.4rem;
+  border-radius: 9999px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
+}
+
+.admin-top-banner .banner-text {
+  font-weight: 500;
+}
+
+.admin-top-banner .banner-action-btn {
+  color: #60a5fa; /* Soft blue link color */
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.admin-top-banner .banner-action-btn:hover {
+  color: #93c5fd;
+  text-decoration: underline;
+}
+
+/* Desktop layout adaptations for sticky top banner */
+@media (min-width: 769px) {
+  .admin-top-banner {
+    position: sticky;
+    top: 0;
+    height: 2rem;
+    padding: 0;
+  }
+  
+  .admin-layout-container.has-top-banner .admin-sidenav {
+    top: 2rem;
+    height: calc(100vh - 2rem);
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-top-banner {
+    padding: 0.35rem 0.75rem;
+  }
+  .banner-content {
+    gap: 0.5rem;
+    font-size: 0.7rem;
+  }
+}
+
 
 
 

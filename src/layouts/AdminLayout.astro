@@ -5,7 +5,7 @@ import { db } from '../db/db';
 import { vendors as vendorsTable, vendorUsers as vendorUsersTable, payments as paymentsTable } from '../db/schema';
 import { eq, and, desc } from 'drizzle-orm';
 import { useTranslations, getTranslatedType } from '../utils/i18n';
-import { INFO_CHANNEL_URL, SUBSCRIPTION_FEE, TOTAL_FREE, PAYMENT_URL, PAYMENT_TYPE } from '../config/region';
+import { INFO_CHANNEL_URL, SUBSCRIPTION_FEE, TOTAL_FREE, PAYMENT_URL, PAYMENT_TYPE, SALE_URL } from '../config/region';
 import { checkVendorActive, formatSubscriptionFee, formatBillingMonth, formatDateString } from '../utils/billing';
 import '../styles/admin.css';
 
@@ -93,6 +93,26 @@ if (session) {
   }
 }
 
+const bannerTranslations = {
+  fa: {
+    bannerText: 'سفارش‌گیری آنلاین و فروشگاه مجزا را با «پلتفرم فروش» راه‌اندازی کنید!',
+    bannerAction: 'مشاهده پلتفرم فروش ⚡',
+    bannerBadge: 'جدید'
+  },
+  tr: {
+    bannerText: 'Çevrimiçi sipariş ve bağımsız mağazanızı "Satış Platformu" ile kurun!',
+    bannerAction: 'Satış Platformuna Git ⚡',
+    bannerBadge: 'Yeni'
+  },
+  en: {
+    bannerText: 'Set up online ordering & your independent store with the "Sales Platform"!',
+    bannerAction: 'Go to Sales Platform ⚡',
+    bannerBadge: 'New'
+  }
+};
+
+const bannerT = bannerTranslations[locale as 'fa' | 'en' | 'tr'] || bannerTranslations['en'];
+
 // Authenticated and initialized successfully
 ---
 
@@ -106,7 +126,19 @@ if (session) {
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js" is:inline crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
-  <div class="admin-layout-container" style={`direction: ${dir};`}>
+  {SALE_URL && (
+    <div class="admin-top-banner">
+      <div class="banner-content">
+        <span class="banner-badge">{bannerT.bannerBadge}</span>
+        <span class="banner-text">{bannerT.bannerText}</span>
+        <a href={SALE_URL} class="banner-action-btn" target="_blank" rel="noopener noreferrer">
+          {bannerT.bannerAction}
+        </a>
+      </div>
+    </div>
+  )}
+
+  <div class={`admin-layout-container ${SALE_URL ? 'has-top-banner' : ''}`} style={`direction: ${dir};`}>
     <!-- Mobile Header -->
     <header class="admin-mobile-header">
       <button class="hamburger-btn" id="mobile-nav-toggle" aria-label="Menu">
