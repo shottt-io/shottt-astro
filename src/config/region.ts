@@ -29,6 +29,8 @@ function getEnv(key: string): string {
         return (import.meta.env.PUBLIC_PAYMENT_URL as string) || '';
       case 'PUBLIC_PAYMENT_TYPE':
         return (import.meta.env.PUBLIC_PAYMENT_TYPE as string) || '';
+      case 'PUBLIC_SALE_URL':
+        return (import.meta.env.PUBLIC_SALE_URL as string) || '';
       default:
         return (import.meta.env[key] as string) || '';
     }
@@ -49,4 +51,5 @@ export const INFO_CHANNEL_URL = getEnv('PUBLIC_INFO_CHANNEL_URL') || getEnv('INF
 export const SUBSCRIPTION_FEE = getEnv('PUBLIC_SUBSCRIPTION_FEE');
 export const PAYMENT_URL = getEnv('PUBLIC_PAYMENT_URL') || '';
 export const PAYMENT_TYPE = getEnv('PUBLIC_PAYMENT_TYPE') || '';
+export const SALE_URL = getEnv('PUBLIC_SALE_URL') || getEnv('SALE_URL') || '';
 

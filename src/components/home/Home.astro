@@ -3,7 +3,7 @@ import { db } from '../../db/db';
 import { vendors as vendorsTable } from '../../db/schema';
 import { sql } from 'drizzle-orm';
 import { getLocale, useTranslations } from '../../utils/i18n';
-import { IS_IRAN_SERVER, TOTAL_FREE, SUBSCRIPTION_FEE } from '../../config/region';
+import { IS_IRAN_SERVER, TOTAL_FREE, SUBSCRIPTION_FEE, SALE_URL } from '../../config/region';
 import { formatSubscriptionFee } from '../../utils/billing';
 
 const enableConvertPaper = import.meta.env.ENABLE_CONVERT_PAPER === 'true' || process.env.ENABLE_CONVERT_PAPER === 'true';
@@ -183,7 +183,33 @@ const homeTranslations = {
   }
 };
 
-const t = homeTranslations[currentLocale as Locale] || homeTranslations['en'];
+const baseT = homeTranslations[currentLocale as Locale] || homeTranslations['en'];
+const t = {
+  ...baseT,
+  salesStatement: "",
+  salesBtn: "",
+  salesPlatformLink: currentLocale === 'fa' ? 'پلتفرم فروش' : currentLocale === 'tr' ? 'Satış Platformu' : 'Sales Platform',
+  newBadge: currentLocale === 'fa' ? 'جدید' : currentLocale === 'tr' ? 'Yeni' : 'New'
+};
+
+if (SALE_URL) {
+  if (currentLocale === 'fa') {
+    t.subStatement = "اگر به دنبال امکانات سفارش‌گیری آنلاین و فروشگاهی هستید، ما پلتفرم فروش کاملاً مجزایی را راه‌اندازی کرده‌ایم. شات صرفاً به عنوان یک کاتالوگ دیجیتال و منوی بسیار سریع، ساده و پایدار باقی می‌ماند تا هیچ‌گونه افت سرعت یا پیچیدگی فنی نداشته باشد.";
+    t.whyFreeP2 = "از این رو، تصمیم گرفتیم به دلیل عدم توجیه اقتصادی، امکانات پلتفرم را محدود کنیم. در حال حاضر شات صرفاً به عنوان یک ابزار سبک و رایگان برای کاتالوگ و منوی دیجیتال ساده حفظ شده است تا کمترین دغدغه فنی را ایجاد کند. امکانات فروشگاهی و سفارش‌گیری آنلاین به پلتفرم مجزای «فروش» منتقل شده است که سرور و پایگاه داده کاملاً مستقل خود را دارد. به این ترتیب، سرعت، امنیت و پایداری شات همواره تضمین‌شده باقی می‌ماند و هزینه‌ای بابت آن دریافت نمی‌شود. 🖤";
+    t.salesStatement = "اگر فکر می‌کنید شات به تنهایی کافی نیست و به دنبال امکانات بیشتری هستید، ما پلتفرم فروش را نیز راه‌اندازی کرده‌ایم. اما این پلتفرم کاملاً از سرویس شات جداست؛ هر کدام کاربران و پنل مجزای خود را دارند و می‌توانید سری به آن هم بزنید.";
+    t.salesBtn = "مشاهده پلتفرم فروش ⚡";
+  } else if (currentLocale === 'tr') {
+    t.subStatement = "Eğer çevrimiçi sipariş ve e-ticaret özellikleri arıyorsanız, tamamen ayrı bir Satış (Sales) platformu başlattık. Shottt, herhangi bir hız kaybı veya teknik karmaşıklık olmaması için son derece hızlı, basit ve kararlı bir dijital katalog olarak kalacaktır.";
+    t.whyFreeP2 = "Bu nedenle, ekonomik gerekçelerin olmaması nedeniyle platformun özelliklerini sınırlandırmaya karar verdik. Şu anda Shottt, minimum teknik karmaşıklık yaratmak adına sadece ücretsiz ve hafif bir dijital katalog ve menü aracı olarak korunmaktadır. E-ticaret ve çevrimiçi sipariş özellikleri, tamamen bağımsız sunucu ve veritabanına sahip ayrı 'Satış' (Sales) platformuna aktarılmıştır. Bu sayede Shottt'ın hızı, güvenliği ve kararlılığı her zaman garanti altında kalır ve tamamen ücretsiz olarak sunulur. 🖤";
+    t.salesStatement = "Shottt'ın tek başına yeterli olmadığını düşünüyor ve daha fazla özellik arıyorsanız, Satış (Sales) platformumuzu da hizmete sunduk. Ancak bu platform Shottt servisinden tamamen bağımsızdır; her birinin kendi kullanıcıları vardır ve dilerseniz ona da göz atabilirsiniz.";
+    t.salesBtn = "Satış Platformunu Ziyaret Et ⚡";
+  } else {
+    t.subStatement = "If you are looking for online ordering and e-commerce features, we have launched a completely separate Sales platform. Shottt will remain purely as an ultra-fast, simple, and stable digital catalog to ensure no speed drops or technical complexities.";
+    t.whyFreeP2 = "Therefore, we decided to limit the platform's features due to lack of economic justification. Currently, Shottt is maintained purely as a free, lightweight digital catalog and menu to ensure minimum technical complexity. E-commerce and online ordering features have been moved to the separate 'Sales' platform, which runs on a completely independent server and database. This way, Shottt's speed, security, and stability remain fully guaranteed, and it is provided completely free of charge. 🖤";
+    t.salesStatement = "If you think Shottt alone is not enough and you are looking for more features, we have also launched our Sales platform. However, it is completely separate from this service; each has its own users, and you are welcome to check it out.";
+    t.salesBtn = "Visit Sales Platform ⚡";
+  }
+}
 ---
 
 <main class={`marketing-container font-sans ${TOTAL_FREE ? 'total-free-layout' : 'intl-layout'}`} style={`direction: ${currentLocale === 'fa' ? 'rtl' : 'ltr'};`}>
@@ -208,7 +234,15 @@ const t = homeTranslations[currentLocale as Locale] || homeTranslations['en'];
           <button class={`lang-dropdown-item ${currentLocale === 'tr' ? 'active' : ''}`} data-lang="tr">Türkçe</button>
         </div>
       </div>
-      <a href="/admin" class="top-login-link">{t.ctaLogin}</a>
+      <div class="top-nav-actions">
+        {SALE_URL && (
+          <a href={SALE_URL} class="top-sale-link" target="_blank" rel="noopener noreferrer">
+            <span>{t.salesPlatformLink}</span>
+            <span class="new-badge">{t.newBadge}</span>
+          </a>
+        )}
+        <a href="/admin" class="top-login-link">{t.ctaLogin}</a>
+      </div>
     </div>
   </nav>
 
@@ -298,6 +332,7 @@ const t = homeTranslations[currentLocale as Locale] || homeTranslations['en'];
       </div>
     </div>
   </section>
+
 
   <!-- Pricing Section (only when NOT TOTAL_FREE) -->
   {!TOTAL_FREE && (
@@ -1494,6 +1529,51 @@ const t = homeTranslations[currentLocale as Locale] || homeTranslations['en'];
     .speed-desc {
       text-align: center;
     }
+  }
+
+  /* Top Nav Actions Group */
+  .top-nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  /* Sales Platform Top Bar Link */
+  .top-sale-link {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #52525b;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.375rem 0.75rem;
+    border-radius: 9999px;
+    border: 1px solid transparent;
+    background-color: transparent;
+    transition: all 0.2s ease;
+    user-select: none;
+  }
+
+  .top-sale-link:hover {
+    color: #18181b;
+    background-color: #f4f4f5;
+    border-color: #e4e4e7;
+  }
+
+  /* Premium glowing "New" badge next to text */
+  .new-badge {
+    background: linear-gradient(135deg, #10b981, #059669); /* Soft emerald green */
+    color: #ffffff;
+    font-size: 0.625rem;
+    font-weight: 700;
+    padding: 0.125rem 0.4rem;
+    border-radius: 9999px;
+    margin-inline-start: 0.375rem;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
   }
 
   /* Pricing Section */
