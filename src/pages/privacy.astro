@@ -1,0 +1,455 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getLocale } from '../utils/i18n';
+import { CONTACT_EMAIL } from '../config/contact';
+
+const currentLocale = getLocale(Astro.cookies, Astro.request);
+
+type Locale = 'fa' | 'en' | 'tr';
+
+const localTranslations = {
+  fa: {
+    title: "حریم خصوصی | شات",
+    heading: "سیاست حریم خصوصی شات",
+    subtitle: "تعهدات ما در حفاظت و نگهداری اطلاعات و داده‌های شخصی کاربران شات",
+    backHome: "بازگشت به خانه",
+    sec1Title: "۱. اطلاعات جمع‌آوری شده",
+    sec1Desc: "پلتفرم شات برای ایجاد حساب کاربری و مدیریت کاتالوگ دیجیتال شما، اطلاعات محدودی نظیر نام و نام خانوادگی، شماره تلفن همراه، نام کاربری و آدرس ایمیل را دریافت می‌کند. همچنین جهت بهبود تجربه کاربری، به خاطر سپردن زبان انتخابی و بررسی آمارهای اولیه بازدید، از کوکی‌های استاندارد مرورگر استفاده می‌شود.",
+    sec2Title: "۲. نحوه استفاده از اطلاعات شخصی",
+    sec2Desc: "اطلاعات جمع‌آوری شده صرفاً برای احراز هویت، ارائه خدمات پشتیبانی، پیگیری تراکنش‌های اشتراک، ارسال اطلاعیه‌های سیستمی و بهبود عملکرد کلی پلتفرم استفاده می‌شود. شات متعهد می‌شود که هرگز اطلاعات تماس یا داده‌های مجموعه‌های شما را به اشخاص ثالث، شرکت‌های تبلیغاتی یا هر نهاد غیرمرتبط دیگری نفروشد و یا با آن‌ها به اشتراک نگذارد.",
+    sec3Title: "۳. امنیت و حفاظت از داده‌ها",
+    sec3Desc: "ما از سرورهای ابری امن با پروتکل‌های استاندارد حفاظتی و فایروال‌های پیشرفته برای حفاظت از دیتابیس و تصاویر آپلود شده شما استفاده می‌کنیم. تمامی ارتباطات بین مرورگر شما و سرورهای شات با استفاده از پروتکل کدگذاری شده HTTPS (گواهی SSL فعال) انجام می‌شود تا از سرقت اطلاعات جلوگیری به عمل آید.",
+    sec4Title: "۴. حقوق کاربران و حذف اطلاعات",
+    sec4Desc: "شما به عنوان مدیر مجموعه در هر زمان می‌توانید با ورود به پنل مدیریت نسبت به ویرایش، به‌روزرسانی یا حذف محصولات و تصاویر کاتالوگ خود اقدام کنید. در صورتی که تمایل دارید حساب کاربری شما و تمامی کاتالوگ‌ها و داده‌های مربوط به آن به طور کامل از دیتابیس شات حذف گردد، کافیست درخواست حذف خود را از طریق آدرس ایمیل ثبت‌نامی خود به آدرس پشتیبانی ارسال کنید تا در اسرع وقت اقدام شود.",
+    footerAbout: "درباره ما",
+    footerContact: "تماس با ما",
+    footerTerms: "قوانین و مقررات",
+    footerPrivacy: "حریم خصوصی"
+  },
+  en: {
+    title: "Privacy Policy | Shottt",
+    heading: "Privacy Policy",
+    subtitle: "How we protect, secure, and manage your personal data on Shottt",
+    backHome: "Back to Home",
+    sec1Title: "1. Information We Collect",
+    sec1Desc: "Shottt collects limited personal data, including your full name, mobile number, username, and email address, to facilitate account registration and catalog management. We also use standard browser cookies to remember your language preferences and gather basic usage statistics.",
+    sec2Title: "2. How We Use Your Information",
+    sec2Desc: "Your information is strictly used for authentication, customer support, subscription billing tracking, system notifications, and overall performance improvement of our platform. Shottt commits to never selling, trading, or sharing your personal data with third-party advertisers or unrelated entities.",
+    sec3Title: "3. Data Security & Protection",
+    sec3Desc: "We utilize secure cloud servers equipped with standard protection protocols and firewalls to safeguard our database and your uploaded images. All communications between your browser and our servers are encrypted using the HTTPS protocol (SSL certificate active) to prevent data interception.",
+    sec4Title: "4. Your Rights & Data Deletion",
+    sec4Desc: "As a store manager, you can edit, update, or delete your products and catalog images at any time through the dashboard. If you wish to permanently delete your account and all associated catalogs and data from our database, simply send a deletion request from your registered email address to our support email, and we will process it promptly.",
+    footerAbout: "About Us",
+    footerContact: "Contact Us",
+    footerTerms: "Terms of Service",
+    footerPrivacy: "Privacy Policy"
+  },
+  tr: {
+    title: "Gizlilik Politikası | Shottt",
+    heading: "Gizlilik Politikası",
+    subtitle: "Kişisel verilerinizi Shottt üzerinde nasıl koruyor, güvenliğini sağlıyor ve yönetiyoruz",
+    backHome: "Ana Sayfaya Dön",
+    sec1Title: "1. Topladığımız Bilgiler",
+    sec1Desc: "Shottt, hesap kaydı ve katalog yönetimini kolaylaştırmak için adınız soyadınız, cep telefonu numaranız, kullanıcı adınız ve e-posta adresiniz dahil olmak üzere sınırlı kişisel veri toplar. Tercih ettiğiniz dili hatırlamak ve temel kullanım istatistiklerini toplamak için standart tarayıcı çerezleri kullanırız.",
+    sec2Title: "2. Bilgilerinizi Nasıl Kullanıyoruz",
+    sec2Desc: "Bilgileriniz kesinlikle kimlik doğrulama, müşteri desteği, abonelik ödeme takibi, sistem bildirimleri ve platformumuzun genel olarak iyileştirilmesi için kullanılır. Shottt, kişisel verilerinizi asla üçüncü taraf reklamverenlerle veya ilgisiz kuruluşlarla satmayacağını, ticaretini yapmayacağını veya paylaşmayacağını taahhüt eder.",
+    sec3Title: "3. Veri Güvenliği ve Koruması",
+    sec3Desc: "Veritabanımızı ve yüklediğiniz resimleri korumak için standart koruma protokolleri ve güvenlik duvarları ile donatılmış güvenli bulut sunucuları kullanıyoruz. Veri dinlenmesini önlemek için tarayıcınız ile sunucularımız arasındaki tüm iletişimler HTTPS protokolü (etkin SSL sertifikası) kullanılarak şifrelenir.",
+    sec4Title: "4. Haklarınız ve Veri Silme",
+    sec4Desc: "Mağaza yöneticisi olarak, ürünlerinizi ve katalog görsellerinizi istediğiniz zaman panel üzerinden düzenleyebilir, güncelleyebilir veya silebilirsiniz. Hesabınızı ve ilişkili tüm katalogları ve verileri veritabanımızdan kalıcı olarak silmek isterseniz, kayıtlı e-posta adresinizden destek e-postamıza bir silme talebi göndermeniz yeterlidir.",
+    footerAbout: "Hakkımızda",
+    footerContact: "İletişim",
+    footerTerms: "Kullanım Koşulları",
+    footerPrivacy: "Gizlilik Politikası"
+  }
+};
+
+const t = localTranslations[currentLocale as Locale] || localTranslations['en'];
+---
+
+<Layout title={t.title} description={t.subtitle}>
+  <main class="marketing-container font-sans" style={`direction: ${currentLocale === 'fa' ? 'rtl' : 'ltr'};`}>
+    <!-- Navigation -->
+    <nav class="top-nav">
+      <div class="top-nav-inner">
+        <div class="lang-dropdown-container">
+          <button class="lang-dropdown-trigger" aria-haspopup="listbox" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="globe-icon">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="2" y1="12" x2="22" y2="12"></line>
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+            </svg>
+            <span>{currentLocale === 'fa' ? 'فارسی' : currentLocale === 'tr' ? 'Türkçe' : 'English'}</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="chevron-icon">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+          <div class="lang-dropdown-menu">
+            <button class={`lang-dropdown-item ${currentLocale === 'fa' ? 'active' : ''}`} data-lang="fa">فارسی</button>
+            <button class={`lang-dropdown-item ${currentLocale === 'en' ? 'active' : ''}`} data-lang="en">English</button>
+            <button class={`lang-dropdown-item ${currentLocale === 'tr' ? 'active' : ''}`} data-lang="tr">Türkçe</button>
+          </div>
+        </div>
+        <div class="top-nav-actions">
+          <a href="/" class="top-login-link">{t.backHome}</a>
+        </div>
+      </div>
+    </nav>
+
+    <div class="content-wrapper animate-slide-up">
+      <!-- Big Centered Logo -->
+      <div class="logo-container">
+        <a href="/">
+          <img src="/logo.png" alt="shottt logo" class="brand-logo-img" />
+        </a>
+      </div>
+
+      <!-- Legal Card -->
+      <div class="legal-card card-glass">
+        <h1 class="legal-title">{t.heading}</h1>
+        <p class="legal-subtitle">{t.subtitle}</p>
+        
+        <div class="legal-divider"></div>
+        
+        <div class="legal-text-content">
+          <section class="legal-section">
+            <h2>{t.sec1Title}</h2>
+            <p>{t.sec1Desc}</p>
+          </section>
+
+          <section class="legal-section">
+            <h2>{t.sec2Title}</h2>
+            <p>{t.sec2Desc}</p>
+          </section>
+
+          <section class="legal-section">
+            <h2>{t.sec3Title}</h2>
+            <p>{t.sec3Desc}</p>
+          </section>
+
+          <section class="legal-section">
+            <h2>{t.sec4Title}</h2>
+            <p>{t.sec4Desc}</p>
+            <p style="font-weight: 500; color: #18181b;">
+              {currentLocale === 'fa' ? 'ایمیل رسمی پشتیبانی:' : 'Official support email:'} 
+              <a href={`mailto:${CONTACT_EMAIL}`} style="color: #0284c7; text-decoration: none;">{CONTACT_EMAIL}</a>
+            </p>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="home-footer">
+      <div class="footer-nav-links">
+        <a href="/about" class="footer-link">{t.footerAbout}</a>
+        <span class="footer-bullet">•</span>
+        <a href="/contact" class="footer-link">{t.footerContact}</a>
+        <span class="footer-bullet">•</span>
+        <a href="/terms" class="footer-link">{t.footerTerms}</a>
+        <span class="footer-bullet">•</span>
+        <a href="/privacy" class="footer-link">{t.footerPrivacy}</a>
+      </div>
+    </footer>
+  </main>
+</Layout>
+
+<script is:inline>
+  const langItems = document.querySelectorAll('.lang-dropdown-item');
+  langItems.forEach(item => {
+    item.addEventListener('click', () => {
+      const targetLang = item.getAttribute('data-lang') || 'fa';
+      document.cookie = `lang=${targetLang}; path=/; max-age=31536000`;
+      window.location.reload();
+    });
+  });
+
+  const trigger = document.querySelector('.lang-dropdown-trigger');
+  const menu = document.querySelector('.lang-dropdown-menu');
+  if (trigger && menu) {
+    trigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const expanded = trigger.getAttribute('aria-expanded') === 'true';
+      trigger.setAttribute('aria-expanded', !expanded);
+      menu.classList.toggle('show');
+    });
+    document.addEventListener('click', () => {
+      trigger.setAttribute('aria-expanded', 'false');
+      menu.classList.remove('show');
+    });
+  }
+</script>
+
+<style>
+  .font-sans {
+    font-family: 'Estedad', system-ui, -apple-system, sans-serif;
+  }
+
+  .marketing-container {
+    width: 100%;
+    min-height: 100vh;
+    overflow-x: hidden;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #fafafa;
+    color: #18181b;
+    padding: 0 0 4rem 0;
+    gap: 2.5rem;
+  }
+
+  .top-nav {
+    width: 100%;
+    max-width: 64rem;
+    margin: 0 auto;
+    padding: 1.5rem 2rem 0 2rem;
+    box-sizing: border-box;
+  }
+
+  .top-nav-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+  }
+
+  .lang-dropdown-container {
+    position: relative;
+    display: inline-block;
+  }
+
+  .lang-dropdown-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid #e4e4e7;
+    border-radius: 9999px;
+    padding: 0.5rem 1rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #27272a;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    transition: all 0.2s ease;
+  }
+
+  .lang-dropdown-trigger:hover {
+    background: #ffffff;
+    border-color: #d4d4d8;
+  }
+
+  .globe-icon {
+    width: 1rem;
+    height: 1rem;
+    color: #71717a;
+  }
+
+  .chevron-icon {
+    width: 0.75rem;
+    height: 0.75rem;
+    color: #a1a1aa;
+    transition: transform 0.2s ease;
+  }
+
+  .lang-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    inset-inline-start: 0;
+    background: #ffffff;
+    border: 1px solid #e4e4e7;
+    border-radius: 0.75rem;
+    padding: 0.35rem;
+    min-width: 8rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+    display: none;
+    flex-direction: column;
+    gap: 0.2rem;
+    z-index: 50;
+  }
+
+  .lang-dropdown-menu.show {
+    display: flex;
+  }
+
+  .lang-dropdown-item {
+    background: none;
+    border: none;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #3f3f46;
+    text-align: start;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .lang-dropdown-item:hover {
+    background: #f4f4f5;
+    color: #18181b;
+  }
+
+  .lang-dropdown-item.active {
+    background: #f4f4f5;
+    color: #0284c7;
+    font-weight: 600;
+  }
+
+  .top-login-link {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #27272a;
+    text-decoration: none;
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid #e4e4e7;
+    border-radius: 9999px;
+    padding: 0.5rem 1.25rem;
+    backdrop-filter: blur(8px);
+    transition: all 0.2s ease;
+  }
+
+  .top-login-link:hover {
+    background: #ffffff;
+    border-color: #d4d4d8;
+  }
+
+  .content-wrapper {
+    width: 100%;
+    max-width: 48rem;
+    padding: 0 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-sizing: border-box;
+  }
+
+  .logo-container {
+    margin-bottom: 2rem;
+  }
+
+  .brand-logo-img {
+    height: 5rem;
+    width: auto;
+    object-fit: contain;
+  }
+
+  /* Glassmorphic Legal Card */
+  .card-glass {
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(228, 228, 231, 0.6);
+    border-radius: 1.5rem;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.02), 0 10px 10px -5px rgba(0, 0, 0, 0.01);
+  }
+
+  .legal-card {
+    width: 100%;
+    padding: 3rem;
+    box-sizing: border-box;
+  }
+
+  .legal-title {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #18181b;
+    margin: 0 0 0.5rem 0;
+  }
+
+  .legal-subtitle {
+    font-size: 0.9375rem;
+    color: #71717a;
+    margin: 0;
+  }
+
+  .legal-divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgba(228, 228, 231, 0.8), transparent);
+    margin: 2rem 0;
+  }
+
+  .legal-text-content {
+    font-size: 0.9375rem;
+    line-height: 1.8;
+    color: #3f3f46;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    text-align: justify;
+  }
+
+  .legal-section h2 {
+    font-size: 1.1rem;
+    font-weight: 750;
+    color: #18181b;
+    margin: 0 0 0.75rem 0;
+  }
+
+  .legal-section p {
+    margin: 0;
+    color: #3f3f46;
+  }
+
+  /* Footer */
+  .home-footer {
+    width: 100%;
+    max-width: 64rem;
+    margin-top: auto;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .footer-nav-links {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .footer-link {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #71717a;
+    text-decoration: none;
+    transition: color 0.15s ease;
+  }
+
+  .footer-link:hover {
+    color: #0284c7;
+  }
+
+  .footer-bullet {
+    color: #d4d4d8;
+    font-size: 0.75rem;
+  }
+
+  /* Animations */
+  .animate-slide-up {
+    animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .legal-card {
+      padding: 2rem 1.5rem;
+    }
+    .legal-title {
+      font-size: 1.5rem;
+    }
+  }
+</style>

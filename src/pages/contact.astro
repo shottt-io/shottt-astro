@@ -1,0 +1,516 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getLocale } from '../utils/i18n';
+import { CONTACT_EMAIL, SUPPORT_TELEGRAM } from '../config/contact';
+
+const currentLocale = getLocale(Astro.cookies, Astro.request);
+
+type Locale = 'fa' | 'en' | 'tr';
+
+const localTranslations = {
+  fa: {
+    title: "تماس با ما | شات",
+    heading: "ارتباط با پشتیبانی شات",
+    subtitle: "ما همواره آماده شنیدن نظرات، انتقادات و پاسخ به سوالات شما هستیم.",
+    backHome: "بازگشت به خانه",
+    emailLabel: "ایمیل پشتیبانی",
+    telegramLabel: "کانال اطلاع‌رسانی و پشتیبانی",
+    formTitle: "ارسال پیام مستقیم",
+    formName: "نام و نام خانوادگی *",
+    formEmail: "آدرس ایمیل شما *",
+    formMessage: "متن پیام شما *",
+    formSubmit: "ارسال پیام ⚡",
+    formSuccess: "پیام شما با موفقیت ثبت شد. به زودی از طریق ایمیل با شما در ارتباط خواهیم بود.",
+    formError: "لطفاً تمامی فیلدهای اجباری را به درستی پر کنید.",
+    footerAbout: "درباره ما",
+    footerContact: "تماس با ما",
+    footerTerms: "قوانین و مقررات",
+    footerPrivacy: "حریم خصوصی"
+  },
+  en: {
+    title: "Contact Us | Shottt",
+    heading: "Contact Shottt Support",
+    subtitle: "We are always here to listen to your feedback, suggestions, and answer your questions.",
+    backHome: "Back to Home",
+    emailLabel: "Support Email",
+    telegramLabel: "Telegram Support & Channel",
+    formTitle: "Send a Direct Message",
+    formName: "Full Name *",
+    formEmail: "Your Email Address *",
+    formMessage: "Your Message *",
+    formSubmit: "Send Message ⚡",
+    formSuccess: "Your message has been sent successfully. We will get back to you via email shortly.",
+    formError: "Please fill in all required fields correctly.",
+    footerAbout: "About Us",
+    footerContact: "Contact Us",
+    footerTerms: "Terms of Service",
+    footerPrivacy: "Privacy Policy"
+  },
+  tr: {
+    title: "İletişim | Shottt",
+    heading: "Shottt İletişim",
+    subtitle: "Geri bildirimlerinizi, önerilerinizi dinlemek ve sorularınızı yanıtlamak için her zaman buradayız.",
+    backHome: "Ana Sayfaya Dön",
+    emailLabel: "Destek E-postası",
+    telegramLabel: "Telegram Kanalı ve Destek",
+    formTitle: "Doğrudan Mesaj Gönderin",
+    formName: "Adınız Soyadınız *",
+    formEmail: "E-posta Adresiniz *",
+    formMessage: "Mesajınız *",
+    formSubmit: "Mesaj Gönder ⚡",
+    formSuccess: "Mesajınız başarıyla gönderildi. En kısa sürede e-posta yoluyla sizinle iletişime geçeceğiz.",
+    formError: "Lütfen tüm zorunlu alanları doğru şekilde doldurun.",
+    footerAbout: "Hakkımızda",
+    footerContact: "İletişim",
+    footerTerms: "Kullanım Koşulları",
+    footerPrivacy: "Gizlilik Politikası"
+  }
+};
+
+const t = localTranslations[currentLocale as Locale] || localTranslations['en'];
+---
+
+<Layout title={t.title} description={t.subtitle}>
+  <main class="marketing-container font-sans" style={`direction: ${currentLocale === 'fa' ? 'rtl' : 'ltr'};`}>
+    <!-- Navigation -->
+    <nav class="top-nav">
+      <div class="top-nav-inner">
+        <div class="lang-dropdown-container">
+          <button class="lang-dropdown-trigger" aria-haspopup="listbox" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="globe-icon">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="2" y1="12" x2="22" y2="12"></line>
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+            </svg>
+            <span>{currentLocale === 'fa' ? 'فارسی' : currentLocale === 'tr' ? 'Türkçe' : 'English'}</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="chevron-icon">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+          <div class="lang-dropdown-menu">
+            <button class={`lang-dropdown-item ${currentLocale === 'fa' ? 'active' : ''}`} data-lang="fa">فارسی</button>
+            <button class={`lang-dropdown-item ${currentLocale === 'en' ? 'active' : ''}`} data-lang="en">English</button>
+            <button class={`lang-dropdown-item ${currentLocale === 'tr' ? 'active' : ''}`} data-lang="tr">Türkçe</button>
+          </div>
+        </div>
+        <div class="top-nav-actions">
+          <a href="/" class="top-login-link">{t.backHome}</a>
+        </div>
+      </div>
+    </nav>
+
+    <div class="content-wrapper animate-slide-up">
+      <!-- Big Centered Logo -->
+      <div class="logo-container">
+        <a href="/">
+          <img src="/logo.png" alt="shottt logo" class="brand-logo-img" />
+        </a>
+      </div>
+
+      <!-- Legal / Contact Card -->
+      <div class="legal-card card-glass">
+        <h1 class="legal-title">{t.heading}</h1>
+        <p class="legal-subtitle">{t.subtitle}</p>
+        
+        <div class="legal-divider"></div>
+        
+        <!-- Contact Methods Info Blocks -->
+        <div class="contact-methods-grid">
+          <div class="contact-method-card">
+            <div class="method-icon-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="method-icon">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                <polyline points="22,6 12,13 2,6"></polyline>
+              </svg>
+            </div>
+            <div class="method-details">
+              <h3>{t.emailLabel}</h3>
+              <a href={`mailto:${CONTACT_EMAIL}`} class="method-link">{CONTACT_EMAIL}</a>
+            </div>
+          </div>
+
+          {SUPPORT_TELEGRAM && (
+            <div class="contact-method-card">
+              <div class="method-icon-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="method-icon">
+                  <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                </svg>
+              </div>
+              <div class="method-details">
+                <h3>{t.telegramLabel}</h3>
+                <a href={SUPPORT_TELEGRAM} target="_blank" rel="noopener noreferrer" class="method-link">{SUPPORT_TELEGRAM.replace('https://', '')}</a>
+              </div>
+            </div>
+          )}
+        </div>
+
+
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="home-footer">
+      <div class="footer-nav-links">
+        <a href="/about" class="footer-link">{t.footerAbout}</a>
+        <span class="footer-bullet">•</span>
+        <a href="/contact" class="footer-link">{t.footerContact}</a>
+        <span class="footer-bullet">•</span>
+        <a href="/terms" class="footer-link">{t.footerTerms}</a>
+        <span class="footer-bullet">•</span>
+        <a href="/privacy" class="footer-link">{t.footerPrivacy}</a>
+      </div>
+    </footer>
+  </main>
+</Layout>
+
+<script is:inline>
+  // Language Selector
+  const langItems = document.querySelectorAll('.lang-dropdown-item');
+  langItems.forEach(item => {
+    item.addEventListener('click', () => {
+      const targetLang = item.getAttribute('data-lang') || 'fa';
+      document.cookie = `lang=${targetLang}; path=/; max-age=31536000`;
+      window.location.reload();
+    });
+  });
+
+  const trigger = document.querySelector('.lang-dropdown-trigger');
+  const menu = document.querySelector('.lang-dropdown-menu');
+  if (trigger && menu) {
+    trigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const expanded = trigger.getAttribute('aria-expanded') === 'true';
+      trigger.setAttribute('aria-expanded', !expanded);
+      menu.classList.toggle('show');
+    });
+    document.addEventListener('click', () => {
+      trigger.setAttribute('aria-expanded', 'false');
+      menu.classList.remove('show');
+    });
+  }
+
+
+</script>
+
+<style>
+  .font-sans {
+    font-family: 'Estedad', system-ui, -apple-system, sans-serif;
+  }
+
+  .marketing-container {
+    width: 100%;
+    min-height: 100vh;
+    overflow-x: hidden;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #fafafa;
+    color: #18181b;
+    padding: 0 0 4rem 0;
+    gap: 2.5rem;
+  }
+
+  .top-nav {
+    width: 100%;
+    max-width: 64rem;
+    margin: 0 auto;
+    padding: 1.5rem 2rem 0 2rem;
+    box-sizing: border-box;
+  }
+
+  .top-nav-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+  }
+
+  .lang-dropdown-container {
+    position: relative;
+    display: inline-block;
+  }
+
+  .lang-dropdown-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid #e4e4e7;
+    border-radius: 9999px;
+    padding: 0.5rem 1rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #27272a;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    transition: all 0.2s ease;
+  }
+
+  .lang-dropdown-trigger:hover {
+    background: #ffffff;
+    border-color: #d4d4d8;
+  }
+
+  .globe-icon {
+    width: 1rem;
+    height: 1rem;
+    color: #71717a;
+  }
+
+  .chevron-icon {
+    width: 0.75rem;
+    height: 0.75rem;
+    color: #a1a1aa;
+    transition: transform 0.2s ease;
+  }
+
+  .lang-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    inset-inline-start: 0;
+    background: #ffffff;
+    border: 1px solid #e4e4e7;
+    border-radius: 0.75rem;
+    padding: 0.35rem;
+    min-width: 8rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+    display: none;
+    flex-direction: column;
+    gap: 0.2rem;
+    z-index: 50;
+  }
+
+  .lang-dropdown-menu.show {
+    display: flex;
+  }
+
+  .lang-dropdown-item {
+    background: none;
+    border: none;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #3f3f46;
+    text-align: start;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .lang-dropdown-item:hover {
+    background: #f4f4f5;
+    color: #18181b;
+  }
+
+  .lang-dropdown-item.active {
+    background: #f4f4f5;
+    color: #0284c7;
+    font-weight: 600;
+  }
+
+  .top-login-link {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #27272a;
+    text-decoration: none;
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid #e4e4e7;
+    border-radius: 9999px;
+    padding: 0.5rem 1.25rem;
+    backdrop-filter: blur(8px);
+    transition: all 0.2s ease;
+  }
+
+  .top-login-link:hover {
+    background: #ffffff;
+    border-color: #d4d4d8;
+  }
+
+  .content-wrapper {
+    width: 100%;
+    max-width: 48rem;
+    padding: 0 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-sizing: border-box;
+  }
+
+  .logo-container {
+    margin-bottom: 2rem;
+  }
+
+  .brand-logo-img {
+    height: 5rem;
+    width: auto;
+    object-fit: contain;
+  }
+
+  /* Glassmorphic Legal Card */
+  .card-glass {
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(228, 228, 231, 0.6);
+    border-radius: 1.5rem;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.02), 0 10px 10px -5px rgba(0, 0, 0, 0.01);
+  }
+
+  .legal-card {
+    width: 100%;
+    padding: 3rem;
+    box-sizing: border-box;
+  }
+
+  .legal-title {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #18181b;
+    margin: 0 0 0.5rem 0;
+  }
+
+  .legal-subtitle {
+    font-size: 0.9375rem;
+    color: #71717a;
+    margin: 0;
+  }
+
+  .legal-divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgba(228, 228, 231, 0.8), transparent);
+    margin: 2rem 0;
+  }
+
+  /* Contact Methods Grid */
+  .contact-methods-grid {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+  }
+
+  .contact-method-card {
+    flex: 1 1 20rem;
+    max-width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(228, 228, 231, 0.4);
+    border-radius: 1rem;
+    padding: 1.25rem;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+  }
+
+  .contact-method-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(2, 132, 199, 0.3);
+  }
+
+  .method-icon-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(2, 132, 199, 0.08);
+    color: #0284c7;
+    border-radius: 0.75rem;
+    width: 3rem;
+    height: 3rem;
+    flex-shrink: 0;
+  }
+
+  .method-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .method-details h3 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #71717a;
+    margin: 0 0 0.25rem 0;
+  }
+
+  .method-link {
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: #18181b;
+    text-decoration: none;
+    transition: color 0.15s ease;
+    word-break: break-all;
+  }
+
+  .method-link:hover {
+    color: #0284c7;
+  }
+
+
+
+  /* Footer */
+  .home-footer {
+    width: 100%;
+    max-width: 64rem;
+    margin-top: auto;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .footer-nav-links {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .footer-link {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #71717a;
+    text-decoration: none;
+    transition: color 0.15s ease;
+  }
+
+  .footer-link:hover {
+    color: #0284c7;
+  }
+
+  .footer-bullet {
+    color: #d4d4d8;
+    font-size: 0.75rem;
+  }
+
+  /* Animations */
+  .animate-slide-up {
+    animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .contact-methods-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .legal-card {
+      padding: 2rem 1.5rem;
+    }
+    .legal-title {
+      font-size: 1.5rem;
+    }
+  }
+</style>

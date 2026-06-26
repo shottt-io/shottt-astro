@@ -81,7 +81,11 @@ const homeTranslations = {
     footerText: "توسعه پیدا کرده با",
     pricingBtn: "شروع فوری",
     speedTitle: "سرعت بارگذاری فوق‌العاده ⚡",
-    speedDesc: "شات به صورت کاملاً سبک و لایت پیاده‌سازی شده است. پایداری و سرعت لود زیر یک ثانیه کاتالوگ شما اولویت اصلی ماست و قرار نیست هیچ‌گونه ابزار سنگین، ماژول پیچیده یا سرویس‌های اضافی که باعث کندی پلتفرم می‌شوند به آن اضافه شود."
+    speedDesc: "شات به صورت کاملاً سبک و لایت پیاده‌سازی شده است. پایداری و سرعت لود زیر یک ثانیه کاتالوگ شما اولویت اصلی ماست و قرار نیست هیچ‌گونه ابزار سنگین، ماژول پیچیده یا سرویس‌های اضافی که باعث کندی پلتفرم می‌شوند به آن اضافه شود.",
+    footerAbout: "درباره ما",
+    footerContact: "تماس با ما",
+    footerTerms: "قوانین و مقررات",
+    footerPrivacy: "حریم خصوصی"
   },
   en: {
     mainStatement: "Shottt is simply a clean digital catalog and menu.",
@@ -130,7 +134,11 @@ const homeTranslations = {
     footerText: "Powered by",
     pricingBtn: "Get Started Now",
     speedTitle: "Superb Loading Speed ⚡",
-    speedDesc: "Shottt is designed to be extremely lightweight. Sub-second loading speed and absolute stability of your catalog are our top priorities. No heavy tools, complex modules, or extra services that cause slowdowns will ever be added."
+    speedDesc: "Shottt is designed to be extremely lightweight. Sub-second loading speed and absolute stability of your catalog are our top priorities. No heavy tools, complex modules, or extra services that cause slowdowns will ever be added.",
+    footerAbout: "About Us",
+    footerContact: "Contact Us",
+    footerTerms: "Terms of Service",
+    footerPrivacy: "Privacy Policy"
   },
   tr: {
     mainStatement: "Shottt sadece temiz bir dijital katalog ve menüdür.",
@@ -179,7 +187,11 @@ const homeTranslations = {
     footerText: "Tarafından geliştirildi",
     pricingBtn: "Hemen Başla",
     speedTitle: "Müthiş Yükleme Hızı ⚡",
-    speedDesc: "Shottt tamamen hafif ve performans odaklı bir yapıyla geliştirilmiştir. Kataloğunuzun bir saniyenin altındaki yükleme hızı ve kararlılığı bizim en büyük önceliğimizdir. Platformu yavaşlatacak ağır araçlar veya karmaşık servisler asla eklenmeyecektir."
+    speedDesc: "Shottt tamamen hafif ve performans odaklı bir yapıyla geliştirilmiştir. Kataloğunuzun bir saniyenin altındaki yükleme hızı ve kararlılığı bizim en büyük önceliğimizdir. Platformu yavaşlatacak ağır araçlar veya karmaşık servisler asla eklenmeyecektir.",
+    footerAbout: "Hakkımızda",
+    footerContact: "İletişim",
+    footerTerms: "Kullanım Koşulları",
+    footerPrivacy: "Gizlilik Politikası"
   }
 };
 
@@ -593,15 +605,18 @@ if (SALE_URL) {
     </section>
   )}
 
-  <!-- Footer (only when NOT TOTAL_FREE) -->
-  {!TOTAL_FREE && (
-    <footer class="home-footer">
-      <div class="footer-platform-link">
-        {t.footerText}
-        <img src="/logo.png" alt="shottt" class="footer-logo-img" />
-      </div>
-    </footer>
-  )}
+  <!-- Footer (rendered always for legal compliance / Ads requirements) -->
+  <footer class="home-footer">
+    <div class="footer-nav-links">
+      <a href="/about" class="footer-link">{t.footerAbout}</a>
+      <span class="footer-bullet">•</span>
+      <a href="/contact" class="footer-link">{t.footerContact}</a>
+      <span class="footer-bullet">•</span>
+      <a href="/terms" class="footer-link">{t.footerTerms}</a>
+      <span class="footer-bullet">•</span>
+      <a href="/privacy" class="footer-link">{t.footerPrivacy}</a>
+    </div>
+  </footer>
 
   <!-- Iran Server Redirect Dialog/Modal -->
   {!IS_IRAN_SERVER && (
@@ -1208,7 +1223,6 @@ if (SALE_URL) {
   .brand-logo-img {
     height: 5.5rem;
     width: auto;
-    border-radius: 1.25rem;
     transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
@@ -2092,30 +2106,42 @@ if (SALE_URL) {
   .home-footer {
     width: 100%;
     max-width: 64rem;
-    margin: 2rem auto 0 auto;
+    margin: 3rem auto 0 auto;
     text-align: center;
     display: flex;
     flex-direction: column;
     align-items: center;
+    padding: 0 2rem;
+    box-sizing: border-box;
   }
 
-  .footer-platform-link {
-    font-size: 0.8125rem;
-    font-weight: 400;
-    color: #a1a1aa;
-    text-decoration: none;
-    display: inline-flex;
+  .footer-nav-links {
+    display: flex;
     align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
     gap: 0.75rem;
+    margin-bottom: 1.25rem;
   }
 
-  .footer-logo-img {
-    width: 2.25rem;
-    height: 2.25rem;
-    object-fit: contain;
-    border-radius: 0.5rem;
-    opacity: 0.7;
+  .footer-link {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #71717a;
+    text-decoration: none;
+    transition: color 0.15s ease;
   }
+
+  .footer-link:hover {
+    color: #0284c7;
+  }
+
+  .footer-bullet {
+    color: #d4d4d8;
+    font-size: 0.75rem;
+  }
+
+
 
   .w-4 {
     width: 1rem;
