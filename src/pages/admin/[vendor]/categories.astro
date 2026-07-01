@@ -23,7 +23,7 @@ const vendorList = await db
 const { t } = useTranslations(Astro.cookies, Astro.request);
 
 if (vendorList.length === 0) {
-  return new Response(t('vendorNotFound'), { status: 404 });
+  return Astro.redirect('/admin');
 }
 const vendor = vendorList[0];
 

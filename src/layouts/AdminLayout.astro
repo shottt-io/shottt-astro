@@ -43,7 +43,7 @@ if (session) {
     .limit(1);
 
   if (vendorList.length === 0) {
-    return new Response(t('vendorNotFound'), { status: 404 });
+    return Astro.redirect('/admin');
   }
   vendor = vendorList[0];
 

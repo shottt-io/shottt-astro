@@ -21,7 +21,7 @@ const vendorList = await db
   .limit(1);
 
 if (vendorList.length === 0) {
-  return new Response(t('vendorNotFound'), { status: 404 });
+  return Astro.redirect('/admin');
 }
 const vendor = vendorList[0];
 const currentCurrency = vendor.currency || SUPPORTED_CURRENCIES[0] || translations[locale].currency;
