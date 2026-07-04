@@ -371,7 +371,8 @@ const items = await db
   deleteProductConfirm: t('deleteProductConfirm'),
   deleteBtn: t('deleteBtn'),
   btnCancel: t('btnCancel'),
-  txtVendorProgressStepDefault: t('txtVendorProgressStepDefault')
+  txtVendorProgressStepDefault: t('txtVendorProgressStepDefault'),
+  hasCategories: dbCategories.length > 0
 }}>
   // Onboarding script
   const welcomeModal = document.getElementById('onboarding-welcome-modal');
@@ -388,7 +389,6 @@ const items = await db
   const vendorSlug = window.location.pathname.split('/')[2];
 
   // 1. Show modal if catalog is empty
-  const hasCategories = document.querySelector('.category-products-group') !== null;
   if (welcomeModal && !hasCategories) {
     welcomeModal.showModal();
   }
