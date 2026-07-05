@@ -382,10 +382,10 @@ const changeDesignLabel = {
   </script>
 
   <!-- Client-side script to poll for AI generated images and perform canvas cropping -->
-  <script is:inline define:vars={{ previewId: id, initialHasGridImage: !!vendor.gridImage, initialGridImageUrl: vendor.gridImage || null, currentLocale: vendor.locale || 'fa' }}>
+  <script is:inline define:vars={{ previewId: id, initialHasGridImage: !!vendor.gridImage, initialGridImageUrl: vendor.gridImage || null, initialLogoUrl: vendor.logo || '', currentLocale: vendor.locale || 'fa' }}>
     document.addEventListener('DOMContentLoaded', () => {
       console.log('[DEBUG] DOMContentLoaded initialized.');
-      console.log('[DEBUG] Current configuration:', { previewId, initialHasGridImage, initialGridImageUrl, currentLocale });
+      console.log('[DEBUG] Current configuration:', { previewId, initialHasGridImage, initialGridImageUrl, initialLogoUrl, currentLocale });
 
       const banner = document.getElementById('image-status-banner');
       const bannerText = document.getElementById('image-status-text');
@@ -395,16 +395,19 @@ const changeDesignLabel = {
         fa: {
           preparing: '📸 عکاسی آیتم‌های منو توسط هوش مصنوعی در حال آماده‌سازی است...',
           processing: '✨ تصاویر هوش مصنوعی آماده شد! در حال اعمال روی منو...',
+          uploading: '💾 در حال ذخیره و ثبت تصاویر روی سرور...',
           success: '✅ تصاویر با موفقیت اعمال شدند.'
         },
         en: {
           preparing: '📸 AI menu item photography is being prepared...',
           processing: '✨ AI images ready! Slicing and applying to menu...',
+          uploading: '💾 Saving and registering images on server...',
           success: '✅ Images applied successfully.'
         },
         tr: {
           preparing: '📸 Yapay zeka menü fotoğrafları hazırlanıyor...',
           processing: '✨ Görseller hazır! Menüye uygulanıyor...',
+          uploading: '💾 Görseller sunucuya kaydediliyor...',
           success: '✅ Görseller başarıyla uygulandı.'
         }
       }[currentLocale || 'fa'];
@@ -438,6 +441,13 @@ const changeDesignLabel = {
             const effectiveGridSize = gridSize || 6;
             const tileSize = img.naturalWidth / effectiveGridSize;
             console.log('[DEBUG] Slicing configuration:', { effectiveGridSize, tileSize });
+
+            const isPermanentUrl = (url) => {
+              if (!url) return false;
+              return url.includes('/uploads/') || url.includes('blob.vercel-storage.com') || url.includes('.s3') || url.includes('amazonaws.com');
+            };
+
+            const batch = [];
 
             // Crop and set Logo (always at gridIndex 0, which is col 0, row 0)
             console.log('[DEBUG] Starting Logo crop...');
@@ -473,6 +483,11 @@ const changeDesignLabel = {
             if (logoBox) {
               logoBox.style.display = 'none';
               console.log('[DEBUG] Hid logoBox.');
+            }
+
+            const needsLogoUpload = !isPermanentUrl(initialLogoUrl);
+            if (needsLogoUpload && logoDataUrl) {
+              batch.push({ itemId: 'logo', dataUrl: logoDataUrl });
             }
 
             // Crop and set item images
@@ -527,19 +542,74 @@ const changeDesignLabel = {
                   console.log('[DEBUG] Applied Data URL to item image.');
                 }
               }
+
+              const needsItemUpload = !isPermanentUrl(item.image);
+              if (needsItemUpload && itemDataUrl) {
+                batch.push({ itemId: item.id, dataUrl: itemDataUrl });
+              }
             }
 
-            // Hide status banner
-            if (banner) {
-              bannerText.textContent = messages.success;
-              console.log('[DEBUG] Updated banner text to success.');
-              setTimeout(() => {
-                banner.style.opacity = '0';
+            // Upload the batch of cropped images to the server
+            if (batch.length > 0) {
+              const registerBtn = document.querySelector('.preview-register-btn');
+              if (registerBtn) {
+                registerBtn.style.pointerEvents = 'none';
+                registerBtn.style.opacity = '0.5';
+              }
+
+              if (banner && bannerText) {
+                bannerText.textContent = messages.uploading;
+              }
+
+              console.log('[DEBUG] Batch uploading cropped images to server. Count:', batch.length);
+              fetch('/api/ai/upload-cropped-image', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ previewId, batch })
+              })
+              .then(res => res.json())
+              .then(uploadRes => {
+                console.log('[DEBUG] Batch upload result:', uploadRes);
+                if (uploadRes.success) {
+                  if (registerBtn) {
+                    registerBtn.style.pointerEvents = '';
+                    registerBtn.style.opacity = '';
+                  }
+                  if (banner && bannerText) {
+                    bannerText.textContent = messages.success;
+                    setTimeout(() => {
+                      banner.style.opacity = '0';
+                      setTimeout(() => {
+                        banner.style.display = 'none';
+                        banner.style.opacity = '1';
+                      }, 300);
+                    }, 1000);
+                  }
+                } else {
+                  console.error('[DEBUG] Batch upload failed:', uploadRes.error);
+                  if (banner && bannerText) {
+                    bannerText.textContent = '❌ خطا در ذخیره تصاویر پیش‌نمایش';
+                  }
+                }
+              })
+              .catch(err => {
+                console.error('[DEBUG] Batch upload fetch error:', err);
+                if (banner && bannerText) {
+                  bannerText.textContent = '❌ خطا در ارتباط با سرور جهت ذخیره تصاویر';
+                }
+              });
+            } else {
+              console.log('[DEBUG] No images need to be uploaded. Skipping upload.');
+              if (banner && bannerText) {
+                bannerText.textContent = messages.success;
                 setTimeout(() => {
-                  banner.style.display = 'none';
-                  console.log('[DEBUG] Hid status banner.');
-                }, 300);
-              }, 1000);
+                  banner.style.opacity = '0';
+                  setTimeout(() => {
+                    banner.style.display = 'none';
+                    banner.style.opacity = '1';
+                  }, 300);
+                }, 1000);
+              }
             }
           } catch (ex) {
             console.error('[DEBUG] [ERROR] Exception caught during canvas cropping:', ex);
