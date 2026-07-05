@@ -12,7 +12,7 @@ export const GET: APIRoute = async ({ request }) => {
     });
   }
 
-  const preview = previews.get(id);
+  const preview = await previews.get(id);
   if (!preview) {
     return new Response(JSON.stringify({ success: false, error: 'Preview not found or expired' }), {
       status: 404,

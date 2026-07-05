@@ -136,5 +136,14 @@ export const payments = pgTable('payments', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 });
 
+// 12. Menu Previews Table (tracks temporary paper menu conversions and history)
+export const menuPreviews = pgTable('menu_previews', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  data: jsonb('data').$type<any>().notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  convertedAt: timestamp('converted_at', { withTimezone: true }),
+});
+
+
 
 

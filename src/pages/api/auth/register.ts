@@ -15,7 +15,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     let previewData: any = null;
     if (previewId) {
       const { previews } = await import('../../../utils/store');
-      previewData = previews.get(previewId);
+      previewData = await previews.get(previewId);
     }
 
     // 1. Validation
@@ -201,7 +201,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     // Clean up preview session
     if (previewId) {
       const { previews } = await import('../../../utils/store');
-      previews.delete(previewId);
+      await previews.delete(previewId);
     }
 
     // 5. Sign Session Cookie

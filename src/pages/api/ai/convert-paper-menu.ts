@@ -222,7 +222,7 @@ JSON Schema to match:
 
     const id = crypto.randomUUID();
 
-    previews.set(id, {
+    await previews.set(id, {
       name: menuData.name || "Menu Preview",
       type: storeType,
       slogan: menuData.slogan || "",
@@ -276,7 +276,7 @@ async function generateGridImageAndIndex(
 ) {
   try {
     // 1. Retrieve the preview from the store
-    const preview = previews.get(id);
+    const preview = await previews.get(id);
     if (!preview) {
       console.error(
         `Preview ${id} not found in store at start of background generation`,
@@ -424,7 +424,7 @@ Row 2: (2,1) [Item Name] ...`;
     // Save final properties to preview session
     preview.gridImage = gridPublicUrl;
     preview.gridSize = 6;
-    previews.set(id, preview);
+    await previews.set(id, preview);
 
     console.log(
       `Successfully completed grid image generation for preview ${id}`,

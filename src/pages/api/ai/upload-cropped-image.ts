@@ -19,7 +19,7 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
-    const preview = previews.get(previewId);
+    const preview = await previews.get(previewId);
     if (!preview) {
       return new Response(
         JSON.stringify({
@@ -95,7 +95,7 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     // Save updated preview back to store
-    previews.set(previewId, preview);
+    await previews.set(previewId, preview);
 
     return new Response(JSON.stringify({ success: true, url: publicUrl }), {
       status: 200,

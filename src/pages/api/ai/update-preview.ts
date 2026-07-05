@@ -12,7 +12,7 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    const vendor = previews.get(id);
+    const vendor = await previews.get(id);
     if (!vendor) {
       return new Response(JSON.stringify({ success: false, error: 'Preview not found or expired' }), {
         status: 404,
@@ -28,7 +28,7 @@ export const POST: APIRoute = async ({ request }) => {
       vendor.defaultLayout = layout;
     }
 
-    previews.set(id, vendor);
+    await previews.set(id, vendor);
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,

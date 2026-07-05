@@ -11,7 +11,7 @@ const { t, locale, dir } = useTranslations(Astro.cookies, Astro.request);
 const previewId = Astro.url.searchParams.get('preview_id') || '';
 let prefillData = { name: '', type: '', country: '' };
 if (previewId) {
-  const preview = previews.get(previewId);
+  const preview = await previews.get(previewId);
   if (preview) {
     prefillData = {
       name: preview.name || '',

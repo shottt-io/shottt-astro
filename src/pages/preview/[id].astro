@@ -11,7 +11,7 @@ if (!id) {
   return new Response("Not Found", { status: 404 });
 }
 
-const vendor = previews.get(id);
+const vendor = await previews.get(id);
 if (!vendor) {
   return new Response("Preview Session Expired or Not Found", { status: 404 });
 }
