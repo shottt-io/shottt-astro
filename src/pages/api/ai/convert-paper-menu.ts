@@ -122,7 +122,7 @@ Always match the "locale" field in the output JSON with this requested locale: "
 
     // 4. Generate structured menu JSON text using AI SDK generateText (more robust for OpenRouter)
     const { text } = await generateText({
-      model: openai(modelName),
+      model: openai.chat(modelName),
       maxTokens: 4000,
       messages: [
         {
