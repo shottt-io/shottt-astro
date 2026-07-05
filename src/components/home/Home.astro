@@ -253,7 +253,7 @@ if (SALE_URL) {
             <span class="new-badge">{t.newBadge}</span>
           </a>
         )}
-        <a href="/admin" class="top-login-link">{t.ctaLogin}</a>
+        <a href="/admin" class="top-login-link" data-track-cta="nav_login">{t.ctaLogin}</a>
       </div>
     </div>
   </nav>
@@ -295,7 +295,7 @@ if (SALE_URL) {
           </div>
 
           <div class="action-buttons-wrap">
-            <a href="/admin/register" class="admin-link-main">
+            <a href="/admin/register" class="admin-link-main" data-track-cta="search_create">
               <span>{t.ctaCreate}</span>
             </a>
             {enableConvertPaper && (
@@ -312,7 +312,7 @@ if (SALE_URL) {
         </>
       ) : (
         <>
-          <a href="/admin/register" class="cta-btn primary-btn">
+          <a href="/admin/register" class="cta-btn primary-btn" data-track-cta="hero_create">
             <span>{t.ctaCreate}</span>
           </a>
           {enableConvertPaper && (
@@ -415,7 +415,7 @@ if (SALE_URL) {
               </span>
             </li>
           </ul>
-          <a href="/admin/register" class="pricing-btn-action secondary-pricing-btn">{t.pricingBtn}</a>
+          <a href="/admin/register" class="pricing-btn-action secondary-pricing-btn" data-track-cta="pricing_free">{t.pricingBtn}</a>
         </div>
 
         <!-- Professional Plan -->
@@ -468,7 +468,7 @@ if (SALE_URL) {
               </span>
             </li>
           </ul>
-          <a href="/admin/register" class="pricing-btn-action primary-pricing-btn">{t.pricingBtn}</a>
+          <a href="/admin/register" class="pricing-btn-action primary-pricing-btn" data-track-cta="pricing_professional">{t.pricingBtn}</a>
         </div>
       </div>
     </section>

@@ -502,8 +502,23 @@ const countryDialCodesJson = JSON.stringify(Object.fromEntries(countries.map(c =
       const result = await response.json();
 
       if (response.ok && result.success) {
-        // Redirect to admin landing
-        window.location.href = '/admin';
+        // Track GA4 sign_up event
+        if (typeof window.gtag === 'function') {
+          let redirected = false;
+          const redirect = () => {
+            if (!redirected) {
+              redirected = true;
+              window.location.href = '/admin';
+            }
+          };
+          setTimeout(redirect, 500); // 500ms safety fallback
+          window.gtag('event', 'sign_up', {
+            method: 'email',
+            event_callback: redirect
+          });
+        } else {
+          window.location.href = '/admin';
+        }
       } else {
         errorBanner.textContent = result.message || failedMsg;
         errorBanner.style.display = 'block';
